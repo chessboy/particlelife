@@ -6,6 +6,12 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		D4AED8AC2D5FE09100F2B0EC /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D4AED8AA2D5FE09100F2B0EC /* Metal.framework */; };
+		D4AED8AD2D5FE09100F2B0EC /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D4AED8AB2D5FE09100F2B0EC /* MetalKit.framework */; };
+		D4AED8B82D5FF25D00F2B0EC /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = D4AED8B72D5FF25D00F2B0EC /* .gitignore */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		D4AED88D2D5FE07100F2B0EC /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -27,6 +33,9 @@
 		D4AED87B2D5FE06F00F2B0EC /* particlelife.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = particlelife.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D4AED88C2D5FE07100F2B0EC /* particlelifeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = particlelifeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D4AED8962D5FE07100F2B0EC /* particlelifeUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = particlelifeUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		D4AED8AA2D5FE09100F2B0EC /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
+		D4AED8AB2D5FE09100F2B0EC /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = System/Library/Frameworks/MetalKit.framework; sourceTree = SDKROOT; };
+		D4AED8B72D5FF25D00F2B0EC /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -52,6 +61,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D4AED8AC2D5FE09100F2B0EC /* Metal.framework in Frameworks */,
+				D4AED8AD2D5FE09100F2B0EC /* MetalKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -75,9 +86,11 @@
 		D4AED8722D5FE06F00F2B0EC = {
 			isa = PBXGroup;
 			children = (
+				D4AED8B72D5FF25D00F2B0EC /* .gitignore */,
 				D4AED87D2D5FE06F00F2B0EC /* particlelife */,
 				D4AED88F2D5FE07100F2B0EC /* particlelifeTests */,
 				D4AED8992D5FE07100F2B0EC /* particlelifeUITests */,
+				D4AED8A92D5FE09100F2B0EC /* Frameworks */,
 				D4AED87C2D5FE06F00F2B0EC /* Products */,
 			);
 			sourceTree = "<group>";
@@ -90,6 +103,15 @@
 				D4AED8962D5FE07100F2B0EC /* particlelifeUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		D4AED8A92D5FE09100F2B0EC /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				D4AED8AA2D5FE09100F2B0EC /* Metal.framework */,
+				D4AED8AB2D5FE09100F2B0EC /* MetalKit.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -212,6 +234,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D4AED8B82D5FF25D00F2B0EC /* .gitignore in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

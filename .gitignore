@@ -1,0 +1,38 @@
+# macOS System Files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Xcode & Build Artifacts
+*.xcworkspace/
+*.xcodeproj/project.xcworkspace/
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+DerivedData/
+archives/
+Build/
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Swift Package Manager
+.swiftpm/
+Package.resolved
+.build/
+
+# Metal Shader Compiler Cache
+default.metallib
+*.air
+*.metalmap
+
+# Logs & Debugging
+*.log
+*.swp
+*.swo
+*.ldb
+
+# Git-Specific
+.git/
