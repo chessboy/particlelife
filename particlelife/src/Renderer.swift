@@ -13,7 +13,8 @@ class Renderer: NSObject, MTKViewDelegate {
     var commandQueue: MTLCommandQueue!
     var particleSystem: ParticleSystem!
     var pipelineState: MTLRenderPipelineState!
-    
+    var isPaused = false
+
     init(mtkView: MTKView) {
         super.init()
         self.device = mtkView.device
@@ -61,6 +62,8 @@ class Renderer: NSObject, MTKViewDelegate {
     }
     
     func draw(in view: MTKView) {
+        if isPaused { return }
+
         particleSystem.update()  // GPU updates particle positions
 
         guard let drawable = view.currentDrawable,
