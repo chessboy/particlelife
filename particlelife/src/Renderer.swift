@@ -84,5 +84,10 @@ class Renderer: NSObject, MTKViewDelegate {
         commandBuffer.commit()
     }
     
+    func resetParticles() {
+        particleSystem = ParticleSystem(device: device, count: 20000)  // ✅ Reinitialize particles
+        print("Simulation reset complete.")
+    }
+    
     func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {}
 }

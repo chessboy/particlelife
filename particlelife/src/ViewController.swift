@@ -21,6 +21,8 @@ class ViewController: NSViewController {
 
         metalView = MTKView(frame: view.bounds, device: MTLCreateSystemDefaultDevice())
         metalView.clearColor = MTLClearColor(red: 0, green: 0, blue: 0, alpha: 1)
+        metalView.colorPixelFormat = .bgra8Unorm
+        metalView.framebufferOnly = false
         view.addSubview(metalView)
 
         renderer = Renderer(mtkView: metalView)
@@ -31,12 +33,20 @@ class ViewController: NSViewController {
     override var acceptsFirstResponder: Bool { true }
 
     override func keyDown(with event: NSEvent) {
-        if event.keyCode == 49 {
+        if event.modifierFlags.contains(.command) && event.characters == "r" {
+            resetSimulation()
+        } else if event.keyCode == 49 {  // Space bar for pause
             isPaused.toggle()
             renderer.isPaused = isPaused
+            //print("Simulation Paused: \(isPaused)")
         } else {
-            super.keyDown(with: event)  // Pass unhandled keys to default behavior
+            super.keyDown(with: event)
         }
+    }
+
+    func resetSimulation() {
+        print("Reinitializing simulation...")
+        renderer.resetParticles()  // ✅ Calls Renderer to reset particles
     }
     
     override func viewDidLayout() {
