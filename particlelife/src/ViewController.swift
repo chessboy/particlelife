@@ -1,4 +1,5 @@
 import Cocoa
+import SwiftUI
 import Metal
 import MetalKit
 
@@ -18,18 +19,29 @@ class ViewController: NSViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        
+        // ✅ Create Metal view
         metalView = MTKView(frame: view.bounds, device: MTLCreateSystemDefaultDevice())
         metalView.clearColor = MTLClearColor(red: 0, green: 0, blue: 0, alpha: 1)
-        metalView.colorPixelFormat = .bgra8Unorm
-        metalView.framebufferOnly = false
         view.addSubview(metalView)
 
         renderer = Renderer(mtkView: metalView)
 
-        self.view.window?.makeFirstResponder(self)
+        let settingsView = SimulationSettingsView()
+        let hostingView = NSHostingView(rootView: settingsView)
+        hostingView.frame = CGRect(x: 20, y: 20, width: 300, height: 200)  // Adjust as needed
+        view.addSubview(hostingView)
+        
+        let trackingArea = NSTrackingArea(rect: view.bounds, options: [.activeInKeyWindow, .mouseMoved], owner: self, userInfo: nil)
+        view.addTrackingArea(trackingArea)
     }
 
+    override func mouseDragged(with event: NSEvent) {
+        let location = metalView.convert(event.locationInWindow, from: nil)
+        let viewSize = metalView.bounds.size
+        renderer.handleMouseDrag(location: location, viewSize: viewSize)
+    }
+    
     override var acceptsFirstResponder: Bool { true }
 
     override func keyDown(with event: NSEvent) {

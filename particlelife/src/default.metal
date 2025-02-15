@@ -1,7 +1,6 @@
 #include <metal_stdlib>
 using namespace metal;
 
-
 struct Particle {
     float2 position;
     float2 velocity;
@@ -29,14 +28,19 @@ float3 speciesColor(int species) {
 vertex VertexOut vertex_main(const device Particle* particles [[buffer(0)]], uint id [[vertex_id]]) {
     VertexOut out;
     out.position = float4(particles[id].position, 0.0, 1.0);
-    out.pointSize = 5.0;
+    out.pointSize = 7.0;  // ✅ Reduce size slightly to improve FPS
     out.color = float4(speciesColor(particles[id].species), 1.0);
     
     return out;
 }
 
-fragment float4 fragment_main(VertexOut in [[stage_in]]) {
-    return in.color;
+fragment float4 fragment_main(VertexOut in [[stage_in]], float2 pointCoord [[point_coord]]) {
+    float2 coord = pointCoord - 0.5;
+    float distSquared = dot(coord, coord);
+
+    // ✅ Use smoothstep for soft edges instead of discard
+    float alpha = 1.0 - smoothstep(0.2, 0.25, distSquared);  // ✅ Smooth transition at the edge
+    return float4(in.color.rgb, alpha);
 }
 
 float2 handleBoundary(float2 pos) {
@@ -47,66 +51,84 @@ float2 handleBoundary(float2 pos) {
     return pos;
 }
 
-kernel void compute_particle_movement(device Particle *particles [[buffer(0)]],
-                                      constant float *interactionMatrix [[buffer(1)]],
-                                      constant int *numSpecies [[buffer(2)]],
-                                      constant float *dt [[buffer(3)]],
-                                      uint id [[thread_position_in_grid]],
-                                      uint totalParticles [[threads_per_grid]]) {
+float2 computeWrappedDistance(float2 posA, float2 posB) {
+    float2 delta = posB - posA;
+
+    // ✅ Check shortest path across wrapped boundaries
+    if (delta.x > 1.0) delta.x -= 2.0;
+    if (delta.x < -1.0) delta.x += 2.0;
+    if (delta.y > 1.0) delta.y -= 2.0;
+    if (delta.y < -1.0) delta.y += 2.0;
+
+    return delta;
+}
+
+kernel void compute_particle_movement(
+    device Particle *particles [[buffer(0)]],
+    constant float *interactionMatrix [[buffer(1)]],
+    constant int *numSpecies [[buffer(2)]],
+    constant float *dt [[buffer(3)]],
+    constant float *maxDistance [[buffer(4)]],
+    constant float *minDistance [[buffer(5)]],
+    constant float *beta [[buffer(6)]],
+    constant float *friction [[buffer(7)]],
+    constant float *repulsionStrength [[buffer(8)]],
+    constant float2 *mousePosition [[buffer(9)]],
+    constant float2 *mouseVelocity [[buffer(10)]],
+
+    uint id [[thread_position_in_grid]],
+    uint totalParticles [[threads_per_grid]]) {
+
     if (id >= totalParticles) return;
     
     float2 force = float2(0.0, 0.0);
-    float maxDistance = 1.0;
-    float minDistance = 0.02;
-    float beta = 0.3;
-    
     Particle selfParticle = particles[id];
     
     for (uint i = 0; i < totalParticles; i++) {
         if (i == id) continue;
-        
+
         Particle other = particles[i];
-        float2 direction = other.position - selfParticle.position;
+        float2 direction = computeWrappedDistance(selfParticle.position, other.position);
         float distance = length(direction);
-        
-        if (distance > minDistance && distance < maxDistance) {
+
+        if (distance > *minDistance && distance < *maxDistance) {
             int selfSpecies = selfParticle.species;
             int otherSpecies = other.species;
             float influence = interactionMatrix[selfSpecies * (*numSpecies) + otherSpecies];
-            
-            float forceValue = (distance / beta - 1.0) * influence;
-            if (distance < beta) {
-                forceValue = (distance / beta - 1.0) * influence * 0.5;  // ✅ Scale down attraction force
-            } else {
-                float smoothFactor = 1.0 - abs(1.0 + beta - 2.0 * distance) / (1.0 - beta);
-                forceValue = influence * smoothFactor * 0.5;  // ✅ Scale down long-range force
+
+            float forceValue = (distance / *beta - 1.0) * influence;
+            if (distance < *beta) {
+                forceValue *= 0.7;  // ✅ Weaken short-range attraction
             }
+
+            float falloff = smoothstep(*maxDistance, *minDistance, distance);
+            forceValue *= falloff * (*dt);
+
             
-            float falloff = smoothstep(maxDistance, minDistance, distance);
-            forceValue *= falloff * (*dt);  // ✅ Scale by time step
+            if (!isnan(mousePosition->x) && !isnan(mousePosition->y)) {
+                float2 mouseDir = (*mousePosition) - selfParticle.position;
+                float mouseDist = length(mouseDir);
+
+                if (mouseDist < 0.1) {  // ✅ Larger radius to ensure some effect
+                    float influence = (1.0 - (mouseDist / 0.1)) * 0.1;
+                    force += normalize(mouseDir) * influence * (*mouseVelocity) * 0.2;
+                }
+            }
             
             force += normalize(direction) * forceValue;
         }
+
+        if (*repulsionStrength > 0.0 && distance < (*minDistance * 1.5)) {
+            float repulsion = (*repulsionStrength) * (1.0 - (distance / (*minDistance * 1.5)));
+            force -= normalize(direction) * repulsion;
+        }
     }
-    
-    float friction = 0.98;  // ✅ Adjustable friction factor (reduces energy over time)
-    
-    // Load particle data into thread-local variables
-    thread float2 velocity = selfParticle.velocity;  // ✅ Copy velocity to thread memory
-    
-    // Apply force to velocity
-    velocity += force * 0.1;
-    
-    // Apply friction
-    velocity *= friction;
-    
-    // Update position
-    selfParticle.position += velocity * (*dt);
-    
-    // Apply bouncing boundary conditions
+
+    // Apply friction dynamically
+    selfParticle.velocity += force * 0.1;
+    selfParticle.velocity *= *friction;
+    selfParticle.position += selfParticle.velocity * (*dt);
     selfParticle.position = handleBoundary(selfParticle.position);
-    
-    // Write updated velocity and position back to the particle
-    selfParticle.velocity = velocity;
+
     particles[id] = selfParticle;
 }
