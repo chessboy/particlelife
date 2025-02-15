@@ -30,6 +30,9 @@ struct Particle {
 func generateInteractionMatrix(numSpecies: Int) -> [[Float]] {
     var matrix = [[Float]](repeating: [Float](repeating: 0.0, count: numSpecies), count: numSpecies)
 
+    var attractionTotal: Float = 0.0
+    var repulsionTotal: Float = 0.0
+
     for i in 0..<numSpecies {
         for j in 0..<numSpecies {
             if i == j {
@@ -37,52 +40,58 @@ func generateInteractionMatrix(numSpecies: Int) -> [[Float]] {
             } else if j < i {
                 matrix[i][j] = matrix[j][i]  // ✅ Mirror for symmetry
             } else {
-                matrix[i][j] = Float.random(in: -0.75...0.75)  // ✅ Generate only upper triangle
+                let value = Float.random(in: -0.75...0.75)
+
+                // Balance attraction and repulsion
+                if attractionTotal > abs(repulsionTotal) {
+                    matrix[i][j] = Float.random(in: -0.75...0.0)  // ✅ Bias toward repulsion
+                    repulsionTotal += matrix[i][j]
+                } else {
+                    matrix[i][j] = Float.random(in: 0.0...0.75)  // ✅ Bias toward attraction
+                    attractionTotal += matrix[i][j]
+                }
             }
         }
     }
 
+    print("🔬 Balanced Matrix - Total Attraction: \(attractionTotal), Total Repulsion: \(repulsionTotal)")
     return matrix
 }
 
 class ParticleSystem: ObservableObject {
-    static let shared = ParticleSystem(device: MTLCreateSystemDefaultDevice()!)
+    static let shared = ParticleSystem(device: MTLCreateSystemDefaultDevice()!, count: Constants.particleCount)
+    
     @Published var interactionMatrix: [[Float]] = []
     @Published var speciesColors: [Color] = []  // ✅ Ensure this is @Published
     
     var numSpecies: Int
     var particles: [Particle]
-
+    
     var particleBuffer: MTLBuffer?
     var interactionBuffer: MTLBuffer!
     var numSpeciesBuffer: MTLBuffer!
-
+    
     var maxDistanceBuffer: MTLBuffer?
     var minDistanceBuffer: MTLBuffer?
     var betaBuffer: MTLBuffer?
     var frictionBuffer: MTLBuffer?
     var repulsionStrengthBuffer: MTLBuffer?
-
-    var mousePositionBuffer: MTLBuffer?
-    var mouseVelocityBuffer: MTLBuffer?
-    var currentMousePosition: simd_float2 = simd_float2(0, 0)
-    var currentMouseVelocity: simd_float2 = simd_float2(0, 0)
-
+    
     var device: MTLDevice!
     var computePipeline: MTLComputePipelineState!
     var commandQueue: MTLCommandQueue!
-        
+    
     var lastUpdateTime: TimeInterval = Date().timeIntervalSince1970
-
-    init(device: MTLDevice, count: Int = 50000, numSpecies: Int = 6) {
+    
+    init(device: MTLDevice, count: Int, numSpecies: Int = 6) {
         self.device = device
         self.commandQueue = device.makeCommandQueue()
         self.numSpecies = numSpecies
-
+        
         self.particles = (0..<count).map { _ in
             return Particle.create(numSpecies: numSpecies)
         }
-
+        
         generateNewMatrix()
         updatePhysicsBuffers()
         updateBuffers()
@@ -91,15 +100,15 @@ class ParticleSystem: ObservableObject {
     
     func reset(count: Int) {
         print("🔄 Resetting simulation...")
-
+        
         generateNewMatrix()  // ✅ Update interaction matrix first
-
+        
         for i in 0..<particles.count {
             particles[i].randomize(numSpecies: numSpecies)
         }
-
+        
         updatePhysicsBuffers()
-        updateBuffers()  // ✅ Now update GPU buffers with the modified particles
+        updateBuffers()
     }
     
     func generateNewMatrix() {
@@ -119,7 +128,6 @@ class ParticleSystem: ObservableObject {
                 self.speciesColors = Array(predefinedColors.prefix(numSpecies))
             }
             self.objectWillChange.send()  // ✅ Force UI refresh
-            print("✅ Species Colors Updated:", self.speciesColors)  // ✅ Debugging
         }
     }
     
@@ -134,13 +142,13 @@ class ParticleSystem: ObservableObject {
     
     func updatePhysicsBuffers() {
         let settings = SimulationSettings.shared
-
+        
         var maxDistance = settings.maxDistance
         var minDistance = settings.minDistance
         var beta = settings.beta
         var friction = settings.friction
         var repulsionStrength = settings.repulsionStrength
-
+        
         // ✅ Only update the physics-related buffers
         maxDistanceBuffer?.contents().copyMemory(from: &maxDistance, byteCount: MemoryLayout<Float>.stride)
         minDistanceBuffer?.contents().copyMemory(from: &minDistance, byteCount: MemoryLayout<Float>.stride)
@@ -151,42 +159,23 @@ class ParticleSystem: ObservableObject {
     
     func updateBuffers() {
         print("Full buffer update triggered.")
-
+        
         let settings = SimulationSettings.shared
         var maxDistance = settings.maxDistance
         var minDistance = settings.minDistance
         var beta = settings.beta
         var friction = settings.friction
         var repulsionStrength = settings.repulsionStrength
-
+        
         particleBuffer = device.makeBuffer(bytes: particles, length: MemoryLayout<Particle>.stride * particles.count, options: .storageModeShared)
         numSpeciesBuffer = device.makeBuffer(bytes: &numSpecies, length: MemoryLayout<Int32>.stride, options: .storageModeShared)
         interactionBuffer = device.makeBuffer(bytes: interactionMatrix.flatMap { $0 }, length: MemoryLayout<Float>.stride * numSpecies * numSpecies, options: .storageModeShared)
-
+        
         maxDistanceBuffer = device.makeBuffer(bytes: &maxDistance, length: MemoryLayout<Float>.stride, options: [])
         minDistanceBuffer = device.makeBuffer(bytes: &minDistance, length: MemoryLayout<Float>.stride, options: [])
         betaBuffer = device.makeBuffer(bytes: &beta, length: MemoryLayout<Float>.stride, options: [])
         frictionBuffer = device.makeBuffer(bytes: &friction, length: MemoryLayout<Float>.stride, options: [])
         repulsionStrengthBuffer = device.makeBuffer(bytes: &repulsionStrength, length: MemoryLayout<Float>.stride, options: [])
-        
-        var neutralPosition = simd_float2(Float.nan, Float.nan)
-        var neutralVelocity = simd_float2(0, 0)
-
-        mousePositionBuffer = device.makeBuffer(bytes: &neutralPosition, length: MemoryLayout<simd_float2>.stride, options: [])
-        mouseVelocityBuffer = device.makeBuffer(bytes: &neutralVelocity, length: MemoryLayout<simd_float2>.stride, options: [])
-        
-        clearMouseInfluence()
-    }
-        
-    func clearMouseInfluence() {
-        var neutralPosition = simd_float2(Float.nan, Float.nan)
-        var neutralVelocity = simd_float2(0, 0)
-
-        mousePositionBuffer?.contents().copyMemory(from: &neutralPosition, byteCount: MemoryLayout<simd_float2>.stride)
-        mouseVelocityBuffer?.contents().copyMemory(from: &neutralVelocity, byteCount: MemoryLayout<simd_float2>.stride)
-
-        currentMousePosition = neutralPosition
-        currentMouseVelocity = neutralVelocity
     }
     
     func setupComputePipeline() {
@@ -194,11 +183,11 @@ class ParticleSystem: ObservableObject {
               let computeFunction = library.makeFunction(name: "compute_particle_movement") else {
             fatalError("Failed to load compute function")
         }
-
+        
         guard numSpeciesBuffer != nil else {
             fatalError("numSpeciesBuffer was not created before setting up the pipeline!")
         }
-
+        
         do {
             computePipeline = try device.makeComputePipelineState(function: computeFunction)
         } catch {
@@ -211,7 +200,7 @@ class ParticleSystem: ObservableObject {
         var dt = Float(currentTime - lastUpdateTime)
         dt = max(0.0001, min(dt, 0.01))
         lastUpdateTime = currentTime
-                        
+        
         guard let commandBuffer = commandQueue.makeCommandBuffer(),
               let computeEncoder = commandBuffer.makeComputeCommandEncoder() else { return }
         
@@ -228,25 +217,7 @@ class ParticleSystem: ObservableObject {
         if let frictionBuffer = frictionBuffer { computeEncoder.setBuffer(frictionBuffer, offset: 0, index: 7) }
         if let repulsionStrengthBuffer = repulsionStrengthBuffer { computeEncoder.setBuffer(repulsionStrengthBuffer, offset: 0, index: 8) }
 
-        var mousePos = currentMousePosition
-        var mouseVel = currentMouseVelocity
-
-        mousePositionBuffer?.contents().copyMemory(from: &mousePos, byteCount: MemoryLayout<simd_float2>.stride)
-        mouseVelocityBuffer?.contents().copyMemory(from: &mouseVel, byteCount: MemoryLayout<simd_float2>.stride)
-        
-        if let mousePositionBuffer = mousePositionBuffer {
-            computeEncoder.setBuffer(mousePositionBuffer, offset: 0, index: 9)  // ✅ Ensure this is set
-        } else {
-            print("❌ mousePositionBuffer is nil! Compute shader will fail.")
-        }
-
-        if let mouseVelocityBuffer = mouseVelocityBuffer {
-            computeEncoder.setBuffer(mouseVelocityBuffer, offset: 0, index: 10)  // ✅ Ensure this is set
-        } else {
-            print("❌ mouseVelocityBuffer is nil! Compute shader will fail.")
-        }
-        
-        let threadGroupSize = 256
+        let threadGroupSize = 512
         let threadGroups = (particles.count + threadGroupSize - 1) / threadGroupSize
         
         computeEncoder.dispatchThreadgroups(MTLSize(width: threadGroups, height: 1, depth: 1),

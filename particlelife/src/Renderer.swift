@@ -8,13 +8,16 @@
 import Foundation
 import MetalKit
 
-class Renderer: NSObject, MTKViewDelegate {
+class Renderer: NSObject, MTKViewDelegate, ObservableObject {
+    @Published var fps: Int = 0
+    private var lastUpdateTime: TimeInterval = Date().timeIntervalSince1970
+    private var frameCount = 0
+    
     var device: MTLDevice!
     var commandQueue: MTLCommandQueue!
     var particleSystem: ParticleSystem!
     var pipelineState: MTLRenderPipelineState!
     var isPaused = false
-    var lastMousePosition: simd_float2?  // ✅ Store last position for smooth movement
 
     init(mtkView: MTKView) {
         super.init()
@@ -67,18 +70,31 @@ class Renderer: NSObject, MTKViewDelegate {
     func draw(in view: MTKView) {
         if isPaused { return }
 
-        particleSystem.update()  // ✅ Update simulation step
+        let currentTime = Date().timeIntervalSince1970
+        frameCount += 1
+
+        if currentTime - lastUpdateTime >= 1.0 {
+            let capturedFPS = frameCount
+
+            DispatchQueue.main.async {
+                self.fps = capturedFPS
+                self.objectWillChange.send()
+            }
+
+            frameCount = 0
+            lastUpdateTime = currentTime
+        }
+
+        particleSystem.update()
 
         guard let drawable = view.currentDrawable,
               let commandBuffer = commandQueue.makeCommandBuffer(),
               let passDescriptor = view.currentRenderPassDescriptor else { return }
 
-        // ✅ Ensure buffers are always fresh
         particleSystem.updatePhysicsBuffers()
 
-        // ✅ Fix: Restore full-screen clearing but use subtle alpha
         passDescriptor.colorAttachments[0].loadAction = .clear
-        passDescriptor.colorAttachments[0].clearColor = MTLClearColor(red: 0.05, green: 0.05, blue: 0.05, alpha: 1.0)  // Dark gray, fully opaque
+        passDescriptor.colorAttachments[0].clearColor = MTLClearColor(red: 0.05, green: 0.05, blue: 0.05, alpha: 1.0)
 
         let commandEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: passDescriptor)
         commandEncoder?.setRenderPipelineState(pipelineState)
@@ -91,36 +107,10 @@ class Renderer: NSObject, MTKViewDelegate {
     }
     
     func resetParticles() {
-        particleSystem.reset(count: 36000)
-        NotificationCenter.default.post(name: .resetSimulation, object: nil)  // ✅ Notify UI
+        particleSystem.reset(count: Constants.particleCount)
+        NotificationCenter.default.post(name: .resetSimulation, object: nil)
         print("resetParticles")
     }
-
-    func handleMouseDrag(location: CGPoint, viewSize: CGSize) {
-        let normalizedPosition = simd_float2(
-            Float((location.x / viewSize.width) * 2.0 - 1.0),
-            Float((location.y / viewSize.height) * 2.0 - 1.0)
-        )
-
-        var velocity = lastMousePosition.map { normalizedPosition - $0 } ?? simd_float2(0, 0)
-
-        // ✅ Limit velocity to avoid excessive force
-        let maxVelocity: Float = 0.025
-        velocity = clamp(velocity, min: simd_float2(-maxVelocity, -maxVelocity), max: simd_float2(maxVelocity, maxVelocity))
-
-        lastMousePosition = normalizedPosition
-
-        particleSystem.currentMousePosition = normalizedPosition
-        particleSystem.currentMouseVelocity = velocity
-
-        // ✅ Update Metal buffers with clamped values
-        particleSystem.mousePositionBuffer?.contents().copyMemory(from: &particleSystem.currentMousePosition, byteCount: MemoryLayout<simd_float2>.stride)
-        particleSystem.mouseVelocityBuffer?.contents().copyMemory(from: &particleSystem.currentMouseVelocity, byteCount: MemoryLayout<simd_float2>.stride)
-
-        // ✅ Schedule reset after 100ms
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            self.particleSystem.clearMouseInfluence()
-        }
-    }
+    
     func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {}
 }
