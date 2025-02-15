@@ -9,6 +9,7 @@ import Foundation
 import MetalKit
 
 class Renderer: NSObject, MTKViewDelegate, ObservableObject {
+
     @Published var fps: Int = 0
     private var lastUpdateTime: TimeInterval = Date().timeIntervalSince1970
     private var frameCount = 0
