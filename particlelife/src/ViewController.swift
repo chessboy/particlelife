@@ -27,19 +27,10 @@ class ViewController: NSViewController {
 
         renderer = Renderer(mtkView: metalView)
 
-        let settingsView = SimulationSettingsView()
+        let settingsView = SimulationSettingsView(renderer: renderer)
         let hostingView = NSHostingView(rootView: settingsView)
         hostingView.frame = CGRect(x: 20, y: 20, width: 300, height: 200)  // Adjust as needed
         view.addSubview(hostingView)
-        
-        let trackingArea = NSTrackingArea(rect: view.bounds, options: [.activeInKeyWindow, .mouseMoved], owner: self, userInfo: nil)
-        view.addTrackingArea(trackingArea)
-    }
-
-    override func mouseDragged(with event: NSEvent) {
-        let location = metalView.convert(event.locationInWindow, from: nil)
-        let viewSize = metalView.bounds.size
-        renderer.handleMouseDrag(location: location, viewSize: viewSize)
     }
     
     override var acceptsFirstResponder: Bool { true }

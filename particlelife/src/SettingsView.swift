@@ -10,6 +10,8 @@ import SwiftUI
 struct SimulationSettingsView: View {
     @ObservedObject var particleSystem = ParticleSystem.shared
     @ObservedObject var settings = SimulationSettings.shared
+    @ObservedObject var renderer: Renderer  // ✅ Observe Renderer for FPS updates
+
     @State private var interactionMatrix: [[Float]] = ParticleSystem.shared.interactionMatrix
     @State private var speciesColors: [Color] = ParticleSystem.shared.speciesColors
 
@@ -19,6 +21,15 @@ struct SimulationSettingsView: View {
                 .font(.headline)
                 .foregroundColor(.white)
                 .padding(.bottom, 5)
+            
+            Text("Particles: \(Constants.particleCount)")
+                .font(.body)
+                .foregroundColor(.white)
+                .padding(.bottom, 5)
+
+            Text("FPS: \(renderer.fps)")
+                .font(.headline)
+                .foregroundColor(renderer.fps < 30 ? .red : .green)
             
             MatrixView(interactionMatrix: particleSystem.interactionMatrix, speciesColors: particleSystem.speciesColors)
 

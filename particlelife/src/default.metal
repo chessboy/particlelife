@@ -28,7 +28,7 @@ float3 speciesColor(int species) {
 vertex VertexOut vertex_main(const device Particle* particles [[buffer(0)]], uint id [[vertex_id]]) {
     VertexOut out;
     out.position = float4(particles[id].position, 0.0, 1.0);
-    out.pointSize = 7.0;  // ✅ Reduce size slightly to improve FPS
+    out.pointSize = 9.0;  // ✅ Reduce size slightly to improve FPS
     out.color = float4(speciesColor(particles[id].species), 1.0);
     
     return out;
@@ -48,13 +48,13 @@ float2 handleBoundary(float2 pos) {
     if (pos.x < -1.0) pos.x += 2.0;
     if (pos.y > 1.0) pos.y -= 2.0;
     if (pos.y < -1.0) pos.y += 2.0;
+
     return pos;
 }
 
 float2 computeWrappedDistance(float2 posA, float2 posB) {
     float2 delta = posB - posA;
 
-    // ✅ Check shortest path across wrapped boundaries
     if (delta.x > 1.0) delta.x -= 2.0;
     if (delta.x < -1.0) delta.x += 2.0;
     if (delta.y > 1.0) delta.y -= 2.0;
@@ -73,8 +73,6 @@ kernel void compute_particle_movement(
     constant float *beta [[buffer(6)]],
     constant float *friction [[buffer(7)]],
     constant float *repulsionStrength [[buffer(8)]],
-    constant float2 *mousePosition [[buffer(9)]],
-    constant float2 *mouseVelocity [[buffer(10)]],
 
     uint id [[thread_position_in_grid]],
     uint totalParticles [[threads_per_grid]]) {
@@ -103,21 +101,11 @@ kernel void compute_particle_movement(
 
             float falloff = smoothstep(*maxDistance, *minDistance, distance);
             forceValue *= falloff * (*dt);
-
-            
-            if (!isnan(mousePosition->x) && !isnan(mousePosition->y)) {
-                float2 mouseDir = (*mousePosition) - selfParticle.position;
-                float mouseDist = length(mouseDir);
-
-                if (mouseDist < 0.1) {  // ✅ Larger radius to ensure some effect
-                    float influence = (1.0 - (mouseDist / 0.1)) * 0.1;
-                    force += normalize(mouseDir) * influence * (*mouseVelocity) * 0.2;
-                }
-            }
             
             force += normalize(direction) * forceValue;
         }
 
+        // universal repeller
         if (*repulsionStrength > 0.0 && distance < (*minDistance * 1.5)) {
             float repulsion = (*repulsionStrength) * (1.0 - (distance / (*minDistance * 1.5)));
             force -= normalize(direction) * repulsion;
