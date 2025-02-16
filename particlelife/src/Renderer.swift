@@ -11,6 +11,15 @@ import MetalKit
 class Renderer: NSObject, MTKViewDelegate, ObservableObject {
     
     @Published var fps: Int = 0
+    @Published var isPaused: Bool = false {
+        didSet {
+            if !isPaused {
+                lastUpdateTime = Date().timeIntervalSince1970
+                frameCount = 0
+            }
+        }
+    }
+
     var cameraPosition: simd_float2 = .zero
     var zoomLevel: Float = 1.0
 
@@ -22,9 +31,7 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
     private var particleSystem: ParticleSystem!
     private var pipelineState: MTLRenderPipelineState!
     private var computePipeline: MTLComputePipelineState?
-    
-    var isPaused = false
-    
+        
     init(mtkView: MTKView) {
         super.init()
         self.device = mtkView.device
@@ -89,21 +96,23 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         frameCount += 1
 
         if currentTime - lastUpdateTime >= 1.0 {
+            let capturedFPS = frameCount
+
             DispatchQueue.main.async {
-                self.fps = self.frameCount
+                self.fps = capturedFPS
                 self.objectWillChange.send()
             }
+
             frameCount = 0
             lastUpdateTime = currentTime
         }
 
         particleSystem.update()
 
-        // Ensure buffers are updated
         BufferManager.shared.updateCameraBuffer(position: cameraPosition)
         BufferManager.shared.updateZoomBuffer(zoom: zoomLevel)
     }
-
+    
     // Runs the Metal Compute Pass
     private func runComputePass(commandBuffer: MTLCommandBuffer?) {
         guard let computeEncoder = commandBuffer?.makeComputeCommandEncoder(),
@@ -148,8 +157,16 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
 
         commandBuffer?.present(drawable)
     }
-
+    
     // Zoom Controls
+    
+    func resetPanAndZoom() {
+        zoomLevel = 1.0
+        cameraPosition = .zero
+        BufferManager.shared.updateZoomBuffer(zoom: zoomLevel)
+        BufferManager.shared.updateCameraBuffer(position: cameraPosition)
+    }
+    
     func zoomIn() {
         zoomLevel *= Constants.Controls.zoomStep
         BufferManager.shared.updateZoomBuffer(zoom: zoomLevel)
@@ -161,11 +178,26 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
     }
 
     // Pan Controls
-    func panLeft()  { cameraPosition.x -= Constants.Controls.panStep / zoomLevel; updateCamera() }
-    func panRight() { cameraPosition.x += Constants.Controls.panStep / zoomLevel; updateCamera() }
-    func panUp()    { cameraPosition.y += Constants.Controls.panStep / zoomLevel; updateCamera() }
-    func panDown()  { cameraPosition.y -= Constants.Controls.panStep / zoomLevel; updateCamera() }
+    func panLeft() {
+        cameraPosition.x -= Constants.Controls.panStep / zoomLevel
+        BufferManager.shared.updateCameraBuffer(position: cameraPosition)
+    }
 
+    func panRight() {
+        cameraPosition.x += Constants.Controls.panStep / zoomLevel
+        BufferManager.shared.updateCameraBuffer(position: cameraPosition)
+    }
+
+    func panUp() {
+        cameraPosition.y += Constants.Controls.panStep / zoomLevel
+        BufferManager.shared.updateCameraBuffer(position: cameraPosition)
+    }
+
+    func panDown() {
+        cameraPosition.y -= Constants.Controls.panStep / zoomLevel
+        BufferManager.shared.updateCameraBuffer(position: cameraPosition)
+    }
+    
     private func updateCamera() {
         BufferManager.shared.updateCameraBuffer(position: cameraPosition)
     }

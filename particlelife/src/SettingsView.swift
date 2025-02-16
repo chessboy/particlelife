@@ -27,9 +27,9 @@ struct SimulationSettingsView: View {
                 .foregroundColor(.white)
                 .padding(.bottom, 5)
 
-            Text("FPS: \(renderer.fps)")
+            Text(renderer.isPaused ? "PAUSED" : "FPS: \(renderer.fps)")
                 .font(.headline)
-                .foregroundColor(renderer.fps < 30 ? .red : .green)
+                .foregroundColor(renderer.isPaused || renderer.fps < 30 ? .red : .green)
             
             MatrixView(interactionMatrix: particleSystem.interactionMatrix, speciesColors: particleSystem.speciesColors)
 
@@ -73,7 +73,7 @@ struct SimulationSettingsView: View {
             .padding(.top, 10)
         }
         .padding()
-        .padding(.bottom, 200)
+        .padding(.bottom, 240)
         .background(Color.black.opacity(0.5))
         .cornerRadius(10)
         .shadow(radius: 5)

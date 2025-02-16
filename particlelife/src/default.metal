@@ -25,17 +25,18 @@ float3 speciesColor(int species) {
     }
 }
 
-vertex VertexOut vertex_main(
-    const device Particle* particles [[buffer(0)]],
-    const device float2* cameraPosition [[buffer(1)]],
-    const device float* zoomLevel [[buffer(2)]],
-    uint id [[vertex_id]]) {
-
+vertex VertexOut vertex_main(const device Particle* particles [[buffer(0)]],
+                             const device float2* cameraPosition [[buffer(1)]],
+                             const device float* zoomLevel [[buffer(2)]],
+                             uint id [[vertex_id]]) {
     VertexOut out;
-    
-    // Compute transformed position
-    float2 worldPosition = (particles[id].position - *cameraPosition) * *zoomLevel;
 
+    // ✅ Convert to world space
+    float2 worldPosition = particles[id].position - *cameraPosition;
+    
+    // ✅ Apply zoom only for rendering
+    worldPosition *= *zoomLevel;
+    
     out.position = float4(worldPosition, 0.0, 1.0);
     out.pointSize = 7.0;
     out.color = float4(speciesColor(particles[id].species), 1.0);
@@ -52,26 +53,22 @@ fragment float4 fragment_main(VertexOut in [[stage_in]], float2 pointCoord [[poi
     return float4(in.color.rgb, alpha);
 }
 
-float2 handleBoundary(float2 pos, float2 cameraPosition, float zoomLevel) {
-    float boundarySize = 1.0 / zoomLevel;
-    float2 wrappedPos = pos;
-
-    if (wrappedPos.x > cameraPosition.x + boundarySize) wrappedPos.x -= 2.0 * boundarySize;
-    if (wrappedPos.x < cameraPosition.x - boundarySize) wrappedPos.x += 2.0 * boundarySize;
-    if (wrappedPos.y > cameraPosition.y + boundarySize) wrappedPos.y -= 2.0 * boundarySize;
-    if (wrappedPos.y < cameraPosition.y - boundarySize) wrappedPos.y += 2.0 * boundarySize;
-
-    return wrappedPos;
+float2 handleBoundary(float2 pos) {
+    if (pos.x > 1.0) pos.x -= 2.0;
+    if (pos.x < -1.0) pos.x += 2.0;
+    if (pos.y > 1.0) pos.y -= 2.0;
+    if (pos.y < -1.0) pos.y += 2.0;
+    
+    return pos;
 }
 
-float2 computeWrappedDistance(float2 posA, float2 posB, float2 cameraPosition, float zoomLevel) {
-    float boundarySize = 1.0 / zoomLevel;
+float2 computeWrappedDistance(float2 posA, float2 posB) {
     float2 delta = posB - posA;
 
-    if (delta.x > boundarySize) delta.x -= 2.0 * boundarySize;
-    if (delta.x < -boundarySize) delta.x += 2.0 * boundarySize;
-    if (delta.y > boundarySize) delta.y -= 2.0 * boundarySize;
-    if (delta.y < -boundarySize) delta.y += 2.0 * boundarySize;
+    if (delta.x > 1.0) delta.x -= 2.0;
+    if (delta.x < -1.0) delta.x += 2.0;
+    if (delta.y > 1.0) delta.y -= 2.0;
+    if (delta.y < -1.0) delta.y += 2.0;
 
     return delta;
 }
@@ -101,7 +98,7 @@ kernel void compute_particle_movement(
         if (i == id) continue;
 
         Particle other = particles[i];
-        float2 direction = computeWrappedDistance(selfParticle.position, other.position, *cameraPosition, *zoomLevel);
+        float2 direction = computeWrappedDistance(selfParticle.position, other.position);
         float distance = length(direction);
 
         if (distance > *minDistance && distance < *maxDistance) {
@@ -131,7 +128,7 @@ kernel void compute_particle_movement(
     selfParticle.velocity += force * 0.1;
     selfParticle.velocity *= *friction;
     selfParticle.position += selfParticle.velocity * (*dt);
-    selfParticle.position = handleBoundary(selfParticle.position, *cameraPosition, *zoomLevel);
+    selfParticle.position = handleBoundary(selfParticle.position);
 
     particles[id] = selfParticle;
 }

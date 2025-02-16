@@ -44,6 +44,8 @@ class ViewController: NSViewController {
         case 49: // space bar
             isPaused.toggle()
             renderer.isPaused = isPaused
+        case 53: // esc
+            renderer.resetPanAndZoom()
         case 24: // `+` key
             renderer.zoomIn()
         case 27: // `-` key
