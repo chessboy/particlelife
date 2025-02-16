@@ -30,11 +30,11 @@ class SimulationSettings: ObservableObject {
     static let repulsionStrengthMin: Float = 0.01
     static let repulsionStrengthMax: Float = 0.2
 
-    @Published var maxDistance: Float = maxDistanceDefault { didSet { ParticleSystem.shared.updatePhysicsBuffers() } }
-    @Published var minDistance: Float = minDistanceDefault { didSet { ParticleSystem.shared.updatePhysicsBuffers() } }
-    @Published var beta: Float = betaDefault { didSet { ParticleSystem.shared.updatePhysicsBuffers() } }
-    @Published var friction: Float = frictionDefault { didSet { ParticleSystem.shared.updatePhysicsBuffers() } }
-    @Published var repulsionStrength: Float = repulsionStrengthDefault { didSet { ParticleSystem.shared.updatePhysicsBuffers() } }
+    @Published var maxDistance: Float = maxDistanceDefault { didSet { BufferManager.shared.updatePhysicsBuffers() } }
+    @Published var minDistance: Float = minDistanceDefault { didSet { BufferManager.shared.updatePhysicsBuffers() } }
+    @Published var beta: Float = betaDefault { didSet { BufferManager.shared.updatePhysicsBuffers() } }
+    @Published var friction: Float = frictionDefault { didSet { BufferManager.shared.updatePhysicsBuffers() } }
+    @Published var repulsionStrength: Float = repulsionStrengthDefault { didSet { BufferManager.shared.updatePhysicsBuffers() } }
 
     func resetToDefaults() {
         maxDistance = SimulationSettings.maxDistanceDefault

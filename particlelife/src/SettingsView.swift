@@ -10,7 +10,7 @@ import SwiftUI
 struct SimulationSettingsView: View {
     @ObservedObject var particleSystem = ParticleSystem.shared
     @ObservedObject var settings = SimulationSettings.shared
-    @ObservedObject var renderer: Renderer  // ✅ Observe Renderer for FPS updates
+    @ObservedObject var renderer: Renderer  // Observe Renderer for FPS updates
 
     @State private var interactionMatrix: [[Float]] = ParticleSystem.shared.interactionMatrix
     @State private var speciesColors: [Color] = ParticleSystem.shared.speciesColors
@@ -58,16 +58,16 @@ struct SimulationSettingsView: View {
                 .padding(.vertical, 5)
             
             Button(action: {
-                settings.resetToDefaults()  // ✅ Reset physics settings to defaults
+                settings.resetToDefaults()  // Reset physics settings to defaults
             }) {
                 Text("Reset to Defaults")
                     .font(.headline)
                     .foregroundColor(.white)
                     .padding()
                     .frame(maxWidth: .infinity)
-                    .background(Color.blue.opacity(0.7))  // ✅ Semi-transparent blue
-                    .compositingGroup()  // ✅ Reduces GPU redraws
-                    .drawingGroup()  // ✅ Renders UI as a single texture to reduce SwiftUI overhead
+                    .background(Color.blue.opacity(0.7))  // Semi-transparent blue
+                    .compositingGroup()  // Reduces GPU redraws
+                    .drawingGroup()  // Renders UI as a single texture to reduce SwiftUI overhead
                     .cornerRadius(10)
             }
             .padding(.top, 10)
@@ -86,6 +86,6 @@ struct SimulationSettingsView: View {
 
 //#Preview {
 //    SimulationSettingsView()
-//        .frame(width: 300, height: 250)  // ✅ Set a reasonable preview size
-//        .background(Color.gray.opacity(0.3))  // ✅ Helps visualize transparency in the preview
+//        .frame(width: 300, height: 250)  // Set a reasonable preview size
+//        .background(Color.gray.opacity(0.3))  // Helps visualize transparency in the preview
 //}
