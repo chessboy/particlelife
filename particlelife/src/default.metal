@@ -21,7 +21,10 @@ float3 speciesColor(int species) {
         case 3: return float3(0.0, 1.0, 0.0);  // 🟢 Green
         case 4: return float3(0.0, 0.0, 1.0);  // 🔵 Blue
         case 5: return float3(0.5, 0.0, 1.0);  // 🟣 Purple
-        default: return float3(1.0, 1.0, 1.0); // ⚪ White (debug)
+        case 6: return float3(0.0, 1.0, 1.0);  // 🟦 Cyan
+        case 7: return float3(1.0, 0.0, 1.0);  // 💖 Magenta
+        case 8: return float3(1.0, 1.0, 1.0);  // ⚪ White
+        default: return float3(0.7, 0.7, 0.7); // ⚫ Light Gray (fallback)
     }
 }
 

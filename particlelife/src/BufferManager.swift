@@ -101,6 +101,12 @@ class BufferManager {
     private func flattenInteractionMatrix(_ matrix: [[Float]]) -> [Float] {
         return matrix.flatMap { $0 }
     }
+    
+    func clearParticleBuffers() {
+        particleBuffer = nil
+        interactionBuffer = nil
+        numSpeciesBuffer = nil
+    }
 }
 
 // Buffer Updates

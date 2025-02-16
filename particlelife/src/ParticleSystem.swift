@@ -15,7 +15,7 @@ class ParticleSystem: ObservableObject {
     @Published var interactionMatrix: [[Float]] = []
     @Published var speciesColors: [Color] = []
     
-    var numSpecies: Int = 6
+    var numSpecies = Constants.numSpecies
     var particles: [Particle] = []
     var lastUpdateTime: TimeInterval = Date().timeIntervalSince1970
 
@@ -29,6 +29,7 @@ class ParticleSystem: ObservableObject {
     
     /// Updates buffers and physics settings
     private func updatePhysicsAndBuffers() {
+        BufferManager.shared.clearParticleBuffers()
         BufferManager.shared.initializeParticleBuffers(
             particles: particles,
             interactionMatrix: interactionMatrix,
@@ -48,8 +49,8 @@ class ParticleSystem: ObservableObject {
     
     /// Generates a new set of particles
     private func generateParticles() {
-        //return ParticleGenerator.colorBands(count: Constants.defaultParticleCount, numSpecies: 6)
-        particles = ParticleGenerator.uniform(count: Constants.defaultParticleCount, numSpecies: 6)
+        //return ParticleGenerator.colorBands(count: Constants.defaultParticleCount, numSpecies: Constants.numSpecies)
+        particles = ParticleGenerator.uniform(count: Constants.defaultParticleCount, numSpecies: Constants.numSpecies)
     }
     
     /// Generates a new interaction matrix and updates colors
@@ -61,8 +62,8 @@ class ParticleSystem: ObservableObject {
 
     /// Generates colors for each species
     private func generateSpeciesColors() {
-        let predefinedColors: [Color] = [.red, .orange, .yellow, .green, .blue, .purple]
-
+        let predefinedColors = Constants.speciesColors
+            
         DispatchQueue.main.async {
             self.speciesColors = (0..<self.numSpecies).map { species in
                 predefinedColors[species % predefinedColors.count]
