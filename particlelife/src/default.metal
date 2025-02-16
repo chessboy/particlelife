@@ -85,15 +85,21 @@ kernel void compute_particle_movement(
     constant float *repulsionStrength [[buffer(8)]],
     constant float2 *cameraPosition [[buffer(9)]],
     constant float *zoomLevel [[buffer(10)]],
-
     uint id [[thread_position_in_grid]],
     uint totalParticles [[threads_per_grid]]) {
 
     if (id >= totalParticles) return;
     
+        
     float2 force = float2(0.0, 0.0);
     Particle selfParticle = particles[id];
     
+    if (selfParticle.species < 0 || selfParticle.species >= *numSpecies) {
+        selfParticle.species = 0;  // Debug: Prevent invalid species values
+    }
+    particles[id] = selfParticle;
+
+        
     for (uint i = 0; i < totalParticles; i++) {
         if (i == id) continue;
 

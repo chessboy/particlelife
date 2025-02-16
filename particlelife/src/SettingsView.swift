@@ -50,7 +50,7 @@ struct SimulationSettingsView: View {
             }
 
             Slider(value: $settings.repulsionStrength, in: SimulationSettings.repulsionStrengthMin...SimulationSettings.repulsionStrengthMax, step: 0.01) {
-                Text("Repulsion Strength: \(settings.repulsionStrength, specifier: "%.2f")")
+                Text("Repulsion: \(settings.repulsionStrength, specifier: "%.2f")")
             }
             
             Divider()
@@ -65,7 +65,6 @@ struct SimulationSettingsView: View {
                     .foregroundColor(.white)
                     .padding()
                     .frame(maxWidth: .infinity)
-                    .background(Color.blue.opacity(0.7))  // Semi-transparent blue
                     .compositingGroup()  // Reduces GPU redraws
                     .drawingGroup()  // Renders UI as a single texture to reduce SwiftUI overhead
                     .cornerRadius(10)
@@ -83,9 +82,3 @@ struct SimulationSettingsView: View {
         }
     }
 }
-
-//#Preview {
-//    SimulationSettingsView()
-//        .frame(width: 300, height: 250)  // Set a reasonable preview size
-//        .background(Color.gray.opacity(0.3))  // Helps visualize transparency in the preview
-//}

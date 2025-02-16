@@ -11,8 +11,4 @@ import SwiftUI
 @main
 class AppDelegate: NSObject, NSApplicationDelegate {
     var window: NSWindow?
-
-    func applicationDidFinishLaunching(_ notification: Notification) {
-       
-    }
 }

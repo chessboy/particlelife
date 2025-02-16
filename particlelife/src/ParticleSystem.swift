@@ -13,23 +13,29 @@ class ParticleSystem: ObservableObject {
     static let shared = ParticleSystem()
 
     @Published var interactionMatrix: [[Float]] = []
-    @Published var speciesColors: [Color] = []  // Ensure this is @Published
+    @Published var speciesColors: [Color] = []
     
     var numSpecies: Int
     var particles: [Particle]
-    
     var lastUpdateTime: TimeInterval = Date().timeIntervalSince1970
 
     init(numSpecies: Int = 6) {
         self.numSpecies = numSpecies
-        self.particles = (0..<Constants.defaultParticleCount).map { _ in Particle.create(numSpecies: numSpecies) }
+        self.particles = ParticleSystem.generateParticles()
 
         generateNewMatrix()
         updatePhysicsAndBuffers()
     }
+    
+    /// Generates a new set of particles
+    static func generateParticles() -> [Particle] {
+        //return ParticleGenerator.colorBands(count: Constants.defaultParticleCount, numSpecies: 6)
+        return ParticleGenerator.uniform(count: Constants.defaultParticleCount, numSpecies: 6)
+    }
 
-    /// Centralized function to update physics and buffers
+    /// Updates buffers and physics settings
     private func updatePhysicsAndBuffers() {
+        BufferManager.shared.clearParticleBuffers()
         BufferManager.shared.initializeParticleBuffers(
             particles: particles,
             interactionMatrix: interactionMatrix,
@@ -40,45 +46,40 @@ class ParticleSystem: ObservableObject {
         BufferManager.shared.updateZoomBuffer(zoom: 1.0)
     }
 
+    /// Resets the simulation and regenerates particles
     func reset() {
-        print("🔄 Resetting simulation...")
-
         generateNewMatrix()
-
-        for i in 0..<particles.count {
-            particles[i].randomize(numSpecies: numSpecies)
-        }
-
+        particles = ParticleSystem.generateParticles()
         updatePhysicsAndBuffers()
     }
-
+    
+    /// Generates a new interaction matrix and updates colors
     private func generateNewMatrix() {
-        interactionMatrix = generateInteractionMatrix(numSpecies: numSpecies)
-        generateSpeciesColors(numSpecies: numSpecies)
+        interactionMatrix = MatrixGenerator.generateInteractionMatrix(numSpecies: numSpecies, type: .random)
+        generateSpeciesColors()
         BufferManager.shared.updateInteractionMatrix(matrix: interactionMatrix, numSpecies: numSpecies)
     }
-    
-    private func generateSpeciesColors(numSpecies: Int) {
-        
+
+    /// Generates colors for each species
+    private func generateSpeciesColors() {
         let predefinedColors: [Color] = [.red, .orange, .yellow, .green, .blue, .purple]
 
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-
-            self.speciesColors = (0..<numSpecies).map { species in
-                return predefinedColors[species % predefinedColors.count]
+        DispatchQueue.main.async {
+            self.speciesColors = (0..<self.numSpecies).map { species in
+                predefinedColors[species % predefinedColors.count]
             }
-            
             self.objectWillChange.send()
         }
     }
 
+    /// Returns a string representation of the interaction matrix
     func getInteractionMatrixString() -> String {
         return interactionMatrix
             .map { $0.map { String(format: "%.2f", $0) }.joined(separator: "  ") }
             .joined(separator: "\n")
     }
 
+    /// Updates delta time for particle movement
     func update() {
         let currentTime = Date().timeIntervalSince1970
         var dt = Float(currentTime - lastUpdateTime)
