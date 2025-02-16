@@ -6,7 +6,6 @@ import MetalKit
 class ViewController: NSViewController {
     var metalView: MTKView!
     var renderer: Renderer!
-    var isPaused = false
     
     override func viewWillAppear() {
         super.viewWillAppear()
@@ -42,8 +41,7 @@ class ViewController: NSViewController {
         
         switch event.keyCode {
         case 49: // space bar
-            isPaused.toggle()
-            renderer.isPaused = isPaused
+            renderer.isPaused.toggle()
         case 53: // esc
             renderer.resetPanAndZoom()
         case 24: // `+` key
