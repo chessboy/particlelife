@@ -57,16 +57,19 @@ class ParticleSystem: ObservableObject {
         generateSpeciesColors(numSpecies: numSpecies)
         BufferManager.shared.updateInteractionMatrix(matrix: interactionMatrix, numSpecies: numSpecies)
     }
-
+    
     private func generateSpeciesColors(numSpecies: Int) {
+        
         let predefinedColors: [Color] = [.red, .orange, .yellow, .green, .blue, .purple]
 
-        DispatchQueue.main.async {
-            self.speciesColors = numSpecies > predefinedColors.count
-                ? (0..<numSpecies).map { _ in Color(hue: Double.random(in: 0...1), saturation: 0.8, brightness: 0.9) }
-                : Array(predefinedColors.prefix(numSpecies))
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+
+            self.speciesColors = (0..<numSpecies).map { species in
+                return predefinedColors[species % predefinedColors.count]
+            }
             
-            self.objectWillChange.send()  // Force UI refresh
+            self.objectWillChange.send()
         }
     }
 

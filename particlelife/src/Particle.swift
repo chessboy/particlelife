@@ -27,6 +27,16 @@ struct Particle {
 }
 
 func generateInteractionMatrix(numSpecies: Int) -> [[Float]] {
+    
+//    return [
+//        [  1.0,  0.2,  0.0,  0.0,  0.0,  0.0],
+//        [  0.0,  1.0,  0.2,  0.0,  0.0,  0.0],
+//        [  0.0,  0.0,  1.0,  0.2,  0.0,  0.0],
+//        [  0.0,  0.0,  0.0,  1.0,  0.2,  0.0],
+//        [  0.0,  0.0,  0.0,  0.0,  1.0,  0.2],
+//        [  0.2,  0.0,  0.0,  0.0,  0.0,  1.0]
+//    ]
+    
     var matrix = [[Float]](repeating: [Float](repeating: 0.0, count: numSpecies), count: numSpecies)
 
     var attractionTotal: Float = 0.0

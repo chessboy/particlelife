@@ -39,6 +39,17 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         self.particleSystem = ParticleSystem.shared
         setupPipelines()
         mtkView.delegate = self
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(handleAppWillResignActive), name: NSApplication.willResignActiveNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(handleAppDidBecomeActive), name: NSApplication.didBecomeActiveNotification, object: nil)
+    }
+
+    @objc private func handleAppWillResignActive() {
+        isPaused = true
+    }
+
+    @objc private func handleAppDidBecomeActive() {
+        isPaused = false
     }
     
     // Combine compute + render pipeline setup into a single function
