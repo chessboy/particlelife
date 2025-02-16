@@ -22,8 +22,8 @@ class SimulationSettings: ObservableObject {
     static let betaMin: Float = 0.1
     static let betaMax: Float = 0.5
 
-    static let frictionDefault: Float = 0.9
-    static let frictionMin: Float = 0.8
+    static let frictionDefault: Float = 0.8
+    static let frictionMin: Float = 0.5
     static let frictionMax: Float = 1.0
 
     static let repulsionStrengthDefault: Float = 0.03

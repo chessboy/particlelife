@@ -41,15 +41,11 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         mtkView.delegate = self
         
         NotificationCenter.default.addObserver(self, selector: #selector(handleAppWillResignActive), name: NSApplication.willResignActiveNotification, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(handleAppDidBecomeActive), name: NSApplication.didBecomeActiveNotification, object: nil)
+        //NotificationCenter.default.addObserver(self, selector: #selector(handleAppDidBecomeActive), name: NSApplication.didBecomeActiveNotification, object: nil)
     }
 
     @objc private func handleAppWillResignActive() {
         isPaused = true
-    }
-
-    @objc private func handleAppDidBecomeActive() {
-        isPaused = false
     }
     
     // Combine compute + render pipeline setup into a single function
@@ -129,6 +125,7 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         guard let computeEncoder = commandBuffer?.makeComputeCommandEncoder(),
               let computePipeline = computePipeline else { return }
 
+        
         computeEncoder.setComputePipelineState(computePipeline)
         
         computeEncoder.setBuffer(BufferManager.shared.particleBuffer, offset: 0, index: 0)
@@ -142,6 +139,7 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         computeEncoder.setBuffer(BufferManager.shared.repulsionStrengthBuffer, offset: 0, index: 8)
         computeEncoder.setBuffer(BufferManager.shared.cameraBuffer, offset: 0, index: 9)
         computeEncoder.setBuffer(BufferManager.shared.zoomBuffer, offset: 0, index: 10)
+
 
         let threadGroupSize = 512
         let threadGroups = (Constants.defaultParticleCount + threadGroupSize - 1) / threadGroupSize

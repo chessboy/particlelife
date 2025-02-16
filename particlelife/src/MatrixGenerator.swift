@@ -3,6 +3,7 @@
 //  particlelife
 //
 //  Created by Rob Silverman on 2/16/25.
+//  Adapted from https://github.com/tom-mohr/particle-life-app
 //
 
 import Foundation

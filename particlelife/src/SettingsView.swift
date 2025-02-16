@@ -45,8 +45,8 @@ struct SimulationSettingsView: View {
                 Text("Beta: \(settings.beta, specifier: "%.2f")")
             }
 
-            Slider(value: $settings.friction, in: SimulationSettings.frictionMin...SimulationSettings.frictionMax, step: 0.001) {
-                Text("Friction: \(settings.friction, specifier: "%.3f")")
+            Slider(value: $settings.friction, in: SimulationSettings.frictionMin...SimulationSettings.frictionMax, step: 0.01) {
+                Text("Friction: \(settings.friction, specifier: "%.2f")")
             }
 
             Slider(value: $settings.repulsionStrength, in: SimulationSettings.repulsionStrengthMin...SimulationSettings.repulsionStrengthMax, step: 0.01) {

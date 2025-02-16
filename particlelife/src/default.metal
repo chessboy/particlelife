@@ -31,10 +31,7 @@ vertex VertexOut vertex_main(const device Particle* particles [[buffer(0)]],
                              uint id [[vertex_id]]) {
     VertexOut out;
 
-    // ✅ Convert to world space
     float2 worldPosition = particles[id].position - *cameraPosition;
-    
-    // ✅ Apply zoom only for rendering
     worldPosition *= *zoomLevel;
     
     out.position = float4(worldPosition, 0.0, 1.0);
@@ -89,8 +86,7 @@ kernel void compute_particle_movement(
     uint totalParticles [[threads_per_grid]]) {
 
     if (id >= totalParticles) return;
-    
-        
+
     float2 force = float2(0.0, 0.0);
     Particle selfParticle = particles[id];
     

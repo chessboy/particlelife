@@ -9,7 +9,7 @@ struct ParticleGenerator {
                 Float.random(in: -1.0...1.0) * scale * 0.5 + 0.5,
                 Float.random(in: -1.0...1.0) * scale * 0.5 + 0.5
             )
-            return Particle(position: position, velocity: .zero, species: Int16.random(in: 0..<Int16(numSpecies)))
+            return Particle(position: position, velocity: .zero, species: Int32.random(in: 0..<Int32(numSpecies)))
         }
     }
 
@@ -19,7 +19,7 @@ struct ParticleGenerator {
                 Float.random(in: -1.0...1.0),
                 Float.random(in: -1.0...1.0)
             )
-            return Particle(position: position, velocity: .zero, species: Int16.random(in: 0..<Int16(numSpecies)))
+            return Particle(position: position, velocity: .zero, species: Int32.random(in: 0..<Int32(numSpecies)))
         }
     }
 
@@ -28,7 +28,7 @@ struct ParticleGenerator {
             let angle = Float.random(in: 0...2 * .pi)
             let radius = sqrt(Float.random(in: 0...1)) * 0.5
             let position = SIMD2<Float>(cos(angle) * radius, sin(angle) * radius)
-            return Particle(position: position, velocity: .zero, species: Int16.random(in: 0..<Int16(numSpecies)))
+            return Particle(position: position, velocity: .zero, species: Int32.random(in: 0..<Int32(numSpecies)))
         }
     }
 
@@ -37,7 +37,7 @@ struct ParticleGenerator {
             let angle = Float.random(in: 0...2 * .pi)
             let radius = Float.random(in: 0...0.5)
             let position = SIMD2<Float>(cos(angle) * radius, sin(angle) * radius)
-            return Particle(position: position, velocity: .zero, species: Int16.random(in: 0..<Int16(numSpecies)))
+            return Particle(position: position, velocity: .zero, species: Int32.random(in: 0..<Int32(numSpecies)))
         }
     }
 
@@ -46,7 +46,7 @@ struct ParticleGenerator {
             let angle = Float.random(in: 0...2 * .pi)
             let radius = 0.7 + Float.random(in: -0.02...0.02)
             let position = SIMD2<Float>(cos(angle) * radius, sin(angle) * radius)
-            return Particle(position: position, velocity: .zero, species: Int16.random(in: 0..<Int16(numSpecies)))
+            return Particle(position: position, velocity: .zero, species: Int32.random(in: 0..<Int32(numSpecies)))
         }
     }
 
@@ -55,13 +55,13 @@ struct ParticleGenerator {
             let angle = (0.3 * Float.random(in: -1...1) + Float(i % numSpecies)) / Float(numSpecies) * 2 * .pi
             let radius = 0.7 + Float.random(in: -0.02...0.02)
             let position = SIMD2<Float>(cos(angle) * radius, sin(angle) * radius)
-            return Particle(position: position, velocity: .zero, species: Int16(i % numSpecies))
+            return Particle(position: position, velocity: .zero, species: Int32(i % numSpecies))
         }
     }
 
     static func colorBattle(count: Int, numSpecies: Int) -> [Particle] {
         return (0..<count).map { i in
-            let species = Int16(i % numSpecies)
+            let species = Int32(i % numSpecies)
             let centerAngle = Float(species) / Float(numSpecies) * 2 * .pi
             let centerRadius: Float = 0.5
             let angle = Float.random(in: 0...2 * .pi)
@@ -76,7 +76,7 @@ struct ParticleGenerator {
 
     static func colorWheel(count: Int, numSpecies: Int) -> [Particle] {
         return (0..<count).map { i in
-            let species = Int16(i % numSpecies)
+            let species = Int32(i % numSpecies)
             let centerAngle = Float(species) / Float(numSpecies) * 2 * .pi
             let centerRadius: Float = 0.3
             let individualRadius: Float = 0.2
@@ -91,35 +91,38 @@ struct ParticleGenerator {
     static func colorBands(count: Int, numSpecies: Int) -> [Particle] {
         var particles: [Particle] = []
 
-        let bandHeight: Float = 0.4  // Controls vertical compression
-        let spacing = 2.0 / Float(numSpecies)  // Divide evenly across [-1,1]
+        let bandHeight: Float = 0.4  // Vertical compression
+        let horizontalPadding: Float = 0.2  // Use 60% of space
+        let spacing = (2.0 - 2.0 * horizontalPadding) / Float(numSpecies)
 
         for _ in 0..<count {
-            let species = Int16.random(in: 0..<Int16(numSpecies))
-            
-            // Ensure particles are well-separated and don't wrap
-            let xMin = -1.0 + Float(species) * spacing
-            let xMax = xMin + spacing
-            let x = Float.random(in: xMin...xMax)  // Constrain within correct species band
+            let species = Int32.random(in: 0..<Int32(numSpecies))
 
-            let y = Float.random(in: -bandHeight...bandHeight)  // Keep within middle region
+            let centerX = -1.0 + horizontalPadding + (Float(species) + 0.5) * spacing
+            let xOffset = spacing / 2.0
 
+            var x = Float.random(in: centerX - xOffset...centerX + xOffset)
+            x = max(centerX - xOffset, min(centerX + xOffset, x))
+
+            let y = Float.random(in: -bandHeight...bandHeight)
             let position = SIMD2<Float>(x, y)
             let velocity = SIMD2<Float>.zero
             
             particles.append(Particle(position: position, velocity: velocity, species: species))
         }
 
+        let speciesCounts = Dictionary(grouping: particles, by: { $0.species }).mapValues { $0.count }
+        print("🧐 Species Distribution: \(speciesCounts)")
+
         return particles
     }
-    
     static func line(count: Int, numSpecies: Int) -> [Particle] {
         return (0..<count).map { _ in
             let position = SIMD2<Float>(
                 Float.random(in: -1.0...1.0),
                 Float.random(in: -0.15...0.15)
             )
-            return Particle(position: position, velocity: .zero, species: Int16.random(in: 0..<Int16(numSpecies)))
+            return Particle(position: position, velocity: .zero, species: Int32.random(in: 0..<Int32(numSpecies)))
         }
     }
 
@@ -131,7 +134,7 @@ struct ParticleGenerator {
             let spread = 0.5 * min(f, 0.2)
             let radius = 0.9 * f + spread * Float.random(in: -1...1)
             let position = SIMD2<Float>(radius * cos(angle), radius * sin(angle))
-            return Particle(position: position, velocity: .zero, species: Int16.random(in: 0..<Int16(numSpecies)))
+            return Particle(position: position, velocity: .zero, species: Int32.random(in: 0..<Int32(numSpecies)))
         }
     }
 
@@ -145,7 +148,7 @@ struct ParticleGenerator {
             let spread = 0.5 * min(f, 0.2)
             let radius = 0.9 * f + spread * Float.random(in: -1...1)
             let position = SIMD2<Float>(radius * cos(angle), radius * sin(angle))
-            return Particle(position: position, velocity: .zero, species: Int16(i % numSpecies))
+            return Particle(position: position, velocity: .zero, species: Int32(i % numSpecies))
         }
     }
 }

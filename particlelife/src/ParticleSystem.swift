@@ -23,6 +23,7 @@ class ParticleSystem: ObservableObject {
         self.numSpecies = numSpecies
         self.particles = ParticleSystem.generateParticles()
 
+        //SettingsGenerator.applyPreset(.snakes)
         generateNewMatrix()
         updatePhysicsAndBuffers()
     }
