@@ -22,7 +22,7 @@ struct SimulationSettingsView: View {
                 .foregroundColor(.white)
                 .padding(.bottom, 5)
             
-            Text("Particles: \(Constants.particleCount)")
+            Text("Particles: \(Constants.defaultParticleCount)")
                 .font(.body)
                 .foregroundColor(.white)
                 .padding(.bottom, 5)

@@ -40,8 +40,6 @@ func generateInteractionMatrix(numSpecies: Int) -> [[Float]] {
             } else if j < i {
                 matrix[i][j] = matrix[j][i]  // ✅ Mirror for symmetry
             } else {
-                let value = Float.random(in: -0.75...0.75)
-
                 // Balance attraction and repulsion
                 if attractionTotal > abs(repulsionTotal) {
                     matrix[i][j] = Float.random(in: -0.75...0.0)  // ✅ Bias toward repulsion
@@ -59,7 +57,7 @@ func generateInteractionMatrix(numSpecies: Int) -> [[Float]] {
 }
 
 class ParticleSystem: ObservableObject {
-    static let shared = ParticleSystem(device: MTLCreateSystemDefaultDevice()!, count: Constants.particleCount)
+    static let shared = ParticleSystem(device: MTLCreateSystemDefaultDevice()!, count: Constants.defaultParticleCount)
     
     @Published var interactionMatrix: [[Float]] = []
     @Published var speciesColors: [Color] = []  // ✅ Ensure this is @Published

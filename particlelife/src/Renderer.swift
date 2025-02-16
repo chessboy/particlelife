@@ -108,7 +108,7 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
     }
     
     func resetParticles() {
-        particleSystem.reset(count: Constants.particleCount)
+        particleSystem.reset(count: Constants.defaultParticleCount)
         NotificationCenter.default.post(name: .resetSimulation, object: nil)
         print("resetParticles")
     }
