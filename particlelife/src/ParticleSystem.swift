@@ -15,28 +15,20 @@ class ParticleSystem: ObservableObject {
     @Published var interactionMatrix: [[Float]] = []
     @Published var speciesColors: [Color] = []
     
-    var numSpecies: Int
-    var particles: [Particle]
+    var numSpecies: Int = 6
+    var particles: [Particle] = []
     var lastUpdateTime: TimeInterval = Date().timeIntervalSince1970
 
-    init(numSpecies: Int = 6) {
-        self.numSpecies = numSpecies
-        self.particles = ParticleSystem.generateParticles()
+    init() {
+        generateParticles()
 
         //SettingsGenerator.applyPreset(.snakes)
         generateNewMatrix()
         updatePhysicsAndBuffers()
     }
     
-    /// Generates a new set of particles
-    static func generateParticles() -> [Particle] {
-        //return ParticleGenerator.colorBands(count: Constants.defaultParticleCount, numSpecies: 6)
-        return ParticleGenerator.uniform(count: Constants.defaultParticleCount, numSpecies: 6)
-    }
-
     /// Updates buffers and physics settings
     private func updatePhysicsAndBuffers() {
-        BufferManager.shared.clearParticleBuffers()
         BufferManager.shared.initializeParticleBuffers(
             particles: particles,
             interactionMatrix: interactionMatrix,
@@ -49,9 +41,15 @@ class ParticleSystem: ObservableObject {
 
     /// Resets the simulation and regenerates particles
     func reset() {
+        generateParticles()
         generateNewMatrix()
-        particles = ParticleSystem.generateParticles()
         updatePhysicsAndBuffers()
+    }
+    
+    /// Generates a new set of particles
+    private func generateParticles() {
+        //return ParticleGenerator.colorBands(count: Constants.defaultParticleCount, numSpecies: 6)
+        particles = ParticleGenerator.uniform(count: Constants.defaultParticleCount, numSpecies: 6)
     }
     
     /// Generates a new interaction matrix and updates colors

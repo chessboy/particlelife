@@ -70,33 +70,18 @@ class BufferManager {
         
         updatePhysicsBuffers()
     }
-    
-    func clearParticleBuffers() {
-        particleBuffer = nil
-        interactionBuffer = nil
-        numSpeciesBuffer = nil
-    }
-    
+
     private func createBuffer<T>(type: T.Type, count: Int = 1) -> MTLBuffer? {
         return device.makeBuffer(length: MemoryLayout<T>.stride * count, options: [])
     }
     
     func initializeParticleBuffers(particles: [Particle], interactionMatrix: [[Float]], numSpecies: Int) {
+        // Ensure particle buffer exists
         let particleSize = MemoryLayout<Particle>.stride * particles.count
-        
-        // Ensure buffer recreation only when necessary
         if particleBuffer == nil || particleBuffer!.length != particleSize {
-            let newBuffer = device.makeBuffer(length: particleSize, options: .storageModeShared)
-            
-            guard let newBuffer = newBuffer else {
-                fatalError("❌ Failed to create particle buffer! Expected size: \(particleSize)")
-            }
-            strongRefBuffer = newBuffer  // Store reference to prevent premature deallocation
-            particleBuffer = newBuffer
+            particleBuffer = device.makeBuffer(length: particleSize, options: .storageModeShared)
         }
-        
-        guard let buffer = particleBuffer else { return }
-        buffer.contents().copyMemory(from: particles, byteCount: particleSize)
+        particleBuffer?.contents().copyMemory(from: particles, byteCount: particleSize)
 
         // Ensure interaction buffer exists
         let flatMatrix = flattenInteractionMatrix(interactionMatrix)
