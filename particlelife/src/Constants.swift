@@ -9,8 +9,6 @@ import SwiftUI
 
 struct Constants {
     
-    static let numSpecies: Int = 6 // max 9
-        
     static let speciesColors: [Color] = [
         .red, .orange, .yellow, .green, .blue, .purple,
         Color(red: 0.0, green: 1.0, blue: 1.0), // Cyan

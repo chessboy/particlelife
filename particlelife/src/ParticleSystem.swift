@@ -12,14 +12,14 @@ import Combine
 
 class ParticleSystem: ObservableObject {
     static let shared = ParticleSystem()
-    private var cancellables = Set<AnyCancellable>()
+    
+    private var particles: [Particle] = []
 
     @Published var interactionMatrix: [[Float]] = []
     @Published var speciesColors: [Color] = []
     
-    var numSpecies = Constants.numSpecies
-    var particles: [Particle] = []
-    var lastUpdateTime: TimeInterval = Date().timeIntervalSince1970
+    private var cancellables = Set<AnyCancellable>()
+    private var lastUpdateTime: TimeInterval = Date().timeIntervalSince1970
 
     init() {
         let preset = SimulationPreset.defaultPreset
@@ -39,7 +39,7 @@ class ParticleSystem: ObservableObject {
         BufferManager.shared.initializeParticleBuffers(
             particles: particles,
             interactionMatrix: interactionMatrix,
-            numSpecies: numSpecies
+            numSpecies: SimulationSettings.shared.selectedPreset.numSpecies
         )
         BufferManager.shared.updatePhysicsBuffers()
         BufferManager.shared.updateCameraBuffer(position: .zero)
@@ -57,21 +57,22 @@ class ParticleSystem: ObservableObject {
     
     /// Generates a new set of particles
     private func generateParticles(preset: SimulationPreset) {
+        //numSpecies = preset.numSpecies
         particles = ParticleGenerator.generate(distribution: preset.distributionType, count: preset.numParticles.rawValue, numSpecies: preset.numSpecies)
     }
     
     /// Generates a new interaction matrix and updates colors
     private func generateNewMatrix(preset: SimulationPreset) {
         interactionMatrix = MatrixGenerator.generateInteractionMatrix(numSpecies: preset.numSpecies, type: preset.forceMatrixType)
-        generateSpeciesColors()
+        generateSpeciesColors(numSpecies: preset.numSpecies)
     }
 
     /// Generates colors for each species
-    private func generateSpeciesColors() {
+    private func generateSpeciesColors(numSpecies: Int) {
         let predefinedColors = Constants.speciesColors
             
         DispatchQueue.main.async {
-            self.speciesColors = (0..<self.numSpecies).map { species in
+            self.speciesColors = (0..<numSpecies).map { species in
                 predefinedColors[species % predefinedColors.count]
             }
             self.objectWillChange.send()

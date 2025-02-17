@@ -30,8 +30,8 @@ struct SimulationPreset: Hashable {
 
 extension SimulationPreset {
     static let defaultPreset = SimulationPreset(
-        name: "Default",
-        numSpecies: 6,
+        name: "Random",
+        numSpecies: 8,
         numParticles: .k40,
         forceMatrixType: .random,
         distributionType: .uniform,
@@ -55,9 +55,23 @@ extension SimulationPreset {
         repulsionStrength: 0.03
     )
     
+    static let colorClash = SimulationPreset(
+        name: "Color Clash",
+        numSpecies: 6,
+        numParticles: .k40,
+        forceMatrixType: .chains3,
+        distributionType: .uniform,
+        maxDistance: 0.66,
+        minDistance: 0.03,
+        beta: 0.29,
+        friction: 0.06,
+        repulsionStrength: 0.02
+    )
+    
     static let allPresets: [SimulationPreset] = [
         .defaultPreset,
-        .snakesPreset
+        .snakesPreset,
+        .colorClash
     ]
 
 }
