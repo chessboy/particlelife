@@ -35,7 +35,7 @@ struct SimulationPreset: Hashable {
             numParticles: .k40,
             forceMatrixType: .symmetry,
             distributionType: .uniform,
-            maxDistance: 0.64,
+            maxDistance: 0.65,
             minDistance: 0.04,
             beta: 0.3,
             friction: 0.2,
@@ -68,10 +68,10 @@ struct SimulationPreset: Hashable {
         numParticles: .k40,
         forceMatrixType: .chains3,
         distributionType: .uniform,
-        maxDistance: 0.66,
+        maxDistance: 0.65,
         minDistance: 0.03,
         beta: 0.29,
-        friction: 0.06,
+        friction: 0.1,
         repulsion: 0.02,
         pointSize: 7
     )
@@ -86,7 +86,7 @@ struct SimulationPreset: Hashable {
             [ 0.95, -0.96, -0.64]
         ]),
         distributionType: .uniform,
-        maxDistance: 0.64,
+        maxDistance: 0.65,
         minDistance: 0.04,
         beta: 0.3,
         friction: 0.2,
@@ -109,10 +109,10 @@ struct SimulationPreset: Hashable {
             [ 0.62,  0.28, -0.14, -0.22,  0.10, -0.11, -0.78,  0.96]
         ]),
         distributionType: .colorBattle,
-        maxDistance: 1.19,
+        maxDistance: 1.2,
         minDistance: 0.01,
         beta: 0.22,
-        friction: 0.21,
+        friction: 0.2,
         repulsion: 0.03,
         pointSize: 21
     )

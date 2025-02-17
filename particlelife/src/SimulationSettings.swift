@@ -27,8 +27,8 @@ class SimulationSettings: ObservableObject {
     static let shared = SimulationSettings()
 
     @Published var maxDistance = ConfigurableSetting(
-        value: 0.64, defaultValue: 0.64, min: 0.5, max: 1.5, step: 0.01, format: "%.2f",
-        onChange: { _ in BufferManager.shared.updatePhysicsBuffers() } // ✅ Triggers update
+        value: 0.65, defaultValue: 0.65, min: 0.5, max: 1.5, step: 0.05, format: "%.2f",
+        onChange: { _ in BufferManager.shared.updatePhysicsBuffers() }
     )
 
     @Published var minDistance = ConfigurableSetting(
@@ -37,12 +37,12 @@ class SimulationSettings: ObservableObject {
     )
 
     @Published var beta = ConfigurableSetting(
-        value: 0.3, defaultValue: 0.3, min: 0.1, max: 0.5, step: 0.01, format: "%.2f",
+        value: 0.3, defaultValue: 0.3, min: 0.1, max: 0.5, step: 0.025, format: "%.2f",
         onChange: { _ in BufferManager.shared.updatePhysicsBuffers() }
     )
 
     @Published var friction = ConfigurableSetting(
-        value: 0.2, defaultValue: 0.2, min: 0, max: 0.5, step: 0.01, format: "%.2f",
+        value: 0.2, defaultValue: 0.2, min: 0, max: 0.5, step: 0.05, format: "%.2f",
         onChange: { _ in BufferManager.shared.updatePhysicsBuffers() }
     )
 
