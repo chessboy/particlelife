@@ -18,29 +18,35 @@ struct SimulationPreset: Hashable {
     let beta: Float
     let friction: Float
     let repulsionStrength: Float
-
+    
     func hash(into hasher: inout Hasher) {
         hasher.combine(name)
     }
-
+    
     static func == (lhs: SimulationPreset, rhs: SimulationPreset) -> Bool {
         return lhs.name == rhs.name
     }
 }
 
 extension SimulationPreset {
-    static let defaultPreset = SimulationPreset(
-        name: "Random",
-        numSpecies: 8,
-        numParticles: .k40,
-        forceMatrixType: .random,
-        distributionType: .uniform,
-        maxDistance: SimulationSettings.maxDistanceDefault,
-        minDistance: SimulationSettings.minDistanceDefault,
-        beta: SimulationSettings.betaDefault,
-        friction: SimulationSettings.frictionDefault,
-        repulsionStrength: SimulationSettings.repulsionStrengthDefault
-    )
+    
+    static func makeRandomPreset(speciesCount: Int) -> SimulationPreset {
+        return SimulationPreset(
+            name: "Random \(speciesCount)",
+            numSpecies: speciesCount,
+            numParticles: .k40,
+            forceMatrixType: .random,
+            distributionType: .uniform,
+            maxDistance: SimulationSettings.maxDistanceDefault,
+            minDistance: SimulationSettings.minDistanceDefault,
+            beta: SimulationSettings.betaDefault,
+            friction: SimulationSettings.frictionDefault,
+            repulsionStrength: SimulationSettings.repulsionStrengthDefault)
+    }
+    
+    static let random3Preset = makeRandomPreset(speciesCount: 3)
+    static let random6Preset = makeRandomPreset(speciesCount: 6)
+    static let random9Preset = makeRandomPreset(speciesCount: 9)
     
     static let snakesPreset = SimulationPreset(
         name: "Snakes",
@@ -68,6 +74,22 @@ extension SimulationPreset {
         repulsionStrength: 0.02
     )
     
+    static let cool = SimulationPreset(
+        name: "Cool",
+        numSpecies: 3,
+        numParticles: .k40,
+        forceMatrixType: .custom([
+            [ 0.89, -0.81, -0.31],
+            [-0.72,  0.08,  0.76],
+            [ 0.95, -0.96, -0.64]
+        ]),
+        distributionType: .uniform,
+        maxDistance: SimulationSettings.maxDistanceDefault,
+        minDistance: SimulationSettings.minDistanceDefault,
+        beta: SimulationSettings.betaDefault,
+        friction: SimulationSettings.frictionDefault,
+        repulsionStrength: SimulationSettings.repulsionStrengthDefault)
+    
     static let paintSpatters = SimulationPreset(
         name: "Paint Spatters",
         numSpecies: 8,
@@ -90,11 +112,16 @@ extension SimulationPreset {
         repulsionStrength: 0.03
     )
     
+    static let defaultPreset: SimulationPreset = .random6Preset
+    
     static let allPresets: [SimulationPreset] = [
-        .defaultPreset,
+        .random3Preset,
+        .random6Preset,
+        .random9Preset,
         .snakesPreset,
+        .cool,
         .colorClash,
         paintSpatters
     ]
-
+    
 }

@@ -38,7 +38,7 @@ vertex VertexOut vertex_main(const device Particle* particles [[buffer(0)]],
     worldPosition *= *zoomLevel;
     
     out.position = float4(worldPosition, 0.0, 1.0);
-    out.pointSize = 7.0;
+    out.pointSize = 11.0;
     out.color = float4(speciesColor(particles[id].species), 1.0);
 
     return out;
