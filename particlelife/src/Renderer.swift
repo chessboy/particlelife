@@ -7,6 +7,7 @@
 
 import Foundation
 import MetalKit
+import Combine
 
 class Renderer: NSObject, MTKViewDelegate, ObservableObject {
     
@@ -31,7 +32,8 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
     private var particleSystem: ParticleSystem!
     private var pipelineState: MTLRenderPipelineState!
     private var computePipeline: MTLComputePipelineState?
-        
+    private var cancellables = Set<AnyCancellable>()
+
     init(mtkView: MTKView) {
         super.init()
         self.device = mtkView.device
@@ -41,7 +43,16 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         mtkView.delegate = self
         
         NotificationCenter.default.addObserver(self, selector: #selector(handleAppWillResignActive), name: NSApplication.willResignActiveNotification, object: nil)
-        //NotificationCenter.default.addObserver(self, selector: #selector(handleAppDidBecomeActive), name: NSApplication.didBecomeActiveNotification, object: nil)
+
+        SimulationSettings.shared.presetApplied
+            .sink { [weak self] in self?.presetApplied() }
+            .store(in: &cancellables)
+    }
+    
+    func presetApplied() {
+        if isPaused {
+            isPaused.toggle()
+        }
     }
 
     @objc private func handleAppWillResignActive() {
@@ -142,7 +153,8 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
 
 
         let threadGroupSize = 512
-        let threadGroups = (Constants.defaultParticleCount + threadGroupSize - 1) / threadGroupSize
+        let particleCount = SimulationSettings.shared.selectedPreset.numParticles.rawValue
+        let threadGroups = (particleCount + threadGroupSize - 1) / threadGroupSize
         computeEncoder.dispatchThreadgroups(MTLSize(width: threadGroups, height: 1, depth: 1),
                                             threadsPerThreadgroup: MTLSize(width: threadGroupSize, height: 1, depth: 1))
         computeEncoder.endEncoding()
@@ -156,12 +168,14 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         passDescriptor.colorAttachments[0].loadAction = .clear
         passDescriptor.colorAttachments[0].clearColor = MTLClearColor(red: 0.05, green: 0.05, blue: 0.05, alpha: 1.0)
 
+        let particleCount = SimulationSettings.shared.selectedPreset.numParticles.rawValue
+
         guard let renderEncoder = commandBuffer?.makeRenderCommandEncoder(descriptor: passDescriptor) else { return }
         renderEncoder.setRenderPipelineState(pipelineState)
         renderEncoder.setVertexBuffer(BufferManager.shared.particleBuffer, offset: 0, index: 0)
         renderEncoder.setVertexBuffer(BufferManager.shared.cameraBuffer, offset: 0, index: 1)
         renderEncoder.setVertexBuffer(BufferManager.shared.zoomBuffer, offset: 0, index: 2)
-        renderEncoder.drawPrimitives(type: .point, vertexStart: 0, vertexCount: Constants.defaultParticleCount)
+        renderEncoder.drawPrimitives(type: .point, vertexStart: 0, vertexCount: particleCount)
         renderEncoder.endEncoding()
 
         commandBuffer?.present(drawable)
@@ -212,6 +226,9 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
     }
 
     func resetParticles() {
+        if isPaused {
+            isPaused.toggle()
+        }
         particleSystem.reset()
         NotificationCenter.default.post(name: .resetSimulation, object: nil)
     }

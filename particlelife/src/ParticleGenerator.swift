@@ -1,6 +1,72 @@
 import simd
 
+enum DistributionType {
+    case centered, uniform, uniformCircle, centeredCircle, ring, rainbowRing,
+         colorBattle, colorWheel, colorBands, line, spiral, rainbowSpiral
+}
+
+enum ParticleCount: Int, CaseIterable, Identifiable {
+    case k1 = 1024
+    case k2 = 2048
+    case k5 = 5120
+    case k10 = 10240
+    case k20 = 20480
+    case k30 = 30720
+    case k40 = 40960
+    case k50 = 49152
+
+    var id: Int { self.rawValue }
+
+    var displayString: String {
+        switch self {
+        case .k1: return "1K"
+        case .k2: return "2K"
+        case .k5: return "5K"
+        case .k10: return "10K"
+        case .k20: return "20K"
+        case .k30: return "30K"
+        case .k40: return "40K"
+        case .k50: return "50K"
+        }
+    }
+}
+
 struct ParticleGenerator {
+    
+    static func generate(distribution: DistributionType, count: Int, numSpecies: Int) -> [Particle] {
+        
+        print("ParticleGenerator: generate: distribution: \(distribution), count: \(count), numSpecies: \(numSpecies)")
+        
+        switch distribution {
+        case .centered:
+            return centered(count: count, numSpecies: numSpecies)
+        case .uniform:
+            return uniform(count: count, numSpecies: numSpecies)
+        case .uniformCircle:
+            return uniformCircle(count: count, numSpecies: numSpecies)
+        case .centeredCircle:
+            return centeredCircle(count: count, numSpecies: numSpecies)
+        case .ring:
+            return ring(count: count, numSpecies: numSpecies)
+        case .rainbowRing:
+            return rainbowRing(count: count, numSpecies: numSpecies)
+        case .colorBattle:
+            return colorBattle(count: count, numSpecies: numSpecies)
+        case .colorWheel:
+            return colorWheel(count: count, numSpecies: numSpecies)
+        case .colorBands:
+            return colorBands(count: count, numSpecies: numSpecies)
+        case .line:
+            return line(count: count, numSpecies: numSpecies)
+        case .spiral:
+            return spiral(count: count, numSpecies: numSpecies)
+        case .rainbowSpiral:
+            return rainbowSpiral(count: count, numSpecies: numSpecies)
+        }
+    }
+}
+
+extension ParticleGenerator {
     
     static func centered(count: Int, numSpecies: Int) -> [Particle] {
         let scale: Float = 0.3
@@ -111,11 +177,9 @@ struct ParticleGenerator {
             particles.append(Particle(position: position, velocity: velocity, species: species))
         }
 
-        let speciesCounts = Dictionary(grouping: particles, by: { $0.species }).mapValues { $0.count }
-        print("🧐 Species Distribution: \(speciesCounts)")
-
         return particles
     }
+    
     static func line(count: Int, numSpecies: Int) -> [Particle] {
         return (0..<count).map { _ in
             let position = SIMD2<Float>(

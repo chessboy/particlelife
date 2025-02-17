@@ -35,7 +35,7 @@ class ViewController: NSViewController {
     
     override func keyDown(with event: NSEvent) {
         if event.modifierFlags.contains(.command) && event.characters == "r" {
-            resetSimulation()
+            renderer.resetParticles()
             return
         }
         
@@ -60,10 +60,6 @@ class ViewController: NSViewController {
             super.keyDown(with: event)
         }
         
-    }
-    
-    func resetSimulation() {
-        renderer.resetParticles()
     }
     
     override func viewDidLayout() {

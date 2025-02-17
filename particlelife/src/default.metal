@@ -122,16 +122,16 @@ kernel void compute_particle_movement(
             force += normalize(direction) * forceValue;
         }
 
-        // universal repeller
-        if (*repulsionStrength > 0.0 && distance < (*minDistance * 1.5)) {
-            float repulsion = (*repulsionStrength) * (1.0 - (distance / (*minDistance * 1.5)));
-            force -= normalize(direction) * repulsion;
-        }
+            // universal repeller
+            if (*repulsionStrength > 0.0 && distance < (*minDistance * 1.5)) {
+                float repulsion = (*repulsionStrength) * (1.0 - (distance / (*minDistance * 1.5)));
+                force -= normalize(direction) * repulsion;
+            }
     }
 
     // Apply friction dynamically
     selfParticle.velocity += force * 0.1;
-    selfParticle.velocity *= *friction;
+    selfParticle.velocity *= (1.0 - *friction);
     selfParticle.position += selfParticle.velocity * (*dt);
     selfParticle.position = handleBoundary(selfParticle.position);
 

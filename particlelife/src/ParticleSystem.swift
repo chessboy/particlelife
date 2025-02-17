@@ -8,9 +8,11 @@
 import Metal
 import simd
 import SwiftUI
+import Combine
 
 class ParticleSystem: ObservableObject {
     static let shared = ParticleSystem()
+    private var cancellables = Set<AnyCancellable>()
 
     @Published var interactionMatrix: [[Float]] = []
     @Published var speciesColors: [Color] = []
@@ -20,11 +22,15 @@ class ParticleSystem: ObservableObject {
     var lastUpdateTime: TimeInterval = Date().timeIntervalSince1970
 
     init() {
-        generateParticles()
-
-        //SettingsGenerator.applyPreset(.snakes)
-        generateNewMatrix()
+        let preset = SimulationPreset.defaultPreset
+        
+        generateParticles(preset: preset)
+        generateNewMatrix(preset: preset)
         updatePhysicsAndBuffers()
+        
+        SimulationSettings.shared.presetApplied
+            .sink { [weak self] in self?.reset() }
+            .store(in: &cancellables)
     }
     
     /// Updates buffers and physics settings
@@ -42,22 +48,22 @@ class ParticleSystem: ObservableObject {
 
     /// Resets the simulation and regenerates particles
     func reset() {
-        generateParticles()
-        generateNewMatrix()
+        let preset = SimulationSettings.shared.selectedPreset
+        print("resetting: \(preset.name)")
+        generateParticles(preset: preset)
+        generateNewMatrix(preset: preset)
         updatePhysicsAndBuffers()
     }
     
     /// Generates a new set of particles
-    private func generateParticles() {
-        //return ParticleGenerator.colorBands(count: Constants.defaultParticleCount, numSpecies: Constants.numSpecies)
-        particles = ParticleGenerator.uniform(count: Constants.defaultParticleCount, numSpecies: Constants.numSpecies)
+    private func generateParticles(preset: SimulationPreset) {
+        particles = ParticleGenerator.generate(distribution: preset.distributionType, count: preset.numParticles.rawValue, numSpecies: preset.numSpecies)
     }
     
     /// Generates a new interaction matrix and updates colors
-    private func generateNewMatrix() {
-        interactionMatrix = MatrixGenerator.generateInteractionMatrix(numSpecies: numSpecies, type: .random)
+    private func generateNewMatrix(preset: SimulationPreset) {
+        interactionMatrix = MatrixGenerator.generateInteractionMatrix(numSpecies: preset.numSpecies, type: preset.forceMatrixType)
         generateSpeciesColors()
-        BufferManager.shared.updateInteractionMatrix(matrix: interactionMatrix, numSpecies: numSpecies)
     }
 
     /// Generates colors for each species
