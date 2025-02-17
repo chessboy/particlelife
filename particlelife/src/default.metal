@@ -15,16 +15,16 @@ struct VertexOut {
 
 float3 speciesColor(int species) {
     switch (species) {
-        case 0: return float3(1.0, 0.0, 0.0);  // 🔴 Red
-        case 1: return float3(1.0, 0.5, 0.0);  // 🟠 Orange
-        case 2: return float3(1.0, 1.0, 0.0);  // 🟡 Yellow
-        case 3: return float3(0.0, 1.0, 0.0);  // 🟢 Green
-        case 4: return float3(0.0, 0.0, 1.0);  // 🔵 Blue
-        case 5: return float3(0.5, 0.0, 1.0);  // 🟣 Purple
-        case 6: return float3(0.0, 1.0, 1.0);  // 🟦 Cyan
-        case 7: return float3(1.0, 0.0, 1.0);  // 💖 Magenta
-        case 8: return float3(1.0, 1.0, 1.0);  // ⚪ White
-        default: return float3(0.7, 0.7, 0.7); // ⚫ Light Gray (fallback)
+        case 0: return float3(1.0, 0.2, 0.2);  // 🔴 Soft Red
+        case 1: return float3(1.0, 0.6, 0.0);  // 🟠 Orange
+        case 2: return float3(0.95, 0.95, 0.0); // 🟡 Warm Yellow
+        case 3: return float3(0.0, 0.8, 0.2);  // 🟢 Green (Deeper)
+        case 4: return float3(0.0, 0.4, 1.0);  // 🔵 Bright Blue
+        case 5: return float3(0.6, 0.2, 1.0);  // 🟣 Purple
+        case 6: return float3(0.0, 1.0, 1.0);  // 🔵 Cyan
+        case 7: return float3(1.0, 0.0, 0.6);  // 💖 Hot Pink (Instead of Magenta)
+        case 8: return float3(0.2, 0.8, 0.6);  // 🌊 Teal (Replaces White)
+        default: return float3(0.7, 0.7, 0.7); // ⚫ Light Gray (Fallback)
     }
 }
 
