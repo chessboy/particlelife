@@ -27,7 +27,8 @@ class ViewController: NSViewController {
         
         let settingsView = SimulationSettingsView(renderer: renderer)
         let hostingView = NSHostingView(rootView: settingsView)
-        hostingView.frame = CGRect(x: 20, y: 20, width: 300, height: 200)  // Adjust as needed
+        hostingView.frame = CGRect(x: 20, y: 20, width: 320, height: 520)
+
         view.addSubview(hostingView)
     }
     

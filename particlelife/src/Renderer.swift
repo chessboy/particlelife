@@ -27,20 +27,28 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
     private var lastUpdateTime: TimeInterval = Date().timeIntervalSince1970
     private var frameCount = 0
     
-    private var device: MTLDevice!
-    private var commandQueue: MTLCommandQueue!
+    private var device: MTLDevice?
+    private var commandQueue: MTLCommandQueue?
     private var particleSystem: ParticleSystem!
-    private var pipelineState: MTLRenderPipelineState!
+    private var pipelineState: MTLRenderPipelineState?
     private var computePipeline: MTLComputePipelineState?
     private var cancellables = Set<AnyCancellable>()
 
-    init(mtkView: MTKView) {
+    var mtkView: MTKView?
+
+    init(mtkView: MTKView? = nil) {
         super.init()
-        self.device = mtkView.device
-        self.commandQueue = device.makeCommandQueue()
+        
+        if let mtkView = mtkView {
+            self.device = mtkView.device
+            mtkView.delegate = self
+        } else {
+            print("⚠️ Running in Preview Mode - Metal Rendering Disabled")
+        }
+        
+        self.commandQueue = device?.makeCommandQueue()
         self.particleSystem = ParticleSystem.shared
         setupPipelines()
-        mtkView.delegate = self
         
         NotificationCenter.default.addObserver(self, selector: #selector(handleAppWillResignActive), name: NSApplication.willResignActiveNotification, object: nil)
 
@@ -61,17 +69,18 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
     
     // Combine compute + render pipeline setup into a single function
     private func setupPipelines() {
-        guard let library = device.makeDefaultLibrary() else {
-            fatalError("Failed to load Metal shader library")
+        guard let library = device?.makeDefaultLibrary() else {
+            print("⚠️ Warning: Failed to load Metal shader library")
+            return
         }
         
         do {
             guard let computeFunction = library.makeFunction(name: "compute_particle_movement") else {
-                fatalError("Failed to load compute function")
+                fatalError("❌ Failed to load compute function")
             }
-            computePipeline = try device.makeComputePipelineState(function: computeFunction)
+            computePipeline = try device?.makeComputePipelineState(function: computeFunction)
         } catch {
-            fatalError("Failed to create compute pipeline state: \(error)")
+            fatalError("❌ Failed to create compute pipeline state: \(error)")
         }
         
         let vertexFunction = library.makeFunction(name: "vertex_main")
@@ -88,9 +97,9 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         pipelineDescriptor.colorAttachments[0].destinationRGBBlendFactor = .oneMinusSourceAlpha
         
         do {
-            pipelineState = try device.makeRenderPipelineState(descriptor: pipelineDescriptor)
+            pipelineState = try device?.makeRenderPipelineState(descriptor: pipelineDescriptor)
         } catch {
-            fatalError("Failed to create render pipeline state: \(error)")
+            fatalError("❌ Failed to create render pipeline state: \(error)")
         }
     }
     
@@ -99,7 +108,7 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
             return
         }
 
-        let commandBuffer = commandQueue.makeCommandBuffer()
+        let commandBuffer = commandQueue?.makeCommandBuffer()
         
         updateSimulationState()
         runComputePass(commandBuffer: commandBuffer)
@@ -163,6 +172,7 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
     // Runs the Metal Render Pass
     private func runRenderPass(commandBuffer: MTLCommandBuffer?, view: MTKView) {
         guard let drawable = view.currentDrawable,
+              let pipelineState = pipelineState,
               let passDescriptor = view.currentRenderPassDescriptor else { return }
 
         passDescriptor.colorAttachments[0].loadAction = .clear

@@ -6,30 +6,28 @@
 //
 
 import SwiftUI
+import MetalKit
 
 struct SimulationSettingsView: View {
     @ObservedObject var particleSystem = ParticleSystem.shared
     @ObservedObject var settings = SimulationSettings.shared
-    @ObservedObject var renderer: Renderer  // Observe Renderer for FPS updates
+    @ObservedObject var renderer: Renderer
 
     @State private var interactionMatrix: [[Float]] = ParticleSystem.shared.interactionMatrix
     @State private var speciesColors: [Color] = ParticleSystem.shared.speciesColors
 
     var body: some View {
         VStack {
-            Text("Simulation Settings")
-                .font(.headline)
-                .foregroundColor(.white)
-                .padding(.bottom, 5)
             
-            Text("Particles: \(SimulationSettings.shared.selectedPreset.numParticles.displayString)")
-                .font(.body)
-                .foregroundColor(.white)
-                .padding(.bottom, 5)
-
-            Text(renderer.isPaused ? "PAUSED" : "FPS: \(renderer.fps)")
-                .font(.headline)
-                .foregroundColor(renderer.isPaused || renderer.fps < 30 ? .red : .green)
+            HStack {
+                Text("Particles: \(SimulationSettings.shared.selectedPreset.numParticles.displayString)")
+                    .font(.body)
+                    .foregroundColor(.white)
+                
+                Text(renderer.isPaused ? "PAUSED" : "FPS: \(renderer.fps)")
+                    .font(.headline)
+                    .foregroundColor(renderer.isPaused || renderer.fps < 30 ? .red : .green)
+            }
             
             MatrixView(interactionMatrix: particleSystem.interactionMatrix, speciesColors: particleSystem.speciesColors)
                 
@@ -95,9 +93,8 @@ struct SimulationSettingsView: View {
                 }
             }
         }
-        .padding()
-        .padding(.bottom, 280)
-        .background(Color.black.opacity(0.5))
+        .padding(20)
+        .background(Color.black.opacity(0.66))
         .cornerRadius(10)
         .shadow(radius: 5)
         .onReceive(NotificationCenter.default.publisher(for: .resetSimulation)) { _ in
@@ -105,4 +102,10 @@ struct SimulationSettingsView: View {
             speciesColors = ParticleSystem.shared.speciesColors
         }
     }
+}
+
+#Preview {
+    let mtkView = MTKView()
+    let renderer = Renderer(mtkView: mtkView)
+    return NSHostingView(rootView: SimulationSettingsView(renderer: renderer))
 }

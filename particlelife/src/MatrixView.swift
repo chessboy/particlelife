@@ -41,8 +41,8 @@ struct MatrixView: View {
                     }
                 }
             }
-            .padding(20)
-            .background(Color.black.opacity(0.93))
+            .padding(.top, 10)
+            .padding(.bottom, 20)
             .cornerRadius(8)
         }
     }
