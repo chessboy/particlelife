@@ -86,6 +86,8 @@ class ParticleSystem: ObservableObject {
             .joined(separator: "\n")
     }
 
+    var lastDT: Float = 0.001
+    
     /// Updates delta time for particle movement
     func update() {
         let currentTime = Date().timeIntervalSince1970
@@ -93,6 +95,12 @@ class ParticleSystem: ObservableObject {
         dt = max(0.0001, min(dt, 0.01))
         lastUpdateTime = currentTime
 
-        BufferManager.shared.updateDeltaTimeBuffer(dt: &dt)
+        let smoothingFactor: Float = 0.1
+        dt = (1.0 - smoothingFactor) * lastDT + smoothingFactor * dt
+        
+        if abs(dt - lastDT) > 0.0001 {
+            BufferManager.shared.updateDeltaTimeBuffer(dt: &dt)
+            lastDT = dt
+        }
     }
 }

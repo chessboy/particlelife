@@ -11,6 +11,13 @@ import Combine
 class SimulationSettings: ObservableObject {
     static let shared = SimulationSettings()
 
+    @Published var maxDistance: Float = maxDistanceDefault { didSet { BufferManager.shared.updatePhysicsBuffers() } }
+    @Published var minDistance: Float = minDistanceDefault { didSet { BufferManager.shared.updatePhysicsBuffers() } }
+    @Published var beta: Float = betaDefault { didSet { BufferManager.shared.updatePhysicsBuffers() } }
+    @Published var friction: Float = frictionDefault { didSet { BufferManager.shared.updatePhysicsBuffers() } }
+    @Published var repulsionStrength: Float = repulsionStrengthDefault { didSet { BufferManager.shared.updatePhysicsBuffers() } }
+    @Published var pointSize: Float = pointSizeDefault { didSet { BufferManager.shared.updatePhysicsBuffers() } }
+
     @Published var selectedPreset: SimulationPreset = .defaultPreset {
         didSet {
             applyPreset(selectedPreset)
@@ -37,11 +44,9 @@ class SimulationSettings: ObservableObject {
     static let repulsionStrengthMin: Float = 0.01
     static let repulsionStrengthMax: Float = 0.2
 
-    @Published var maxDistance: Float = maxDistanceDefault { didSet { BufferManager.shared.updatePhysicsBuffers() } }
-    @Published var minDistance: Float = minDistanceDefault { didSet { BufferManager.shared.updatePhysicsBuffers() } }
-    @Published var beta: Float = betaDefault { didSet { BufferManager.shared.updatePhysicsBuffers() } }
-    @Published var friction: Float = frictionDefault { didSet { BufferManager.shared.updatePhysicsBuffers() } }
-    @Published var repulsionStrength: Float = repulsionStrengthDefault { didSet { BufferManager.shared.updatePhysicsBuffers() } }
+    static let pointSizeDefault: Float = 11.0
+    static let pointSizeMin: Float = 3.0
+    static let pointSizeMax: Float = 24.0
 
     let presetApplied = PassthroughSubject<Void, Never>()
     
@@ -51,7 +56,8 @@ class SimulationSettings: ObservableObject {
         beta = preset.beta
         friction = preset.friction
         repulsionStrength = preset.repulsionStrength
-        
+        pointSize = preset.pointSize
+
         if sendEvent {
             presetApplied.send()
         }

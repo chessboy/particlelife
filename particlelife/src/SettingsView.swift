@@ -91,6 +91,10 @@ struct SimulationSettingsView: View {
                 Slider(value: $settings.repulsionStrength, in: SimulationSettings.repulsionStrengthMin...SimulationSettings.repulsionStrengthMax, step: 0.01) {
                     Text("Repulsion: \(settings.repulsionStrength, specifier: "%.2f")")
                 }
+                
+                Slider(value: $settings.pointSize, in: SimulationSettings.pointSizeMin...SimulationSettings.pointSizeMax, step: 1.0) {
+                    Text("Point Size: \(settings.pointSize, specifier: "%.1f")")
+                }
             }
         }
         .padding(20)

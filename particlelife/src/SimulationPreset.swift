@@ -18,6 +18,7 @@ struct SimulationPreset: Hashable {
     let beta: Float
     let friction: Float
     let repulsionStrength: Float
+    let pointSize: Float
     
     func hash(into hasher: inout Hasher) {
         hasher.combine(name)
@@ -41,8 +42,9 @@ extension SimulationPreset {
             minDistance: SimulationSettings.minDistanceDefault,
             beta: SimulationSettings.betaDefault,
             friction: SimulationSettings.frictionDefault,
-            repulsionStrength: SimulationSettings.repulsionStrengthDefault)
-    }
+            repulsionStrength: SimulationSettings.repulsionStrengthDefault,
+            pointSize: SimulationSettings.pointSizeDefault
+        )}
     
     static let random3Preset = makeRandomPreset(speciesCount: 3)
     static let random6Preset = makeRandomPreset(speciesCount: 6)
@@ -58,7 +60,8 @@ extension SimulationPreset {
         minDistance: 0.08,
         beta: 0.1,
         friction: 0.5,
-        repulsionStrength: 0.03
+        repulsionStrength: 0.03,
+        pointSize: 20
     )
     
     static let colorClash = SimulationPreset(
@@ -71,7 +74,8 @@ extension SimulationPreset {
         minDistance: 0.03,
         beta: 0.29,
         friction: 0.06,
-        repulsionStrength: 0.02
+        repulsionStrength: 0.02,
+        pointSize: SimulationSettings.pointSizeDefault
     )
     
     static let cool = SimulationPreset(
@@ -88,7 +92,9 @@ extension SimulationPreset {
         minDistance: SimulationSettings.minDistanceDefault,
         beta: SimulationSettings.betaDefault,
         friction: SimulationSettings.frictionDefault,
-        repulsionStrength: SimulationSettings.repulsionStrengthDefault)
+        repulsionStrength: SimulationSettings.repulsionStrengthDefault,
+        pointSize: SimulationSettings.pointSizeDefault
+    )
     
     static let paintSpatters = SimulationPreset(
         name: "Paint Spatters",
@@ -109,7 +115,8 @@ extension SimulationPreset {
         minDistance: 0.01,
         beta: 0.22,
         friction: 0.21,
-        repulsionStrength: 0.03
+        repulsionStrength: 0.03,
+        pointSize: SimulationSettings.pointSizeDefault
     )
     
     static let defaultPreset: SimulationPreset = .random6Preset

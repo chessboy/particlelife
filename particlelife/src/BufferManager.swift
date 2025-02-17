@@ -25,6 +25,7 @@ class BufferManager {
     private(set) var betaBuffer: MTLBuffer?
     private(set) var frictionBuffer: MTLBuffer?
     private(set) var repulsionStrengthBuffer: MTLBuffer?
+    private(set) var pointSizeBuffer: MTLBuffer?
     
     // Particle Buffers
     private(set) var particleBuffer: MTLBuffer?
@@ -34,16 +35,17 @@ class BufferManager {
     
     var areBuffersInitialized: Bool {
         return particleBuffer != nil &&
-               interactionBuffer != nil &&
-               numSpeciesBuffer != nil &&
-               deltaTimeBuffer != nil &&
-               maxDistanceBuffer != nil &&
-               minDistanceBuffer != nil &&
-               betaBuffer != nil &&
-               frictionBuffer != nil &&
-               repulsionStrengthBuffer != nil &&
-               cameraBuffer != nil &&
-               zoomBuffer != nil
+        interactionBuffer != nil &&
+        numSpeciesBuffer != nil &&
+        deltaTimeBuffer != nil &&
+        maxDistanceBuffer != nil &&
+        minDistanceBuffer != nil &&
+        betaBuffer != nil &&
+        frictionBuffer != nil &&
+        repulsionStrengthBuffer != nil &&
+        pointSizeBuffer != nil &&
+        cameraBuffer != nil &&
+        zoomBuffer != nil
     }
     
     private init() {
@@ -65,12 +67,13 @@ class BufferManager {
         betaBuffer = createBuffer(type: Float.self)
         frictionBuffer = createBuffer(type: Float.self)
         repulsionStrengthBuffer = createBuffer(type: Float.self)
+        pointSizeBuffer = createBuffer(type: Float.self)
         cameraBuffer = createBuffer(type: SIMD2<Float>.self)
         zoomBuffer = createBuffer(type: Float.self)
         
         updatePhysicsBuffers()
     }
-
+    
     private func createBuffer<T>(type: T.Type, count: Int = 1) -> MTLBuffer? {
         return device.makeBuffer(length: MemoryLayout<T>.stride * count, options: [])
     }
@@ -82,7 +85,7 @@ class BufferManager {
             particleBuffer = device.makeBuffer(length: particleSize, options: .storageModeShared)
         }
         particleBuffer?.contents().copyMemory(from: particles, byteCount: particleSize)
-
+        
         // Ensure interaction buffer exists
         let flatMatrix = flattenInteractionMatrix(interactionMatrix)
         let matrixSize = MemoryLayout<Float>.stride * flatMatrix.count
@@ -90,7 +93,7 @@ class BufferManager {
             interactionBuffer = device.makeBuffer(length: matrixSize, options: .storageModeShared)
         }
         interactionBuffer?.contents().copyMemory(from: flatMatrix, byteCount: matrixSize)
-
+        
         // Ensure numSpecies buffer exists
         if numSpeciesBuffer == nil {
             numSpeciesBuffer = createBuffer(type: Int.self)
@@ -128,6 +131,7 @@ extension BufferManager {
         updateBuffer(betaBuffer, with: settings.beta)
         updateBuffer(frictionBuffer, with: settings.friction)
         updateBuffer(repulsionStrengthBuffer, with: settings.repulsionStrength)
+        updateBuffer(pointSizeBuffer, with: settings.pointSize)
     }
     
     func updateParticleBuffer(particles: [Particle]) {

@@ -31,6 +31,7 @@ float3 speciesColor(int species) {
 vertex VertexOut vertex_main(const device Particle* particles [[buffer(0)]],
                              const device float2* cameraPosition [[buffer(1)]],
                              const device float* zoomLevel [[buffer(2)]],
+                             constant float* pointSize [[buffer(3)]],
                              uint id [[vertex_id]]) {
     VertexOut out;
 
@@ -38,7 +39,7 @@ vertex VertexOut vertex_main(const device Particle* particles [[buffer(0)]],
     worldPosition *= *zoomLevel;
     
     out.position = float4(worldPosition, 0.0, 1.0);
-    out.pointSize = 11.0;
+    out.pointSize = *pointSize;
     out.color = float4(speciesColor(particles[id].species), 1.0);
 
     return out;
@@ -102,7 +103,7 @@ kernel void compute_particle_movement(
     for (uint i = 0; i < totalParticles; i++) {
         if (i == id) continue;
 
-        Particle other = particles[i];
+        device Particle &other = particles[i]; // ✅ Reference, not copy
         float2 direction = computeWrappedDistance(selfParticle.position, other.position);
         float distance = length(direction);
 
@@ -120,6 +121,8 @@ kernel void compute_particle_movement(
             forceValue *= falloff * (*dt);
             
             force += normalize(direction) * forceValue;
+            float maxForce = 50.0;
+            force = clamp(force, -maxForce, maxForce);
         }
 
             // universal repeller

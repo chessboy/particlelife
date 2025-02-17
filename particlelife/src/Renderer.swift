@@ -185,6 +185,7 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         renderEncoder.setVertexBuffer(BufferManager.shared.particleBuffer, offset: 0, index: 0)
         renderEncoder.setVertexBuffer(BufferManager.shared.cameraBuffer, offset: 0, index: 1)
         renderEncoder.setVertexBuffer(BufferManager.shared.zoomBuffer, offset: 0, index: 2)
+        renderEncoder.setVertexBuffer(BufferManager.shared.pointSizeBuffer, offset: 0, index: 3)
         renderEncoder.drawPrimitives(type: .point, vertexStart: 0, vertexCount: particleCount)
         renderEncoder.endEncoding()
 
