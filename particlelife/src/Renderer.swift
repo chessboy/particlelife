@@ -156,7 +156,7 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         computeEncoder.setBuffer(BufferManager.shared.minDistanceBuffer, offset: 0, index: 5)
         computeEncoder.setBuffer(BufferManager.shared.betaBuffer, offset: 0, index: 6)
         computeEncoder.setBuffer(BufferManager.shared.frictionBuffer, offset: 0, index: 7)
-        computeEncoder.setBuffer(BufferManager.shared.repulsionStrengthBuffer, offset: 0, index: 8)
+        computeEncoder.setBuffer(BufferManager.shared.repulsionBuffer, offset: 0, index: 8)
         computeEncoder.setBuffer(BufferManager.shared.cameraBuffer, offset: 0, index: 9)
         computeEncoder.setBuffer(BufferManager.shared.zoomBuffer, offset: 0, index: 10)
 

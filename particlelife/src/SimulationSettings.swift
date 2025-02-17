@@ -8,15 +8,53 @@
 import SwiftUI
 import Combine
 
+struct ConfigurableSetting {
+    var value: Float {
+        didSet {
+            onChange?(value) // ✅ Triggers the update when `value` changes
+        }
+    }
+    
+    let defaultValue: Float
+    let min: Float
+    let max: Float
+    let step: Float
+    let format: String
+    var onChange: ((Float) -> Void)? // ✅ Callback for updates
+}
+
 class SimulationSettings: ObservableObject {
     static let shared = SimulationSettings()
 
-    @Published var maxDistance: Float = maxDistanceDefault { didSet { BufferManager.shared.updatePhysicsBuffers() } }
-    @Published var minDistance: Float = minDistanceDefault { didSet { BufferManager.shared.updatePhysicsBuffers() } }
-    @Published var beta: Float = betaDefault { didSet { BufferManager.shared.updatePhysicsBuffers() } }
-    @Published var friction: Float = frictionDefault { didSet { BufferManager.shared.updatePhysicsBuffers() } }
-    @Published var repulsionStrength: Float = repulsionStrengthDefault { didSet { BufferManager.shared.updatePhysicsBuffers() } }
-    @Published var pointSize: Float = pointSizeDefault { didSet { BufferManager.shared.updatePhysicsBuffers() } }
+    @Published var maxDistance = ConfigurableSetting(
+        value: 0.64, defaultValue: 0.64, min: 0.5, max: 1.5, step: 0.01, format: "%.2f",
+        onChange: { _ in BufferManager.shared.updatePhysicsBuffers() } // ✅ Triggers update
+    )
+
+    @Published var minDistance = ConfigurableSetting(
+        value: 0.04, defaultValue: 0.04, min: 0.01, max: 0.1, step: 0.01, format: "%.2f",
+        onChange: { _ in BufferManager.shared.updatePhysicsBuffers() }
+    )
+
+    @Published var beta = ConfigurableSetting(
+        value: 0.3, defaultValue: 0.3, min: 0.1, max: 0.5, step: 0.01, format: "%.2f",
+        onChange: { _ in BufferManager.shared.updatePhysicsBuffers() }
+    )
+
+    @Published var friction = ConfigurableSetting(
+        value: 0.2, defaultValue: 0.2, min: 0, max: 0.5, step: 0.01, format: "%.2f",
+        onChange: { _ in BufferManager.shared.updatePhysicsBuffers() }
+    )
+
+    @Published var repulsion = ConfigurableSetting(
+        value: 0.03, defaultValue: 0.03, min: 0.01, max: 0.2, step: 0.01, format: "%.2f",
+        onChange: { _ in BufferManager.shared.updatePhysicsBuffers() }
+    )
+
+    @Published var pointSize = ConfigurableSetting(
+        value: 7.0, defaultValue: 7.0, min: 3.0, max: 25.0, step: 2.0, format: "%.0f",
+        onChange: { _ in BufferManager.shared.updatePhysicsBuffers() }
+    )
 
     @Published var selectedPreset: SimulationPreset = .defaultPreset {
         didSet {
@@ -24,39 +62,15 @@ class SimulationSettings: ObservableObject {
         }
     }
 
-    static let maxDistanceDefault: Float = 0.64
-    static let maxDistanceMin: Float = 0.5
-    static let maxDistanceMax: Float = 1.5
-
-    static let minDistanceDefault: Float = 0.04
-    static let minDistanceMin: Float = 0.01
-    static let minDistanceMax: Float = 0.1
-
-    static let betaDefault: Float = 0.3
-    static let betaMin: Float = 0.1
-    static let betaMax: Float = 0.5
-
-    static let frictionDefault: Float = 0.2
-    static let frictionMin: Float = 0
-    static let frictionMax: Float = 0.5
-
-    static let repulsionStrengthDefault: Float = 0.03
-    static let repulsionStrengthMin: Float = 0.01
-    static let repulsionStrengthMax: Float = 0.2
-
-    static let pointSizeDefault: Float = 11.0
-    static let pointSizeMin: Float = 3.0
-    static let pointSizeMax: Float = 24.0
-
     let presetApplied = PassthroughSubject<Void, Never>()
     
     func applyPreset(_ preset: SimulationPreset, sendEvent: Bool = true) {
-        maxDistance = preset.maxDistance
-        minDistance = preset.minDistance
-        beta = preset.beta
-        friction = preset.friction
-        repulsionStrength = preset.repulsionStrength
-        pointSize = preset.pointSize
+        maxDistance.value = preset.maxDistance
+        minDistance.value = preset.minDistance
+        beta.value = preset.beta
+        friction.value = preset.friction
+        repulsion.value = preset.repulsion
+        pointSize.value = preset.pointSize
 
         if sendEvent {
             presetApplied.send()

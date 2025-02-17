@@ -83,7 +83,7 @@ kernel void compute_particle_movement(
     constant float *minDistance [[buffer(5)]],
     constant float *beta [[buffer(6)]],
     constant float *friction [[buffer(7)]],
-    constant float *repulsionStrength [[buffer(8)]],
+    constant float *repulsion [[buffer(8)]],
     constant float2 *cameraPosition [[buffer(9)]],
     constant float *zoomLevel [[buffer(10)]],
     uint id [[thread_position_in_grid]],
@@ -103,7 +103,7 @@ kernel void compute_particle_movement(
     for (uint i = 0; i < totalParticles; i++) {
         if (i == id) continue;
 
-        device Particle &other = particles[i]; // ✅ Reference, not copy
+        device Particle &other = particles[i];
         float2 direction = computeWrappedDistance(selfParticle.position, other.position);
         float distance = length(direction);
 
@@ -126,9 +126,9 @@ kernel void compute_particle_movement(
         }
 
             // universal repeller
-            if (*repulsionStrength > 0.0 && distance < (*minDistance * 1.5)) {
-                float repulsion = (*repulsionStrength) * (1.0 - (distance / (*minDistance * 1.5)));
-                force -= normalize(direction) * repulsion;
+            if (*repulsion > 0.0 && distance < (*minDistance * 1.5)) {
+                float repulsionStrength = (*repulsion) * (1.0 - (distance / (*minDistance * 1.5)));
+                force -= normalize(direction) * repulsionStrength;
             }
     }
 

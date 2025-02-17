@@ -24,7 +24,7 @@ class BufferManager {
     private(set) var minDistanceBuffer: MTLBuffer?
     private(set) var betaBuffer: MTLBuffer?
     private(set) var frictionBuffer: MTLBuffer?
-    private(set) var repulsionStrengthBuffer: MTLBuffer?
+    private(set) var repulsionBuffer: MTLBuffer?
     private(set) var pointSizeBuffer: MTLBuffer?
     
     // Particle Buffers
@@ -42,7 +42,7 @@ class BufferManager {
         minDistanceBuffer != nil &&
         betaBuffer != nil &&
         frictionBuffer != nil &&
-        repulsionStrengthBuffer != nil &&
+        repulsionBuffer != nil &&
         pointSizeBuffer != nil &&
         cameraBuffer != nil &&
         zoomBuffer != nil
@@ -66,7 +66,7 @@ class BufferManager {
         minDistanceBuffer = createBuffer(type: Float.self)
         betaBuffer = createBuffer(type: Float.self)
         frictionBuffer = createBuffer(type: Float.self)
-        repulsionStrengthBuffer = createBuffer(type: Float.self)
+        repulsionBuffer = createBuffer(type: Float.self)
         pointSizeBuffer = createBuffer(type: Float.self)
         cameraBuffer = createBuffer(type: SIMD2<Float>.self)
         zoomBuffer = createBuffer(type: Float.self)
@@ -130,7 +130,7 @@ extension BufferManager {
         updateBuffer(minDistanceBuffer, with: settings.minDistance)
         updateBuffer(betaBuffer, with: settings.beta)
         updateBuffer(frictionBuffer, with: settings.friction)
-        updateBuffer(repulsionStrengthBuffer, with: settings.repulsionStrength)
+        updateBuffer(repulsionBuffer, with: settings.repulsion)
         updateBuffer(pointSizeBuffer, with: settings.pointSize)
     }
     

@@ -12,10 +12,10 @@ struct SimulationSettingsView: View {
     @ObservedObject var particleSystem = ParticleSystem.shared
     @ObservedObject var settings = SimulationSettings.shared
     @ObservedObject var renderer: Renderer
-
+    
     @State private var interactionMatrix: [[Float]] = ParticleSystem.shared.interactionMatrix
     @State private var speciesColors: [Color] = ParticleSystem.shared.speciesColors
-
+    
     var body: some View {
         VStack {
             
@@ -30,7 +30,7 @@ struct SimulationSettingsView: View {
             }
             
             MatrixView(interactionMatrix: particleSystem.interactionMatrix, speciesColors: particleSystem.speciesColors)
-                
+            
             Picker("Preset", selection: $settings.selectedPreset) {
                 ForEach(SimulationPreset.allPresets, id: \.name) { preset in
                     Text(preset.name).tag(preset)
@@ -38,12 +38,12 @@ struct SimulationSettingsView: View {
             }
             .pickerStyle(MenuPickerStyle())
             .padding(.bottom, 10)
-
+            
             HStack {
                 Button(action: {
                     settings.applyPreset(SimulationSettings.shared.selectedPreset, sendEvent: false)
                 }) {
-                    Text("Defaults")
+                    Text("Reset")
                         .font(.headline)
                         .foregroundColor(.white)
                         .padding()
@@ -52,13 +52,13 @@ struct SimulationSettingsView: View {
                         .drawingGroup()  // Renders UI as a single texture to reduce SwiftUI overhead
                         .cornerRadius(10)
                         .frame(height: 20)
-
+                    
                 }
                 
                 Button(action: {
                     renderer.resetParticles()
                 }) {
-                    Text("Rebuild")
+                    Text("Regenerate")
                         .font(.headline)
                         .foregroundColor(.white)
                         .padding()
@@ -69,32 +69,15 @@ struct SimulationSettingsView: View {
                         .frame(height: 20)
                 }
             }.padding(.bottom, 14)
-
+            
             VStack {
                 
-                Slider(value: $settings.maxDistance, in: SimulationSettings.maxDistanceMin...SimulationSettings.maxDistanceMax, step: 0.01) {
-                    Text("Max Distance: \(settings.maxDistance, specifier: "%.2f")")
-                }
-                
-                Slider(value: $settings.minDistance, in: SimulationSettings.minDistanceMin...SimulationSettings.minDistanceMax, step: 0.01) {
-                    Text("Min Distance: \(settings.minDistance, specifier: "%.2f")")
-                }
-
-                Slider(value: $settings.beta, in: SimulationSettings.betaMin...SimulationSettings.betaMax, step: 0.01) {
-                    Text("Beta: \(settings.beta, specifier: "%.2f")")
-                }
-                
-                Slider(value: $settings.friction, in: SimulationSettings.frictionMin...SimulationSettings.frictionMax, step: 0.01) {
-                    Text("Friction: \(settings.friction, specifier: "%.2f")")
-                }
-                
-                Slider(value: $settings.repulsionStrength, in: SimulationSettings.repulsionStrengthMin...SimulationSettings.repulsionStrengthMax, step: 0.01) {
-                    Text("Repulsion: \(settings.repulsionStrength, specifier: "%.2f")")
-                }
-                
-                Slider(value: $settings.pointSize, in: SimulationSettings.pointSizeMin...SimulationSettings.pointSizeMax, step: 1.0) {
-                    Text("Point Size: \(settings.pointSize, specifier: "%.1f")")
-                }
+                settingSlider(title: "Max Dist", setting: $settings.maxDistance)
+                settingSlider(title: "Min Dist", setting: $settings.minDistance)
+                settingSlider(title: "Beta", setting: $settings.beta)
+                settingSlider(title: "Friction", setting: $settings.friction)
+                settingSlider(title: "Repulsion", setting: $settings.repulsion)
+                settingSlider(title: "Point Size", setting: $settings.pointSize)
             }
         }
         .padding(20)
@@ -105,6 +88,24 @@ struct SimulationSettingsView: View {
             interactionMatrix = ParticleSystem.shared.interactionMatrix
             speciesColors = ParticleSystem.shared.speciesColors
         }
+    }
+    
+    /// Reusable slider view for settings (Single-Line Layout with Bold Value)
+    private func settingSlider(title: String, setting: Binding<ConfigurableSetting>) -> some View {
+        HStack {
+            Text("\(title):")
+                .frame(width: 65, alignment: .trailing)
+            
+            Text("\(setting.wrappedValue.value, specifier: setting.wrappedValue.format)")
+                .bold()
+            
+            Slider(
+                value: setting.value,
+                in: setting.wrappedValue.min...setting.wrappedValue.max,
+                step: setting.wrappedValue.step
+            )
+        }
+        .padding(.horizontal)
     }
 }
 
