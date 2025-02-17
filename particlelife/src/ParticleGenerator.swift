@@ -35,7 +35,7 @@ struct ParticleGenerator {
     
     static func generate(distribution: DistributionType, count: Int, numSpecies: Int) -> [Particle] {
         
-        print("ParticleGenerator: generate: distribution: \(distribution), count: \(count), numSpecies: \(numSpecies)")
+        print("ParticleGenerator.generate: distribution: \(distribution), count: \(count), numSpecies: \(numSpecies)")
         
         switch distribution {
         case .centered:

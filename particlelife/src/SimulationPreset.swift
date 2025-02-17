@@ -68,10 +68,33 @@ extension SimulationPreset {
         repulsionStrength: 0.02
     )
     
+    static let paintSpatters = SimulationPreset(
+        name: "Paint Spatters",
+        numSpecies: 8,
+        numParticles: .k40,
+        forceMatrixType: .custom([
+            [ 0.47, -0.37, -0.57, -0.54,  0.06,  0.85, -0.15,  0.37],
+            [-0.21, -0.26,  0.42,  0.06, -0.64, -0.38,  0.65,  0.86],
+            [-0.39,  0.96, -0.25, -0.82,  0.57, -0.51,  0.70,  0.14],
+            [-0.63,  0.25,  0.81, -0.59, -0.16, -0.49, -0.22,  0.85],
+            [ 0.58, -0.82, -1.00,  0.53, -0.85, -0.14, -0.68,  0.96],
+            [ 0.34,  0.70, -0.93,  0.20, -0.09,  0.76,  0.88, -0.24],
+            [ 0.74,  0.42, -0.92, -0.63,  0.86, -0.80,  0.07,  0.59],
+            [ 0.62,  0.28, -0.14, -0.22,  0.10, -0.11, -0.78,  0.96]
+        ]),
+        distributionType: .colorBattle,
+        maxDistance: 1.19,
+        minDistance: 0.01,
+        beta: 0.22,
+        friction: 0.21,
+        repulsionStrength: 0.03
+    )
+    
     static let allPresets: [SimulationPreset] = [
         .defaultPreset,
         .snakesPreset,
-        .colorClash
+        .colorClash,
+        paintSpatters
     ]
 
 }

@@ -16,6 +16,8 @@ enum MatrixType {
     case chains3
     case snakes
     case zero
+    case custom([[Float]])
+
 }
 
 enum MatrixGenerator {
@@ -86,6 +88,9 @@ enum MatrixGenerator {
         case .zero:
             // Already initialized with all zeros.
             break
+            
+        case .custom(let matrix):
+            return matrix
         }
         
         return matrix
