@@ -148,7 +148,6 @@ extension BufferManager {
         updateBuffer(frictionBuffer, with: settings.friction)
         updateBuffer(repulsionBuffer, with: settings.repulsion)
         updateBuffer(pointSizeBuffer, with: settings.pointSize)
-        print("updatePhysicsBuffers: worldSize: \(settings.worldSize)")
         updateBuffer(worldSizeBuffer, with: settings.worldSize)
     }
     

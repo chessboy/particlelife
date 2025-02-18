@@ -11,7 +11,7 @@ import Combine
 
 class Renderer: NSObject, MTKViewDelegate, ObservableObject {
     
-    private let drawWorldBoundary = false
+    private let drawWorldBoundary = true
 
     @Published var fps: Int = 0
     @Published var isPaused: Bool = false {
@@ -257,6 +257,7 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
     // Zoom Controls
     
     func resetPanAndZoom() {
+        guard !isPaused else { return }
         zoomLevel = 1.0
         cameraPosition = .zero
         BufferManager.shared.updateZoomBuffer(zoomLevel: zoomLevel)
@@ -264,32 +265,38 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
     }
     
     func zoomIn() {
+        guard !isPaused else { return }
         zoomLevel *= Constants.Controls.zoomStep
         BufferManager.shared.updateZoomBuffer(zoomLevel: zoomLevel)
     }
     
     func zoomOut() {
+        guard !isPaused else { return }
         zoomLevel /= Constants.Controls.zoomStep
         BufferManager.shared.updateZoomBuffer(zoomLevel: zoomLevel)
     }
 
     // Pan Controls
     func panLeft() {
+        guard !isPaused else { return }
         cameraPosition.x -= Constants.Controls.panStep / zoomLevel
         BufferManager.shared.updateCameraBuffer(cameraPosition: cameraPosition)
     }
 
     func panRight() {
+        guard !isPaused else { return }
         cameraPosition.x += Constants.Controls.panStep / zoomLevel
         BufferManager.shared.updateCameraBuffer(cameraPosition: cameraPosition)
     }
 
     func panUp() {
+        guard !isPaused else { return }
         cameraPosition.y += Constants.Controls.panStep / zoomLevel
         BufferManager.shared.updateCameraBuffer(cameraPosition: cameraPosition)
     }
 
     func panDown() {
+        guard !isPaused else { return }
         cameraPosition.y -= Constants.Controls.panStep / zoomLevel
         BufferManager.shared.updateCameraBuffer(cameraPosition: cameraPosition)
     }

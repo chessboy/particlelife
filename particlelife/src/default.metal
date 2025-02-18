@@ -37,9 +37,13 @@ vertex VertexOut vertex_main(const device Particle* particles [[buffer(0)]],
 
     float2 worldPosition = particles[id].position - *cameraPosition;
     worldPosition *= *zoomLevel;
-    
+
+    // Scale point size inversely with zoom (but keep it visible)
+    float scaledPointSize = *pointSize * *zoomLevel;
+    scaledPointSize = clamp(scaledPointSize, 1.0, 60.0);
+
     out.position = float4(worldPosition, 0.0, 1.0);
-    out.pointSize = *pointSize;
+    out.pointSize = scaledPointSize;
     out.color = float4(speciesColor(particles[id].species), 1.0);
 
     return out;
@@ -66,7 +70,7 @@ vertex VertexOut vertex_boundary(
     worldPosition *= *zoomLevel;
 
     out.position = float4(worldPosition, 0.0, 1.0);
-    out.color = float4(0.5, 0.5, 0.0, 1.0);
+    out.color = float4(0.0, 0.33, 0.5, 1.0);
 
     return out;
 }
