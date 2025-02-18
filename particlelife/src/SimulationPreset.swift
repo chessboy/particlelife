@@ -56,71 +56,33 @@ struct SimulationPreset: Hashable {
         numParticles: .k30,
         forceMatrixType: .snakes,
         distributionType: .colorBands,
-        maxDistance: 0.7,
+        maxDistance: 0.8,
         minDistance: 0.08,
-        beta: 0.12,
-        friction: 0.4,
-        repulsion: 0.03,
+        beta: 0.28,
+        friction: 0.3,
+        repulsion: 0.04,
         pointSize: 21,
         worldSize: 1.0
     )
-    
-    static let colorClash = SimulationPreset(
-        name: "Color Clash",
-        numSpecies: 6,
-        numParticles: .k40,
-        forceMatrixType: .chains3,
-        distributionType: .uniform,
-        maxDistance: 0.65,
-        minDistance: 0.03,
-        beta: 0.29,
-        friction: 0.1,
-        repulsion: 0.02,
-        pointSize: 7,
-        worldSize: 1.0
-    )
-    
-    static let cool = SimulationPreset(
-        name: "Cool",
-        numSpecies: 3,
+        
+    static let chaoticWalkers = SimulationPreset(
+        name: "Chaotic Walkers",
+        numSpecies: 4,
         numParticles: .k40,
         forceMatrixType: .custom([
-            [ 0.89, -0.81, -0.31],
-            [-0.72,  0.08,  0.76],
-            [ 0.95, -0.96, -0.64]
+            [  0.2, -1.0,  0.6, -0.4 ],  // More negative interactions to break up clumps
+            [ -1.0,  0.2, -0.5,  0.7 ],  // Species 2 is drawn to 4, but repulses 3
+            [  0.6, -0.5,  0.2, -1.0 ],  // Species 3 avoids 4 but slightly clumps itself
+            [ -0.4,  0.7, -1.0,  0.2 ]
         ]),
         distributionType: .uniform,
-        maxDistance: 0.65,
-        minDistance: 0.04,
-        beta: 0.3,
-        friction: 0.2,
-        repulsion: 0.03,
-        pointSize: 11,
-        worldSize: 1.0
-    )
-    
-    static let paintSpatters = SimulationPreset(
-        name: "Paint Spatters",
-        numSpecies: 8,
-        numParticles: .k40,
-        forceMatrixType: .custom([
-            [ 0.47, -0.37, -0.57, -0.54,  0.06,  0.85, -0.15,  0.37],
-            [-0.21, -0.26,  0.42,  0.06, -0.64, -0.38,  0.65,  0.86],
-            [-0.39,  0.96, -0.25, -0.82,  0.57, -0.51,  0.70,  0.14],
-            [-0.63,  0.25,  0.81, -0.59, -0.16, -0.49, -0.22,  0.85],
-            [ 0.58, -0.82, -1.00,  0.53, -0.85, -0.14, -0.68,  0.96],
-            [ 0.34,  0.70, -0.93,  0.20, -0.09,  0.76,  0.88, -0.24],
-            [ 0.74,  0.42, -0.92, -0.63,  0.86, -0.80,  0.07,  0.59],
-            [ 0.62,  0.28, -0.14, -0.22,  0.10, -0.11, -0.78,  0.96]
-        ]),
-        distributionType: .colorBattle,
-        maxDistance: 1.2,
-        minDistance: 0.01,
-        beta: 0.22,
-        friction: 0.1,
-        repulsion: 0.1,
-        pointSize: 25,
-        worldSize: 2.0
+        maxDistance: 1.0,   // Larger = more cross-species interactions before attraction stops
+        minDistance: 0.02,  // Low = avoids clumping
+        beta: 0.35,         // Higher = extends peak interaction force before it tapers off
+        friction: 0.05,     // Lower friction = longer sustained movement (but not infinite sliding)
+        repulsion: 0.015,   // Gentle repulsion to stop extreme clumping without pushing too hard
+        pointSize: 9,       // Keeps a balanced visual density
+        worldSize: 1.5      // Bigger = prevents the sim from stabilizing into static blobs
     )
     
     static let testPreset = SimulationPreset(
@@ -128,7 +90,7 @@ struct SimulationPreset: Hashable {
         numSpecies: 2,
         numParticles: .k30,
         forceMatrixType: .custom([
-            [-1, 0],
+            [0, 1],
             [0, 0],
         ]),
         distributionType: .uniform,
@@ -141,16 +103,14 @@ struct SimulationPreset: Hashable {
         worldSize: 1.0
     )
     
-    static let defaultPreset: SimulationPreset = testPreset
+    static let defaultPreset: SimulationPreset = random6Preset
     
     static let allPresets: [SimulationPreset] = [
-        testPreset,
+        //testPreset,
         random3Preset,
         random6Preset,
         random9Preset,
         inchwormPreset,
-        colorClash,
-        cool,
-        paintSpatters
+        chaoticWalkers
     ]
 }

@@ -166,31 +166,42 @@ kernel void compute_particle_movement(
         float2 direction = computeWrappedDistance(selfParticle.position, other.position, *worldSize);
         float distance = length(direction);
 
-        // compute force intreations
+        // Compute force interactions between particles
         if (distance > *minDistance && distance < *maxDistance) {
             int selfSpecies = selfParticle.species;
             int otherSpecies = other.species;
             float influence = interactionMatrix[selfSpecies * (*numSpecies) + otherSpecies];
 
-            float forceValue = (distance / *beta - 1.0) * influence;
-            if (distance < *beta) {
-                forceValue *= 0.7;  // Weaken short-range attraction
-            }
+            // Attraction/repulsion based on species interaction matrix.
+            // Influence is scaled so that force is strongest at minDistance and weakens at maxDistance.
+            float forceValue = influence * (1.0 - (distance / *maxDistance));
 
+            // Gradually weakens short-range attraction instead of applying a fixed multiplier.
+            // Ensures force starts at zero when distance is 0 and reaches full strength at beta.
+            if (distance < *beta) {
+                forceValue *= distance / *beta;
+            }
+            
+            // Smoothly reduces force near maxDistance to prevent abrupt cutoffs.
+            // `smoothstep` ensures a gradual transition from full force (minDistance) to zero force (maxDistance).
+            // This improves stability and prevents unnatural force drops.
             float falloff = smoothstep(*maxDistance, *minDistance, distance);
             forceValue *= falloff * (*dt);
-            
+
+            // Normalize force and apply safely to avoid extreme values
             force += normalize(direction) * forceValue;
             float maxForce = 50.0;
             force = clamp(force, -maxForce, maxForce);
         }
-
-        // universal repulsion between any 2 particles
+        
+        // Apply universal repulsion between any two particles at very close range.
+        // Prevents particles from overlapping by generating a short-range repulsive force.
         if (*repulsion > 0.0 && distance < (*minDistance * 1.5)) {
             float repulsionStrength = (*repulsion) * (1.0 - (distance / (*minDistance * 1.5)));
             force -= normalize(direction) * repulsionStrength;
         }
         
+        // Apply a perturbation force within a specified radius around the click position.
         float2 clickPos = clickData[0].position;
         float effectRadius = clickData[0].radius * *worldSize;
 
@@ -199,24 +210,23 @@ kernel void compute_particle_movement(
             float distance = length(delta);
 
             if (distance < effectRadius) {
-                // Generate a uniform random angle in [0, 2π]
+                // Generate a uniform random angle in [0, 2π] for perturbation direction.
                 float angle = rand(id, 1, 123) * 6.2831853;
-
                 float2 randomDirection = normalize(float2(cos(angle), sin(angle)));
 
-                // Random force magnitude in [-0.0002, 0.0002]
+                // Generate a small random force magnitude in [-0.0002, 0.0002].
                 float randomMagnitude = (rand(id, 2, 456) - 0.5) * 0.0002;
 
-                // Compute world scaling correction
+                // Compute aspect ratio correction to ensure proper scaling.
                 float aspectRatio = worldSize[1] / worldSize[0];
                 float2 correctedDirection = float2(randomDirection.x * aspectRatio, randomDirection.y);
 
-                // Apply final perturbation
+                // Apply final perturbation force.
                 selfParticle.velocity += correctedDirection * randomMagnitude;
             }
         }
     }
-
+        
     // Apply friction dynamically
     selfParticle.velocity += force * 0.1;
     selfParticle.velocity *= (1.0 - *friction);
