@@ -19,7 +19,8 @@ struct SimulationPreset: Hashable {
     let friction: Float
     let repulsion: Float
     let pointSize: Float
-    
+    let worldSize: Float
+
     func hash(into hasher: inout Hasher) {
         hasher.combine(name)
     }
@@ -40,7 +41,8 @@ struct SimulationPreset: Hashable {
             beta: 0.3,
             friction: 0.2,
             repulsion: 0.03,
-            pointSize: 11
+            pointSize: 11,
+            worldSize: 1.0
         )
     }
     
@@ -49,7 +51,7 @@ struct SimulationPreset: Hashable {
     static let random9Preset = makeRandomPreset(speciesCount: 9)
     
     static let snakesPreset = SimulationPreset(
-        name: "Snakes",
+        name: "Snake",
         numSpecies: 6,
         numParticles: .k30,
         forceMatrixType: .snakes,
@@ -57,9 +59,10 @@ struct SimulationPreset: Hashable {
         maxDistance: 0.5,
         minDistance: 0.08,
         beta: 0.1,
-        friction: 0.5,
+        friction: 0.4,
         repulsion: 0.03,
-        pointSize: 21
+        pointSize: 21,
+        worldSize: 1.5
     )
     
     static let colorClash = SimulationPreset(
@@ -73,7 +76,8 @@ struct SimulationPreset: Hashable {
         beta: 0.29,
         friction: 0.1,
         repulsion: 0.02,
-        pointSize: 7
+        pointSize: 7,
+        worldSize: 1.0
     )
     
     static let cool = SimulationPreset(
@@ -91,7 +95,8 @@ struct SimulationPreset: Hashable {
         beta: 0.3,
         friction: 0.2,
         repulsion: 0.03,
-        pointSize: 11
+        pointSize: 11,
+        worldSize: 1.0
     )
     
     static let paintSpatters = SimulationPreset(
@@ -112,9 +117,10 @@ struct SimulationPreset: Hashable {
         maxDistance: 1.2,
         minDistance: 0.01,
         beta: 0.22,
-        friction: 0.2,
-        repulsion: 0.03,
-        pointSize: 21
+        friction: 0.1,
+        repulsion: 0.1,
+        pointSize: 25,
+        worldSize: 2.0
     )
     
     static let defaultPreset: SimulationPreset = random6Preset

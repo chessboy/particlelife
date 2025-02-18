@@ -27,6 +27,8 @@ struct SimulationSettingsView: View {
                 Text(renderer.isPaused ? "PAUSED" : "FPS: \(renderer.fps)")
                     .font(.headline)
                     .foregroundColor(renderer.isPaused || renderer.fps < 30 ? .red : .green)
+                
+                Text("\(renderer.zoomLevel, specifier: "%.2f")x")
             }
             
             MatrixView(interactionMatrix: particleSystem.interactionMatrix, speciesColors: particleSystem.speciesColors)
@@ -58,7 +60,7 @@ struct SimulationSettingsView: View {
                 Button(action: {
                     renderer.resetParticles()
                 }) {
-                    Text("Regenerate")
+                    Text("Respawn")
                         .font(.headline)
                         .foregroundColor(.white)
                         .padding()
@@ -78,6 +80,7 @@ struct SimulationSettingsView: View {
                 settingSlider(title: "Friction", setting: $settings.friction)
                 settingSlider(title: "Repulsion", setting: $settings.repulsion)
                 settingSlider(title: "Point Size", setting: $settings.pointSize)
+                settingSlider(title: "World Size", setting: $settings.worldSize)
             }
         }
         .padding(20)
@@ -94,7 +97,7 @@ struct SimulationSettingsView: View {
     private func settingSlider(title: String, setting: Binding<ConfigurableSetting>) -> some View {
         HStack {
             Text("\(title):")
-                .frame(width: 65, alignment: .trailing)
+                .frame(width: 75, alignment: .trailing)
             
             Text("\(setting.wrappedValue.value, specifier: setting.wrappedValue.format)")
                 .bold()

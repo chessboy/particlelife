@@ -45,6 +45,32 @@ vertex VertexOut vertex_main(const device Particle* particles [[buffer(0)]],
     return out;
 }
 
+vertex VertexOut vertex_boundary(
+    uint id [[vertex_id]],
+    const device float2* cameraPosition [[buffer(1)]],
+    const device float* zoomLevel [[buffer(2)]],
+    const device float* worldSize [[buffer(3)]]
+) {
+    VertexOut out;
+
+    float halfSize = *worldSize;
+    float2 boundaryVertices[5] = {
+        float2(-halfSize, -halfSize), // Bottom-left
+        float2( halfSize, -halfSize), // Bottom-right
+        float2( halfSize,  halfSize), // Top-right
+        float2(-halfSize,  halfSize), // Top-left
+        float2(-halfSize, -halfSize)  // Closing the loop
+    };
+
+    float2 worldPosition = boundaryVertices[id] - *cameraPosition;
+    worldPosition *= *zoomLevel;
+
+    out.position = float4(worldPosition, 0.0, 1.0);
+    out.color = float4(0.5, 0.5, 0.0, 1.0);
+
+    return out;
+}
+
 fragment float4 fragment_main(VertexOut in [[stage_in]], float2 pointCoord [[point_coord]]) {
     float2 coord = pointCoord - 0.5;
     float distSquared = dot(coord, coord);
@@ -54,22 +80,26 @@ fragment float4 fragment_main(VertexOut in [[stage_in]], float2 pointCoord [[poi
     return float4(in.color.rgb, alpha);
 }
 
-float2 handleBoundary(float2 pos) {
-    if (pos.x > 1.0) pos.x -= 2.0;
-    if (pos.x < -1.0) pos.x += 2.0;
-    if (pos.y > 1.0) pos.y -= 2.0;
-    if (pos.y < -1.0) pos.y += 2.0;
-    
+float2 handleBoundary(float2 pos, float worldSize) {
+    float boundary = worldSize; // ✅ Dynamic boundary
+    float wrapDistance = 2.0 * worldSize; // ✅ Dynamic wrap distance
+
+    if (pos.x > boundary) pos.x -= wrapDistance;
+    if (pos.x < -boundary) pos.x += wrapDistance;
+    if (pos.y > boundary) pos.y -= wrapDistance;
+    if (pos.y < -boundary) pos.y += wrapDistance;
+
     return pos;
 }
 
-float2 computeWrappedDistance(float2 posA, float2 posB) {
+float2 computeWrappedDistance(float2 posA, float2 posB, float worldSize) {
+    float wrapDistance = 2.0 * worldSize; // ✅ Dynamic wrap distance
     float2 delta = posB - posA;
 
-    if (delta.x > 1.0) delta.x -= 2.0;
-    if (delta.x < -1.0) delta.x += 2.0;
-    if (delta.y > 1.0) delta.y -= 2.0;
-    if (delta.y < -1.0) delta.y += 2.0;
+    if (delta.x > worldSize) delta.x -= wrapDistance;
+    if (delta.x < -worldSize) delta.x += wrapDistance;
+    if (delta.y > worldSize) delta.y -= wrapDistance;
+    if (delta.y < -worldSize) delta.y += wrapDistance;
 
     return delta;
 }
@@ -86,6 +116,7 @@ kernel void compute_particle_movement(
     constant float *repulsion [[buffer(8)]],
     constant float2 *cameraPosition [[buffer(9)]],
     constant float *zoomLevel [[buffer(10)]],
+    constant float *worldSize [[buffer(11)]],
     uint id [[thread_position_in_grid]],
     uint totalParticles [[threads_per_grid]]) {
 
@@ -99,14 +130,14 @@ kernel void compute_particle_movement(
     }
     particles[id] = selfParticle;
 
-        
     for (uint i = 0; i < totalParticles; i++) {
         if (i == id) continue;
 
         device Particle &other = particles[i];
-        float2 direction = computeWrappedDistance(selfParticle.position, other.position);
+        float2 direction = computeWrappedDistance(selfParticle.position, other.position, *worldSize);
         float distance = length(direction);
 
+        // compute force intreations
         if (distance > *minDistance && distance < *maxDistance) {
             int selfSpecies = selfParticle.species;
             int otherSpecies = other.species;
@@ -125,18 +156,18 @@ kernel void compute_particle_movement(
             force = clamp(force, -maxForce, maxForce);
         }
 
-            // universal repeller
-            if (*repulsion > 0.0 && distance < (*minDistance * 1.5)) {
-                float repulsionStrength = (*repulsion) * (1.0 - (distance / (*minDistance * 1.5)));
-                force -= normalize(direction) * repulsionStrength;
-            }
+        // universal repulsion between any 2 particles
+        if (*repulsion > 0.0 && distance < (*minDistance * 1.5)) {
+            float repulsionStrength = (*repulsion) * (1.0 - (distance / (*minDistance * 1.5)));
+            force -= normalize(direction) * repulsionStrength;
+        }
     }
 
     // Apply friction dynamically
     selfParticle.velocity += force * 0.1;
     selfParticle.velocity *= (1.0 - *friction);
     selfParticle.position += selfParticle.velocity * (*dt);
-    selfParticle.position = handleBoundary(selfParticle.position);
+    selfParticle.position = handleBoundary(selfParticle.position, *worldSize);
 
     particles[id] = selfParticle;
 }

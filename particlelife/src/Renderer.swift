@@ -11,6 +11,8 @@ import Combine
 
 class Renderer: NSObject, MTKViewDelegate, ObservableObject {
     
+    private let drawWorldBoundary = false
+
     @Published var fps: Int = 0
     @Published var isPaused: Bool = false {
         didSet {
@@ -30,9 +32,13 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
     private var device: MTLDevice?
     private var commandQueue: MTLCommandQueue?
     private var particleSystem: ParticleSystem!
+    
     private var pipelineState: MTLRenderPipelineState?
+    private var boundaryPipelineState: MTLRenderPipelineState?
     private var computePipeline: MTLComputePipelineState?
+    
     private var cancellables = Set<AnyCancellable>()
+    private var worldSizeObserver: AnyCancellable?
 
     var mtkView: MTKView?
 
@@ -50,7 +56,12 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         self.particleSystem = ParticleSystem.shared
         setupPipelines()
         
+        // listeners
         NotificationCenter.default.addObserver(self, selector: #selector(handleAppWillResignActive), name: NSApplication.willResignActiveNotification, object: nil)
+
+        worldSizeObserver = SimulationSettings.shared.$worldSize.sink { [weak self] newWorldSize in
+            self?.adjustZoomAndCameraForWorldSize(newWorldSize.value)
+        }
 
         SimulationSettings.shared.presetApplied
             .sink { [weak self] in self?.presetApplied() }
@@ -62,7 +73,23 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
             isPaused.toggle()
         }
     }
+    
+    private func adjustZoomAndCameraForWorldSize(_ newWorldSize: Float) {
+        let baseSize: Float = 1.0
+        let minZoom: Float = 0.1
+        let maxZoom: Float = 4.5
 
+        let oldZoomLevel = zoomLevel
+        let newZoomLevel = baseSize / newWorldSize;
+        
+        zoomLevel = min(max(newZoomLevel, minZoom), maxZoom)
+        print("newWorldSize changed: \(newWorldSize), oldZoomLevel: \(oldZoomLevel), adjusted zoom level: \(zoomLevel)")
+        BufferManager.shared.updateZoomBuffer(zoomLevel: zoomLevel)
+        
+        cameraPosition = .zero
+        BufferManager.shared.updateCameraBuffer(cameraPosition: cameraPosition)
+    }
+    
     @objc private func handleAppWillResignActive() {
         isPaused = true
     }
@@ -83,9 +110,10 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
             fatalError("❌ Failed to create compute pipeline state: \(error)")
         }
         
-        let vertexFunction = library.makeFunction(name: "vertex_main")
-        let fragmentFunction = library.makeFunction(name: "fragment_main")
-        
+        let vertexFunction = library.makeFunction(name: "vertex_main") // For particles
+        let fragmentFunction = library.makeFunction(name: "fragment_main") // Shared fragment shader
+
+        // Setup Particle Pipeline
         let pipelineDescriptor = MTLRenderPipelineDescriptor()
         pipelineDescriptor.vertexFunction = vertexFunction
         pipelineDescriptor.fragmentFunction = fragmentFunction
@@ -100,6 +128,25 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
             pipelineState = try device?.makeRenderPipelineState(descriptor: pipelineDescriptor)
         } catch {
             fatalError("❌ Failed to create render pipeline state: \(error)")
+        }
+    }
+    
+    /// Lazy setup for boundary pipeline
+    private func setupBoundaryPipeline() {
+        guard let device = device, let library = device.makeDefaultLibrary() else { return }
+
+        let boundaryVertexFunction = library.makeFunction(name: "vertex_boundary")
+        let fragmentFunction = library.makeFunction(name: "fragment_main")
+
+        let boundaryPipelineDescriptor = MTLRenderPipelineDescriptor()
+        boundaryPipelineDescriptor.vertexFunction = boundaryVertexFunction
+        boundaryPipelineDescriptor.fragmentFunction = fragmentFunction
+        boundaryPipelineDescriptor.colorAttachments[0].pixelFormat = .bgra8Unorm
+
+        do {
+            boundaryPipelineState = try device.makeRenderPipelineState(descriptor: boundaryPipelineDescriptor)
+        } catch {
+            print("❌ Failed to create boundary pipeline state: \(error)")
         }
     }
     
@@ -136,16 +183,15 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
 
         particleSystem.update()
 
-        BufferManager.shared.updateCameraBuffer(position: cameraPosition)
-        BufferManager.shared.updateZoomBuffer(zoom: zoomLevel)
+        BufferManager.shared.updateCameraBuffer(cameraPosition: cameraPosition)
+        BufferManager.shared.updateZoomBuffer(zoomLevel: zoomLevel)
     }
-    
+        
     // Runs the Metal Compute Pass
     private func runComputePass(commandBuffer: MTLCommandBuffer?) {
         guard let computeEncoder = commandBuffer?.makeComputeCommandEncoder(),
               let computePipeline = computePipeline else { return }
 
-        
         computeEncoder.setComputePipelineState(computePipeline)
         
         computeEncoder.setBuffer(BufferManager.shared.particleBuffer, offset: 0, index: 0)
@@ -159,7 +205,7 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         computeEncoder.setBuffer(BufferManager.shared.repulsionBuffer, offset: 0, index: 8)
         computeEncoder.setBuffer(BufferManager.shared.cameraBuffer, offset: 0, index: 9)
         computeEncoder.setBuffer(BufferManager.shared.zoomBuffer, offset: 0, index: 10)
-
+        computeEncoder.setBuffer(BufferManager.shared.worldSizeBuffer, offset: 0, index: 11)
 
         let threadGroupSize = 512
         let particleCount = SimulationSettings.shared.selectedPreset.numParticles.rawValue
@@ -169,7 +215,6 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         computeEncoder.endEncoding()
     }
     
-    // Runs the Metal Render Pass
     private func runRenderPass(commandBuffer: MTLCommandBuffer?, view: MTKView) {
         guard let drawable = view.currentDrawable,
               let pipelineState = pipelineState,
@@ -178,17 +223,34 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         passDescriptor.colorAttachments[0].loadAction = .clear
         passDescriptor.colorAttachments[0].clearColor = MTLClearColor(red: 0.05, green: 0.05, blue: 0.05, alpha: 1.0)
 
-        let particleCount = SimulationSettings.shared.selectedPreset.numParticles.rawValue
-
         guard let renderEncoder = commandBuffer?.makeRenderCommandEncoder(descriptor: passDescriptor) else { return }
+
+        // Draw World Boundary (Only if enabled)
+        if drawWorldBoundary {
+            if boundaryPipelineState == nil {
+                setupBoundaryPipeline() // ✅ Create only when needed
+            }
+            if let boundaryPipelineState = boundaryPipelineState {
+                renderEncoder.setRenderPipelineState(boundaryPipelineState)
+                renderEncoder.setVertexBuffer(BufferManager.shared.cameraBuffer, offset: 0, index: 1)
+                renderEncoder.setVertexBuffer(BufferManager.shared.zoomBuffer, offset: 0, index: 2)
+                renderEncoder.setVertexBuffer(BufferManager.shared.worldSizeBuffer, offset: 0, index: 3)
+                renderEncoder.drawPrimitives(type: .lineStrip, vertexStart: 0, vertexCount: 5)
+            }
+        }
+        
+        // Draw Particles
         renderEncoder.setRenderPipelineState(pipelineState)
         renderEncoder.setVertexBuffer(BufferManager.shared.particleBuffer, offset: 0, index: 0)
         renderEncoder.setVertexBuffer(BufferManager.shared.cameraBuffer, offset: 0, index: 1)
         renderEncoder.setVertexBuffer(BufferManager.shared.zoomBuffer, offset: 0, index: 2)
         renderEncoder.setVertexBuffer(BufferManager.shared.pointSizeBuffer, offset: 0, index: 3)
+        renderEncoder.setVertexBuffer(BufferManager.shared.worldSizeBuffer, offset: 0, index: 4)
+        let particleCount = SimulationSettings.shared.selectedPreset.numParticles.rawValue
         renderEncoder.drawPrimitives(type: .point, vertexStart: 0, vertexCount: particleCount)
-        renderEncoder.endEncoding()
 
+        // wrap up
+        renderEncoder.endEncoding()
         commandBuffer?.present(drawable)
     }
     
@@ -197,43 +259,43 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
     func resetPanAndZoom() {
         zoomLevel = 1.0
         cameraPosition = .zero
-        BufferManager.shared.updateZoomBuffer(zoom: zoomLevel)
-        BufferManager.shared.updateCameraBuffer(position: cameraPosition)
+        BufferManager.shared.updateZoomBuffer(zoomLevel: zoomLevel)
+        BufferManager.shared.updateCameraBuffer(cameraPosition: cameraPosition)
     }
     
     func zoomIn() {
         zoomLevel *= Constants.Controls.zoomStep
-        BufferManager.shared.updateZoomBuffer(zoom: zoomLevel)
+        BufferManager.shared.updateZoomBuffer(zoomLevel: zoomLevel)
     }
-
+    
     func zoomOut() {
         zoomLevel /= Constants.Controls.zoomStep
-        BufferManager.shared.updateZoomBuffer(zoom: zoomLevel)
+        BufferManager.shared.updateZoomBuffer(zoomLevel: zoomLevel)
     }
 
     // Pan Controls
     func panLeft() {
         cameraPosition.x -= Constants.Controls.panStep / zoomLevel
-        BufferManager.shared.updateCameraBuffer(position: cameraPosition)
+        BufferManager.shared.updateCameraBuffer(cameraPosition: cameraPosition)
     }
 
     func panRight() {
         cameraPosition.x += Constants.Controls.panStep / zoomLevel
-        BufferManager.shared.updateCameraBuffer(position: cameraPosition)
+        BufferManager.shared.updateCameraBuffer(cameraPosition: cameraPosition)
     }
 
     func panUp() {
         cameraPosition.y += Constants.Controls.panStep / zoomLevel
-        BufferManager.shared.updateCameraBuffer(position: cameraPosition)
+        BufferManager.shared.updateCameraBuffer(cameraPosition: cameraPosition)
     }
 
     func panDown() {
         cameraPosition.y -= Constants.Controls.panStep / zoomLevel
-        BufferManager.shared.updateCameraBuffer(position: cameraPosition)
+        BufferManager.shared.updateCameraBuffer(cameraPosition: cameraPosition)
     }
     
     private func updateCamera() {
-        BufferManager.shared.updateCameraBuffer(position: cameraPosition)
+        BufferManager.shared.updateCameraBuffer(cameraPosition: cameraPosition)
     }
 
     func resetParticles() {

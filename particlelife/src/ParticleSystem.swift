@@ -26,8 +26,10 @@ class ParticleSystem: ObservableObject {
         
         generateParticles(preset: preset)
         generateNewMatrix(preset: preset)
+        SimulationSettings.shared.applyPreset(.defaultPreset, sendEvent: false)
         updatePhysicsAndBuffers()
         
+        // listen for changes when a preset is applied
         SimulationSettings.shared.presetApplied
             .sink { [weak self] in self?.reset() }
             .store(in: &cancellables)
@@ -42,8 +44,8 @@ class ParticleSystem: ObservableObject {
             numSpecies: SimulationSettings.shared.selectedPreset.numSpecies
         )
         BufferManager.shared.updatePhysicsBuffers()
-        BufferManager.shared.updateCameraBuffer(position: .zero)
-        BufferManager.shared.updateZoomBuffer(zoom: 1.0)
+        BufferManager.shared.updateCameraBuffer(cameraPosition: .zero)
+        BufferManager.shared.updateZoomBuffer(zoomLevel: 1.0)
     }
 
     /// Resets the simulation and regenerates particles
@@ -59,6 +61,13 @@ class ParticleSystem: ObservableObject {
     private func generateParticles(preset: SimulationPreset) {
         //numSpecies = preset.numSpecies
         particles = ParticleGenerator.generate(distribution: preset.distributionType, count: preset.numParticles.rawValue, numSpecies: preset.numSpecies)
+        
+        let worldSize = SimulationSettings.shared.worldSize.value
+        let scaleFactor = worldSize / 1.0
+        print("scaling particle positions by \(scaleFactor)")
+        for i in particles.indices {
+            particles[i].position *= scaleFactor
+        }
     }
     
     /// Generates a new interaction matrix and updates colors

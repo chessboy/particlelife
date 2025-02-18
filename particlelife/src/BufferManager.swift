@@ -26,7 +26,9 @@ class BufferManager {
     private(set) var frictionBuffer: MTLBuffer?
     private(set) var repulsionBuffer: MTLBuffer?
     private(set) var pointSizeBuffer: MTLBuffer?
-    
+    private(set) var worldSizeBuffer: MTLBuffer?
+    private var boundaryVertexBuffer: MTLBuffer?
+
     // Particle Buffers
     private(set) var particleBuffer: MTLBuffer?
     private(set) var interactionBuffer: MTLBuffer?
@@ -44,6 +46,7 @@ class BufferManager {
         frictionBuffer != nil &&
         repulsionBuffer != nil &&
         pointSizeBuffer != nil &&
+        worldSizeBuffer != nil &&
         cameraBuffer != nil &&
         zoomBuffer != nil
     }
@@ -67,13 +70,26 @@ class BufferManager {
         betaBuffer = createBuffer(type: Float.self)
         frictionBuffer = createBuffer(type: Float.self)
         repulsionBuffer = createBuffer(type: Float.self)
-        pointSizeBuffer = createBuffer(type: Float.self)
         cameraBuffer = createBuffer(type: SIMD2<Float>.self)
         zoomBuffer = createBuffer(type: Float.self)
+        pointSizeBuffer = createBuffer(type: Float.self)
+        worldSizeBuffer = createBuffer(type: Float.self)
+        initializeBoundaryBuffer()
         
         updatePhysicsBuffers()
     }
     
+    func initializeBoundaryBuffer() {
+        let vertexIndices: [UInt32] = [0, 1, 2, 3, 4] // Just indices for 5 vertices
+        boundaryVertexBuffer = device.makeBuffer(bytes: vertexIndices,
+                                                 length: MemoryLayout<UInt32>.stride * vertexIndices.count,
+                                                 options: [])
+    }
+
+    func getBoundaryVertexBuffer() -> MTLBuffer? {
+        return boundaryVertexBuffer
+    }
+
     private func createBuffer<T>(type: T.Type, count: Int = 1) -> MTLBuffer? {
         return device.makeBuffer(length: MemoryLayout<T>.stride * count, options: [])
     }
@@ -115,12 +131,12 @@ class BufferManager {
 // Buffer Updates
 extension BufferManager {
     
-    func updateCameraBuffer(position: SIMD2<Float>) {
-        updateBuffer(cameraBuffer, with: position)
+    func updateCameraBuffer(cameraPosition: SIMD2<Float>) {
+        updateBuffer(cameraBuffer, with: cameraPosition)
     }
     
-    func updateZoomBuffer(zoom: Float) {
-        updateBuffer(zoomBuffer, with: zoom)
+    func updateZoomBuffer(zoomLevel: Float) {
+        updateBuffer(zoomBuffer, with: zoomLevel)
     }
     
     func updatePhysicsBuffers() {
@@ -132,6 +148,8 @@ extension BufferManager {
         updateBuffer(frictionBuffer, with: settings.friction)
         updateBuffer(repulsionBuffer, with: settings.repulsion)
         updateBuffer(pointSizeBuffer, with: settings.pointSize)
+        print("updatePhysicsBuffers: worldSize: \(settings.worldSize)")
+        updateBuffer(worldSizeBuffer, with: settings.worldSize)
     }
     
     func updateParticleBuffer(particles: [Particle]) {
