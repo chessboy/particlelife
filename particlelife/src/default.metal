@@ -1,6 +1,8 @@
 #include <metal_stdlib>
 using namespace metal;
 
+constant float ASPECT_RATIO = 1.7778;
+
 struct Particle {
     float2 position;
     float2 velocity;
@@ -12,6 +14,19 @@ struct VertexOut {
     float pointSize [[point_size]];
     float4 color;
 };
+
+struct ClickData {
+    float2 position;  // x, y of click
+    float radius;     // Effect radius
+};
+
+// Fast deterministic random function for Metal shaders
+float rand(int x, int y, int z) {
+    int seed = x + y * 57 + z * 241;
+    seed = (seed << 13) ^ seed;
+    return ((1.0 - ((seed * (seed * seed * 15731 + 789221) + 1376312589) & 2147483647) / 1073741824.0f) + 1.0f) / 2.0f;
+}
+
 
 float3 speciesColor(int species) {
     switch (species) {
@@ -35,8 +50,12 @@ vertex VertexOut vertex_main(const device Particle* particles [[buffer(0)]],
                              uint id [[vertex_id]]) {
     VertexOut out;
 
+    // Compute world position in normalized space
     float2 worldPosition = particles[id].position - *cameraPosition;
     worldPosition *= *zoomLevel;
+
+    // Hardcoded aspect ratio correction (assuming 16:9 screen)
+    worldPosition.x /= ASPECT_RATIO;
 
     // Scale point size inversely with zoom (but keep it visible)
     float scaledPointSize = *pointSize * *zoomLevel;
@@ -85,25 +104,30 @@ fragment float4 fragment_main(VertexOut in [[stage_in]], float2 pointCoord [[poi
 }
 
 float2 handleBoundary(float2 pos, float worldSize) {
-    float boundary = worldSize; // ✅ Dynamic boundary
-    float wrapDistance = 2.0 * worldSize; // ✅ Dynamic wrap distance
+    float boundaryX = worldSize * ASPECT_RATIO;
+    float boundaryY = worldSize;
 
-    if (pos.x > boundary) pos.x -= wrapDistance;
-    if (pos.x < -boundary) pos.x += wrapDistance;
-    if (pos.y > boundary) pos.y -= wrapDistance;
-    if (pos.y < -boundary) pos.y += wrapDistance;
+    float wrapDistanceX = 2.0 * boundaryX;
+    float wrapDistanceY = 2.0 * boundaryY;
+
+    if (pos.x > boundaryX) pos.x -= wrapDistanceX;
+    if (pos.x < -boundaryX) pos.x += wrapDistanceX;
+    if (pos.y > boundaryY) pos.y -= wrapDistanceY;
+    if (pos.y < -boundaryY) pos.y += wrapDistanceY;
 
     return pos;
 }
 
 float2 computeWrappedDistance(float2 posA, float2 posB, float worldSize) {
-    float wrapDistance = 2.0 * worldSize; // ✅ Dynamic wrap distance
+    float wrapDistanceX = 2.0 * worldSize * ASPECT_RATIO; // Scale X wrapping
+    float wrapDistanceY = 2.0 * worldSize;               // Y stays the same
+
     float2 delta = posB - posA;
 
-    if (delta.x > worldSize) delta.x -= wrapDistance;
-    if (delta.x < -worldSize) delta.x += wrapDistance;
-    if (delta.y > worldSize) delta.y -= wrapDistance;
-    if (delta.y < -worldSize) delta.y += wrapDistance;
+    if (delta.x > worldSize * ASPECT_RATIO) delta.x -= wrapDistanceX;
+    if (delta.x < -worldSize * ASPECT_RATIO) delta.x += wrapDistanceX;
+    if (delta.y > worldSize) delta.y -= wrapDistanceY;
+    if (delta.y < -worldSize) delta.y += wrapDistanceY;
 
     return delta;
 }
@@ -121,6 +145,7 @@ kernel void compute_particle_movement(
     constant float2 *cameraPosition [[buffer(9)]],
     constant float *zoomLevel [[buffer(10)]],
     constant float *worldSize [[buffer(11)]],
+    constant ClickData *clickData [[buffer(12)]],
     uint id [[thread_position_in_grid]],
     uint totalParticles [[threads_per_grid]]) {
 
@@ -164,6 +189,31 @@ kernel void compute_particle_movement(
         if (*repulsion > 0.0 && distance < (*minDistance * 1.5)) {
             float repulsionStrength = (*repulsion) * (1.0 - (distance / (*minDistance * 1.5)));
             force -= normalize(direction) * repulsionStrength;
+        }
+        
+        float2 clickPos = clickData[0].position;
+        float effectRadius = clickData[0].radius;
+
+        if (clickPos.x != 0.0 || clickPos.y != 0.0) {
+            float2 delta = selfParticle.position - clickPos;
+            float distance = length(delta);
+
+            if (distance < effectRadius) {
+                // Generate a uniform random angle in [0, 2π]
+                float angle = rand(id, 1, 123) * 6.2831853;
+
+                float2 randomDirection = normalize(float2(cos(angle), sin(angle)));
+
+                // Random force magnitude in [-0.0002, 0.0002]
+                float randomMagnitude = (rand(id, 2, 456) - 0.5) * 0.0002;
+
+                // Compute world scaling correction
+                float aspectRatio = worldSize[1] / worldSize[0];
+                float2 correctedDirection = float2(randomDirection.x * aspectRatio, randomDirection.y);
+
+                // Apply final perturbation
+                selfParticle.velocity += correctedDirection * randomMagnitude;
+            }
         }
     }
 

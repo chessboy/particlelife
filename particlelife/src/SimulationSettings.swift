@@ -11,7 +11,7 @@ import Combine
 struct ConfigurableSetting {
     var value: Float {
         didSet {
-            onChange?(value) // ✅ Triggers the update when `value` changes
+            onChange?(value) // Triggers the update when `value` changes
         }
     }
     
@@ -20,7 +20,7 @@ struct ConfigurableSetting {
     let max: Float
     let step: Float
     let format: String
-    var onChange: ((Float) -> Void)? // ✅ Callback for updates
+    var onChange: ((Float) -> Void)? // Callback for updates
 }
 
 class SimulationSettings: ObservableObject {
@@ -72,8 +72,8 @@ class SimulationSettings: ObservableObject {
     let presetApplied = PassthroughSubject<Void, Never>()
     
     private static func handleWorldSizeChange(_ newValue: Float) {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { // ✅ 50ms debounce
-            if shared.worldSize.value == newValue { // ✅ Ensure consistency
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { // 50ms debounce
+            if shared.worldSize.value == newValue { // Ensure consistency
                 BufferManager.shared.updatePhysicsBuffers()
             }
         }

@@ -79,11 +79,7 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         let minZoom: Float = 0.1
         let maxZoom: Float = 4.5
 
-        let oldZoomLevel = zoomLevel
-        let newZoomLevel = baseSize / newWorldSize;
-        
-        zoomLevel = min(max(newZoomLevel, minZoom), maxZoom)
-        print("newWorldSize changed: \(newWorldSize), oldZoomLevel: \(oldZoomLevel), adjusted zoom level: \(zoomLevel)")
+        zoomLevel = min(max(baseSize / newWorldSize, minZoom), maxZoom)
         BufferManager.shared.updateZoomBuffer(zoomLevel: zoomLevel)
         
         cameraPosition = .zero
@@ -206,6 +202,11 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         computeEncoder.setBuffer(BufferManager.shared.cameraBuffer, offset: 0, index: 9)
         computeEncoder.setBuffer(BufferManager.shared.zoomBuffer, offset: 0, index: 10)
         computeEncoder.setBuffer(BufferManager.shared.worldSizeBuffer, offset: 0, index: 11)
+        computeEncoder.setBuffer(BufferManager.shared.clickBuffer, offset: 0, index: 12)
+        
+//        if let clickData = BufferManager.shared.readClickBuffer() {
+//            print("ClickData - Position: \(clickData.position), Radius: \(clickData.radius)")
+//        }
 
         let threadGroupSize = 512
         let particleCount = SimulationSettings.shared.selectedPreset.numParticles.rawValue
@@ -228,7 +229,7 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         // Draw World Boundary (Only if enabled)
         if drawWorldBoundary {
             if boundaryPipelineState == nil {
-                setupBoundaryPipeline() // ✅ Create only when needed
+                setupBoundaryPipeline() // Create only when needed
             }
             if let boundaryPipelineState = boundaryPipelineState {
                 renderEncoder.setRenderPipelineState(boundaryPipelineState)
@@ -253,7 +254,7 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         renderEncoder.endEncoding()
         commandBuffer?.present(drawable)
     }
-    
+        
     // Zoom Controls
     
     func resetPanAndZoom() {
@@ -314,4 +315,48 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
     }
 
     func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {}
+}
+
+extension Renderer {
+    
+    /// Handles mouse clicks and perturbs nearby particles
+    func handleMouseClick(at location: CGPoint, in view: MTKView) {
+        guard !isPaused else { return }
+        
+        let worldPosition = screenToWorld(location, drawableSize: view.drawableSize, viewSize: view.frame.size)
+        let effectRadius: Float = 0.05
+        
+        //print("clicked: location: \(location), screenToWorld: \(worldPosition)")
+        
+        // Send click data to Metal
+        BufferManager.shared.updateClickBuffer(clickPosition: worldPosition, radius: effectRadius)
+        
+        // Clear click buffer after 1 frame (~16ms delay)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.016) {
+            BufferManager.shared.updateClickBuffer(clickPosition: SIMD2<Float>(0, 0), radius: 0.0, clear: true)
+        }
+    }
+    
+    func screenToWorld(_ screenPosition: CGPoint, drawableSize: CGSize, viewSize: CGSize) -> SIMD2<Float> {
+        let retinaScale = Float(drawableSize.width) / Float(viewSize.width) // Convert CGFloat to Float
+        
+        let scaledWidth = Float(drawableSize.width) / retinaScale
+        let scaledHeight = Float(drawableSize.height) / retinaScale
+        
+        let aspectRatio = scaledWidth / scaledHeight // Compute aspect ratio
+        
+        let normalizedX = Float(screenPosition.x) / scaledWidth
+        let normalizedY = Float(screenPosition.y) / scaledHeight
+        
+        let ndcX = (2.0 * normalizedX) - 1.0
+        let ndcY = (2.0 * normalizedY) - 1.0
+        
+        //  Apply aspect ratio correction
+        let worldX = ndcX * aspectRatio  // Scale X to match screen proportions
+        let worldY = ndcY
+        
+        let worldPos = SIMD2<Float>(worldX, worldY) / zoomLevel + cameraPosition
+        
+        return worldPos
+    }
 }

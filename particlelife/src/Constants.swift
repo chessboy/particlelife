@@ -20,8 +20,11 @@ struct Constants {
         Color(red: 1.0, green: 0.0, blue: 0.6), // 💖 Hot Pink (Instead of Magenta)
         Color(red: 0.2, green: 0.8, blue: 0.6)  // 🌊 Teal (Replaces White)
     ]
+    
     struct Controls {
         static let zoomStep: Float = 1.1
         static let panStep: Float = 0.05
     }
+    
+    static let ASPECT_RATIO: Float = 1.7778
 }

@@ -59,14 +59,16 @@ class ParticleSystem: ObservableObject {
     
     /// Generates a new set of particles
     private func generateParticles(preset: SimulationPreset) {
-        //numSpecies = preset.numSpecies
         particles = ParticleGenerator.generate(distribution: preset.distributionType, count: preset.numParticles.rawValue, numSpecies: preset.numSpecies)
-        
+
         let worldSize = SimulationSettings.shared.worldSize.value
-        let scaleFactor = worldSize / 1.0
-        print("scaling particle positions by \(scaleFactor)")
+        let scaleFactorX = worldSize * Constants.ASPECT_RATIO  // Scale X differently to match screen proportions
+        let scaleFactorY = worldSize  // Keep Y as worldSize
+
+        // Scale particle positions based on screen shape
         for i in particles.indices {
-            particles[i].position *= scaleFactor
+            particles[i].position.x *= scaleFactorX
+            particles[i].position.y *= scaleFactorY
         }
     }
     

@@ -50,19 +50,19 @@ struct SimulationPreset: Hashable {
     static let random6Preset = makeRandomPreset(speciesCount: 6)
     static let random9Preset = makeRandomPreset(speciesCount: 9)
     
-    static let snakesPreset = SimulationPreset(
-        name: "Snake",
+    static let inchwormPreset = SimulationPreset(
+        name: "Inchworm",
         numSpecies: 6,
         numParticles: .k30,
         forceMatrixType: .snakes,
         distributionType: .colorBands,
-        maxDistance: 0.5,
+        maxDistance: 0.7,
         minDistance: 0.08,
-        beta: 0.1,
+        beta: 0.12,
         friction: 0.4,
         repulsion: 0.03,
         pointSize: 21,
-        worldSize: 1.5
+        worldSize: 1.0
     )
     
     static let colorClash = SimulationPreset(
@@ -129,7 +129,7 @@ struct SimulationPreset: Hashable {
         random3Preset,
         random6Preset,
         random9Preset,
-        snakesPreset,
+        inchwormPreset,
         colorClash,
         cool,
         paintSpatters

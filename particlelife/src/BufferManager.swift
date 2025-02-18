@@ -8,6 +8,11 @@
 import Metal
 import simd
 
+struct ClickData {
+    var position: SIMD2<Float>
+    var radius: Float
+}
+
 class BufferManager {
     static let shared = BufferManager()
     
@@ -27,7 +32,8 @@ class BufferManager {
     private(set) var repulsionBuffer: MTLBuffer?
     private(set) var pointSizeBuffer: MTLBuffer?
     private(set) var worldSizeBuffer: MTLBuffer?
-    private var boundaryVertexBuffer: MTLBuffer?
+    private(set) var boundaryVertexBuffer: MTLBuffer?
+    private(set) var clickBuffer: MTLBuffer?
 
     // Particle Buffers
     private(set) var particleBuffer: MTLBuffer?
@@ -75,19 +81,14 @@ class BufferManager {
         pointSizeBuffer = createBuffer(type: Float.self)
         worldSizeBuffer = createBuffer(type: Float.self)
         initializeBoundaryBuffer()
-        
+        updateClickBuffer(clickPosition: SIMD2<Float>(0, 0), radius: 0.0)
+
         updatePhysicsBuffers()
     }
     
     func initializeBoundaryBuffer() {
         let vertexIndices: [UInt32] = [0, 1, 2, 3, 4] // Just indices for 5 vertices
-        boundaryVertexBuffer = device.makeBuffer(bytes: vertexIndices,
-                                                 length: MemoryLayout<UInt32>.stride * vertexIndices.count,
-                                                 options: [])
-    }
-
-    func getBoundaryVertexBuffer() -> MTLBuffer? {
-        return boundaryVertexBuffer
+        boundaryVertexBuffer = device.makeBuffer(bytes: vertexIndices, length: MemoryLayout<UInt32>.stride * vertexIndices.count, options: [])
     }
 
     private func createBuffer<T>(type: T.Type, count: Int = 1) -> MTLBuffer? {
@@ -126,10 +127,29 @@ class BufferManager {
         interactionBuffer = nil
         numSpeciesBuffer = nil
     }
+    
+    func readClickBuffer() -> ClickData? {
+        guard let buffer = clickBuffer else { return nil } // Ensure buffer exists
+        let pointer = buffer.contents().bindMemory(to: ClickData.self, capacity: 1)
+        return pointer.pointee // Return the struct stored in the buffer
+    }
 }
 
 // Buffer Updates
 extension BufferManager {
+    
+    func updateClickBuffer(clickPosition: SIMD2<Float>, radius: Float, clear: Bool = false) {
+        var clickData = clear ? ClickData(position: SIMD2<Float>(0, 0), radius: 0.0) :
+                                ClickData(position: clickPosition, radius: radius)
+
+        if clickBuffer == nil {
+            clickBuffer = device.makeBuffer(length: MemoryLayout<ClickData>.stride, options: [])
+        }
+
+        guard let buffer = clickBuffer else { return }
+
+        memcpy(buffer.contents(), &clickData, MemoryLayout<ClickData>.stride)
+    }
     
     func updateCameraBuffer(cameraPosition: SIMD2<Float>) {
         updateBuffer(cameraBuffer, with: cameraPosition)
