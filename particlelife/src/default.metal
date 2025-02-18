@@ -192,7 +192,7 @@ kernel void compute_particle_movement(
         }
         
         float2 clickPos = clickData[0].position;
-        float effectRadius = clickData[0].radius;
+        float effectRadius = clickData[0].radius * *worldSize;
 
         if (clickPos.x != 0.0 || clickPos.y != 0.0) {
             float2 delta = selfParticle.position - clickPos;

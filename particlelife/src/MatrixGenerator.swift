@@ -9,6 +9,7 @@
 import Foundation
 
 enum MatrixType {
+    case test
     case random
     case symmetry
     case chains
@@ -26,6 +27,14 @@ enum MatrixGenerator {
         var matrix = [[Float]](repeating: [Float](repeating: 0.0, count: numSpecies), count: numSpecies)
         
         switch type {
+            
+        case .test:
+            for i in 0..<numSpecies {
+                for j in 0..<numSpecies {
+                    matrix[i][j] = -1.0
+                }
+            }
+
             
         case .random:
             for i in 0..<numSpecies {

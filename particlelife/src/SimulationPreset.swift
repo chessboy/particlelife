@@ -123,9 +123,28 @@ struct SimulationPreset: Hashable {
         worldSize: 2.0
     )
     
-    static let defaultPreset: SimulationPreset = random6Preset
+    static let testPreset = SimulationPreset(
+        name: "Test",
+        numSpecies: 2,
+        numParticles: .k30,
+        forceMatrixType: .custom([
+            [-1, 0],
+            [0, 0],
+        ]),
+        distributionType: .uniform,
+        maxDistance: 0.7,
+        minDistance: 0.08,
+        beta: 0.12,
+        friction: 0.4,
+        repulsion: 0.03,
+        pointSize: 21,
+        worldSize: 1.0
+    )
+    
+    static let defaultPreset: SimulationPreset = testPreset
     
     static let allPresets: [SimulationPreset] = [
+        testPreset,
         random3Preset,
         random6Preset,
         random9Preset,
