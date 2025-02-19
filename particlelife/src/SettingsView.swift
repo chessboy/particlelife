@@ -15,7 +15,8 @@ struct SimulationSettingsView: View {
     
     @State private var interactionMatrix: [[Float]] = ParticleSystem.shared.interactionMatrix
     @State private var speciesColors: [Color] = ParticleSystem.shared.speciesColors
-    
+    @State private var isVisible: Bool = true
+
     var body: some View {
         VStack {
             
@@ -31,7 +32,7 @@ struct SimulationSettingsView: View {
                 Text("\(renderer.zoomLevel, specifier: "%.2f")x")
             }
             
-            MatrixView(interactionMatrix: $particleSystem.interactionMatrix, speciesColors: particleSystem.speciesColors)
+            MatrixView(interactionMatrix: $particleSystem.interactionMatrix, isVisible: $isVisible, speciesColors: particleSystem.speciesColors)
             
             Picker("Preset", selection: $settings.selectedPreset) {
                 ForEach(SimulationPreset.allPresets, id: \.name) { preset in
@@ -43,7 +44,13 @@ struct SimulationSettingsView: View {
             
             HStack {
                 Button(action: {
-                    settings.applyPreset(SimulationSettings.shared.selectedPreset, sendEvent: false)
+                    let isCommandClick = NSEvent.modifierFlags.contains(.command)
+
+                    if isCommandClick {
+                        particleSystem.dumpPresetAsCode()
+                    } else {
+                        settings.applyPreset(SimulationSettings.shared.selectedPreset, sendEvent: false)
+                    }
                 }) {
                     Text("Reset")
                         .font(.headline)
@@ -90,6 +97,17 @@ struct SimulationSettingsView: View {
         .onReceive(NotificationCenter.default.publisher(for: .respawn)) { _ in
             interactionMatrix = ParticleSystem.shared.interactionMatrix
             speciesColors = ParticleSystem.shared.speciesColors
+        }
+        .opacity(isVisible ? 1.0 : 0.0)
+        .allowsHitTesting(isVisible) // Disable interaction when invisible
+        .animation(.easeInOut(duration: 0.3), value: isVisible)
+        .onAppear {
+            NSEvent.addLocalMonitorForEvents(matching: [.keyDown]) { event in
+                if event.keyCode == 48 { // Tab key
+                    withAnimation { isVisible.toggle() }
+                }
+                return event
+            }
         }
     }
     

@@ -98,6 +98,31 @@ class ParticleSystem: ObservableObject {
             .map { $0.map { String(format: "%.2f", $0) }.joined(separator: "  ") }
             .joined(separator: "\n")
     }
+    
+    func dumpPresetAsCode() {
+        let preset = SimulationSettings.shared.selectedPreset
+        
+        let code = """
+        static let untitledPreset = SimulationPreset(
+            name: "Untitled",
+            numSpecies: \(preset.numSpecies),
+            numParticles: .\(preset.numParticles),
+            forceMatrixType: .custom([
+                \(getInteractionMatrixString())
+            ]),
+            distributionType: .\(preset.distributionType),
+            maxDistance: \(String(format: "%.2f", preset.maxDistance)),
+            minDistance: \(String(format: "%.2f", preset.minDistance)),
+            beta: \(String(format: "%.2f", preset.beta)),
+            friction: \(String(format: "%.2f", preset.friction)),
+            repulsion: \(String(format: "%.2f", preset.repulsion)),
+            pointSize: \(Int(preset.pointSize)),
+            worldSize: \(String(format: "%.2f", preset.worldSize))
+        )
+        """
+
+        print(code)
+    }
 
     var lastDT: Float = 0.001
     

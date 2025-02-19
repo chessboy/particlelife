@@ -80,32 +80,33 @@ struct SimulationPreset: Hashable {
         worldSize: 2.25      // Bigger = prevents the sim from stabilizing into static blobs
     )
     
-    static let testPreset = SimulationPreset(
-        name: "Test",
-        numSpecies: 2,
-        numParticles: .k30,
+    static let cells = SimulationPreset(
+        name: "Cells",
+        numSpecies: 3,
+        numParticles: .k40,
         forceMatrixType: .custom([
-            [0, 1],
-            [0, 0],
+            [-1.00, -0.25,  1.00],
+            [-0.25,  0.50, -0.25],
+            [ 1.00, -0.25, -1.00]
         ]),
         distributionType: .uniform,
-        maxDistance: 0.7,
-        minDistance: 0.08,
-        beta: 0.12,
-        friction: 0.4,
+        maxDistance: 0.80,
+        minDistance: 0.04,
+        beta: 0.3,
+        friction: 0.20,
         repulsion: 0.03,
-        pointSize: 21,
-        worldSize: 1.0
+        pointSize: 15,
+        worldSize: 2.00
     )
     
     static let defaultPreset: SimulationPreset = random3Preset
     
     static let allPresets: [SimulationPreset] = [
-        //testPreset,
         random3Preset,
         random6Preset,
         random9Preset,
         inchwormPreset,
+        cells,
         chaoticWalkers
     ]
 }

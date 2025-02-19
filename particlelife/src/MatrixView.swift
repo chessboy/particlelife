@@ -9,7 +9,8 @@ import SwiftUI
 
 struct MatrixView: View {
     @Binding var interactionMatrix: [[Float]]
-
+    @Binding var isVisible: Bool
+    
     @State private var hoveredCell: (row: Int, col: Int)? = nil
     @State private var tooltipPosition: CGPoint = .zero
     @State private var tooltipText: String = ""
@@ -25,6 +26,7 @@ struct MatrixView: View {
             
             VStack {
                 InteractionMatrixGrid(
+                    isVisible: $isVisible,
                     speciesColors: speciesColors,
                     interactionMatrix: $interactionMatrix,
                     hoveredCell: $hoveredCell,
@@ -67,6 +69,7 @@ struct SpeciesHeaderRow: View {
 
 struct InteractionMatrixGrid: View {
     @State private var lastMouseButton: Int = 0
+    @Binding var isVisible: Bool
 
     let speciesColors: [Color]
     @Binding var interactionMatrix: [[Float]] // Allows modification
@@ -132,6 +135,8 @@ struct InteractionMatrixGrid: View {
             }
             .onAppear {
                 NSEvent.addLocalMonitorForEvents(matching: [.scrollWheel]) { event in
+                    guard isVisible else { return event }
+
                     let scrollSensitivity: Float = 0.001  // Adjust sensitivity (lower = slower)
                     let deltaY = Float(event.scrollingDeltaY) * scrollSensitivity
 
