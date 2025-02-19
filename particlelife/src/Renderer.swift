@@ -310,8 +310,8 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         if isPaused {
             isPaused.toggle()
         }
-        particleSystem.reset()
-        NotificationCenter.default.post(name: .resetSimulation, object: nil)
+        particleSystem.respawn(shouldGenerateNewMatrix: false)
+        NotificationCenter.default.post(name: .respawn, object: nil)
     }
 
     func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {}

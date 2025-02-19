@@ -8,5 +8,5 @@
 import Foundation
 
 extension Notification.Name {
-    static let resetSimulation = Notification.Name("resetSimulation")
+    static let respawn = Notification.Name("respawn")
 }

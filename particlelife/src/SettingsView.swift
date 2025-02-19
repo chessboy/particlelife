@@ -31,7 +31,7 @@ struct SimulationSettingsView: View {
                 Text("\(renderer.zoomLevel, specifier: "%.2f")x")
             }
             
-            MatrixView(interactionMatrix: particleSystem.interactionMatrix, speciesColors: particleSystem.speciesColors)
+            MatrixView(interactionMatrix: $particleSystem.interactionMatrix, speciesColors: particleSystem.speciesColors)
             
             Picker("Preset", selection: $settings.selectedPreset) {
                 ForEach(SimulationPreset.allPresets, id: \.name) { preset in
@@ -87,7 +87,7 @@ struct SimulationSettingsView: View {
         .background(Color.black.opacity(0.66))
         .cornerRadius(10)
         .shadow(radius: 5)
-        .onReceive(NotificationCenter.default.publisher(for: .resetSimulation)) { _ in
+        .onReceive(NotificationCenter.default.publisher(for: .respawn)) { _ in
             interactionMatrix = ParticleSystem.shared.interactionMatrix
             speciesColors = ParticleSystem.shared.speciesColors
         }

@@ -31,7 +31,7 @@ class ParticleSystem: ObservableObject {
         
         // listen for changes when a preset is applied
         SimulationSettings.shared.presetApplied
-            .sink { [weak self] in self?.reset() }
+            .sink { [weak self] in self?.respawn(shouldGenerateNewMatrix: true) }
             .store(in: &cancellables)
     }
     
@@ -49,11 +49,13 @@ class ParticleSystem: ObservableObject {
     }
 
     /// Resets the simulation and regenerates particles
-    func reset() {
+    func respawn(shouldGenerateNewMatrix: Bool) {
         let preset = SimulationSettings.shared.selectedPreset
-        print("resetting: \(preset.name)")
+        print("respawning: \(preset.name)")
         generateParticles(preset: preset)
-        generateNewMatrix(preset: preset)
+        if shouldGenerateNewMatrix {
+            generateNewMatrix(preset: preset)
+        }
         updatePhysicsAndBuffers()
     }
     
