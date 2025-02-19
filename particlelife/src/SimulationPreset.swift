@@ -67,22 +67,17 @@ struct SimulationPreset: Hashable {
         
     static let chaoticWalkers = SimulationPreset(
         name: "Chaotic Walkers",
-        numSpecies: 4,
+        numSpecies: 9,
         numParticles: .k40,
-        forceMatrixType: .custom([
-            [  0.2, -1.0,  0.6, -0.4 ],  // More negative interactions to break up clumps
-            [ -1.0,  0.2, -0.5,  0.7 ],  // Species 2 is drawn to 4, but repulses 3
-            [  0.6, -0.5,  0.2, -1.0 ],  // Species 3 avoids 4 but slightly clumps itself
-            [ -0.4,  0.7, -1.0,  0.2 ]
-        ]),
+        forceMatrixType: .snakes,
         distributionType: .uniform,
-        maxDistance: 1.0,   // Larger = more cross-species interactions before attraction stops
-        minDistance: 0.02,  // Low = avoids clumping
+        maxDistance: 0.6,   // Larger = more cross-species interactions before attraction stops
+        minDistance: 0.05,  // Low = avoids clumping
         beta: 0.35,         // Higher = extends peak interaction force before it tapers off
-        friction: 0.05,     // Lower friction = longer sustained movement (but not infinite sliding)
+        friction: 0.2,     // Lower friction = longer sustained movement (but not infinite sliding)
         repulsion: 0.015,   // Gentle repulsion to stop extreme clumping without pushing too hard
-        pointSize: 9,       // Keeps a balanced visual density
-        worldSize: 1.5      // Bigger = prevents the sim from stabilizing into static blobs
+        pointSize: 11,       // Keeps a balanced visual density
+        worldSize: 2.25      // Bigger = prevents the sim from stabilizing into static blobs
     )
     
     static let testPreset = SimulationPreset(
@@ -103,7 +98,7 @@ struct SimulationPreset: Hashable {
         worldSize: 1.0
     )
     
-    static let defaultPreset: SimulationPreset = random6Preset
+    static let defaultPreset: SimulationPreset = random3Preset
     
     static let allPresets: [SimulationPreset] = [
         //testPreset,
