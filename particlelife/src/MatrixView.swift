@@ -25,8 +25,8 @@ struct MatrixView: View {
             
             VStack {
                 InteractionMatrixGrid(
-                    interactionMatrix: $interactionMatrix,
                     speciesColors: speciesColors,
+                    interactionMatrix: $interactionMatrix,
                     hoveredCell: $hoveredCell,
                     tooltipText: $tooltipText,
                     tooltipPosition: $tooltipPosition
@@ -66,9 +66,10 @@ struct SpeciesHeaderRow: View {
 }
 
 struct InteractionMatrixGrid: View {
-    @Binding var interactionMatrix: [[Float]] // ✅ Allows modification
+    @State private var lastMouseButton: Int = 0
+
     let speciesColors: [Color]
-    
+    @Binding var interactionMatrix: [[Float]] // Allows modification
     @Binding var hoveredCell: (row: Int, col: Int)?
     @Binding var tooltipText: String
     @Binding var tooltipPosition: CGPoint
@@ -125,16 +126,42 @@ struct InteractionMatrixGrid: View {
                 }
             }
             .onTapGesture {
-                let isOptionClick = NSEvent.modifierFlags.contains(.option)
-                
-                if isOptionClick {
-                    adjustMatrixValue(row: row, col: col, amount: -0.1) // 🔼 decrease
-                } else {
-                    adjustMatrixValue(row: row, col: col, amount: 0.1) // 🔼 increase
+                if let hovered = hoveredCell {
+                    cycleMatrixValue(row: hovered.row, col: hovered.col)
+                }
+            }
+            .onAppear {
+                NSEvent.addLocalMonitorForEvents(matching: [.scrollWheel]) { event in
+                    let scrollSensitivity: Float = 0.001  // Adjust sensitivity (lower = slower)
+                    let deltaY = Float(event.scrollingDeltaY) * scrollSensitivity
+
+                    if let hovered = hoveredCell {
+                        let adjustment = max(-0.1, min(0.1, deltaY)) // Prevent large jumps
+                        adjustMatrixValue(row: hovered.row, col: hovered.col, amount: adjustment)
+                    }
+
+                    return event
                 }
             }
     }
     
+    let cycleValues: [Float] = [-1.0, -0.75, -0.5, -0.25, 0.0, 0.25, 0.5, 0.75, 1.0]
+    
+    /// Cycles the matrix value to the next step in cycleValues
+    private func cycleMatrixValue(row: Int, col: Int) {
+        guard row >= 0, col >= 0, row < interactionMatrix.count, col < interactionMatrix[row].count else { return }
+
+        let currentValue = interactionMatrix[row][col]
+        
+        // Find the closest cycle value
+        if let index = cycleValues.enumerated().min(by: { abs($0.1 - currentValue) < abs($1.1 - currentValue) })?.offset {
+            let nextIndex = (index + 1) % cycleValues.count
+            let newValue = cycleValues[nextIndex]
+            
+            setMatrixValue(row: row, col:  col, newValue: newValue)
+        }
+    }
+        
     /// Adjusts the interaction matrix value
     private func adjustMatrixValue(row: Int, col: Int, amount: Float) {
         guard row >= 0, col >= 0, row < interactionMatrix.count, col < interactionMatrix[row].count else { return }
@@ -142,9 +169,13 @@ struct InteractionMatrixGrid: View {
         let oldValue = interactionMatrix[row][col]
         var newValue = oldValue + amount
 
-        newValue = round(newValue * 10) / 10 // round to nearest tenth
+        //newValue = round(newValue * 10) / 10 // round to nearest tenth
         newValue = max(-1, min(1, newValue))
 
+        setMatrixValue(row: row, col: col, newValue: newValue)
+    }
+    
+    private func setMatrixValue(row: Int, col: Int, newValue: Float) {
         interactionMatrix[row][col] = newValue
         BufferManager.shared.updateInteractionBuffer(interactionMatrix: interactionMatrix)
         tooltipText = String(format: "%.2f", newValue)
