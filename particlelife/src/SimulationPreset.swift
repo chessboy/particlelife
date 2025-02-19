@@ -49,8 +49,9 @@ struct SimulationPreset: Hashable {
     static let random3Preset = makeRandomPreset(speciesCount: 3)
     static let random6Preset = makeRandomPreset(speciesCount: 6)
     static let random9Preset = makeRandomPreset(speciesCount: 9)
-    
-    static let inchwormPreset = SimulationPreset(
+    static let defaultPreset: SimulationPreset = random6Preset
+
+    static let inchworm = SimulationPreset(
         name: "Inchworm",
         numSpecies: 6,
         numParticles: .k30,
@@ -65,48 +66,76 @@ struct SimulationPreset: Hashable {
         worldSize: 1.0
     )
         
-    static let chaoticWalkers = SimulationPreset(
-        name: "Chaotic Walkers",
-        numSpecies: 9,
-        numParticles: .k40,
-        forceMatrixType: .snakes,
-        distributionType: .uniform,
-        maxDistance: 0.6,   // Larger = more cross-species interactions before attraction stops
-        minDistance: 0.05,  // Low = avoids clumping
-        beta: 0.35,         // Higher = extends peak interaction force before it tapers off
-        friction: 0.2,     // Lower friction = longer sustained movement (but not infinite sliding)
-        repulsion: 0.015,   // Gentle repulsion to stop extreme clumping without pushing too hard
-        pointSize: 11,       // Keeps a balanced visual density
-        worldSize: 2.25      // Bigger = prevents the sim from stabilizing into static blobs
-    )
-    
     static let cells = SimulationPreset(
         name: "Cells",
         numSpecies: 3,
         numParticles: .k40,
         forceMatrixType: .custom([
-            [-1.00, -0.25,  1.00],
-            [-0.25,  0.50, -0.25],
-            [ 1.00, -0.25, -1.00]
+            [-1.00,  -0.25,  1.00],
+            [-0.25,  0.50,  -0.25],
+            [1.00,  -0.25,  -1.00]
         ]),
         distributionType: .uniform,
         maxDistance: 0.80,
         minDistance: 0.04,
-        beta: 0.3,
+        beta: 0.30,
         friction: 0.20,
         repulsion: 0.03,
         pointSize: 15,
-        worldSize: 2.00
+        worldSize: 1.25
     )
     
-    static let defaultPreset: SimulationPreset = random3Preset
-    
+    static let comet = SimulationPreset(
+        name: "Comet",
+        numSpecies: 3,
+        numParticles: .k40,
+        forceMatrixType: .custom([
+            [-1.00, 1.00, -0.25],
+            [1.00, -1.00, 0.50],
+            [-0.25, -0.25, 0.50]
+        ]),
+        distributionType: .uniform,
+        maxDistance: 0.65,
+        minDistance: 0.04,
+        beta: 0.30,
+        friction: 0.20,
+        repulsion: 0.03,
+        pointSize: 11,
+        worldSize: 1.00
+    )
+
+    static let snuggleBugs = SimulationPreset(
+        name: "Snuggle Bugs",
+        numSpecies: 9,
+        numParticles: .k40,
+        forceMatrixType: .custom([
+            [0.25, 0.20, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00],
+            [0.00, 0.25, 0.20, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00],
+            [0.00, 0.00, 0.25, 0.20, 0.00, 0.00, 0.00, 0.00, 0.00],
+            [0.00, 0.00, 0.00, 0.25, 0.20, 0.00, 0.00, 0.00, 0.00],
+            [0.00, 0.00, 0.00, 0.00, 0.25, 0.20, 0.00, 0.00, 0.00],
+            [0.00, 0.00, 0.00, 0.00, 0.00, 0.25, 0.20, 0.00, 0.00],
+            [0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.25, 0.20, 0.00],
+            [0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.25, 0.20],
+            [0.20, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.25]
+        ]),
+        distributionType: .uniform,
+        maxDistance: 0.50,
+        minDistance: 0.05,
+        beta: 0.1,
+        friction: 0.20,
+        repulsion: 0.01,
+        pointSize: 25,
+        worldSize: 1.0
+    )
+        
     static let allPresets: [SimulationPreset] = [
         random3Preset,
         random6Preset,
         random9Preset,
-        inchwormPreset,
+        inchworm,
         cells,
-        chaoticWalkers
+        comet,
+        snuggleBugs
     ]
 }

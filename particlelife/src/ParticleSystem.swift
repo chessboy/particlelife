@@ -94,30 +94,29 @@ class ParticleSystem: ObservableObject {
 
     /// Returns a string representation of the interaction matrix
     func getInteractionMatrixString() -> String {
-        return interactionMatrix
-            .map { $0.map { String(format: "%.2f", $0) }.joined(separator: "  ") }
-            .joined(separator: "\n")
+        return "[\n" + interactionMatrix
+            .map { "        [" + $0.map { String(format: "%.2f", $0) }.joined(separator: ", ") + "]" }
+            .joined(separator: ",\n") + "\n    ]"
     }
     
     func dumpPresetAsCode() {
-        let preset = SimulationSettings.shared.selectedPreset
-        
+        let settings = SimulationSettings.shared
+        let preset = settings.selectedPreset
+
         let code = """
         static let untitledPreset = SimulationPreset(
             name: "Untitled",
             numSpecies: \(preset.numSpecies),
             numParticles: .\(preset.numParticles),
-            forceMatrixType: .custom([
-                \(getInteractionMatrixString())
-            ]),
+            forceMatrixType: .custom(\(getInteractionMatrixString())),
             distributionType: .\(preset.distributionType),
-            maxDistance: \(String(format: "%.2f", preset.maxDistance)),
-            minDistance: \(String(format: "%.2f", preset.minDistance)),
-            beta: \(String(format: "%.2f", preset.beta)),
-            friction: \(String(format: "%.2f", preset.friction)),
-            repulsion: \(String(format: "%.2f", preset.repulsion)),
-            pointSize: \(Int(preset.pointSize)),
-            worldSize: \(String(format: "%.2f", preset.worldSize))
+            maxDistance: \(String(format: "%.2f", settings.maxDistance.value)),
+            minDistance: \(String(format: "%.2f", settings.minDistance.value)),
+            beta: \(String(format: "%.2f", settings.beta.value)),
+            friction: \(String(format: "%.2f", settings.friction.value)),
+            repulsion: \(String(format: "%.2f", settings.repulsion.value)),
+            pointSize: \(Int(settings.pointSize.value)),
+            worldSize: \(String(format: "%.2f", settings.worldSize.value))
         )
         """
 
