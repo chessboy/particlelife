@@ -16,6 +16,9 @@ struct SimulationSettingsView: View {
     @State private var interactionMatrix: [[Float]] = ParticleSystem.shared.interactionMatrix
     @State private var speciesColors: [Color] = ParticleSystem.shared.speciesColors
     @State private var isVisible: Bool = true
+    
+    @State private var presetName: String = ""  // Stores input name
+    @State private var isShowingSaveSheet = false  // Controls sheet visibility
 
     var body: some View {
         VStack {
@@ -36,23 +39,73 @@ struct SimulationSettingsView: View {
             
             Picker("Preset", selection: $settings.selectedPreset) {
                 Text("— Random Presets —").disabled(true)
-                ForEach([SimulationPreset.random3Preset, SimulationPreset.random6Preset, SimulationPreset.random9Preset], id: \.name) { preset in
+                ForEach(PresetManager.shared.getRandomPresets(), id: \.name) { preset in
                     Text(preset.name).tag(preset)
                 }
-                
+
                 Text("— Special Presets —").disabled(true)
-                ForEach([SimulationPreset.inchworm, SimulationPreset.cells, SimulationPreset.comet, SimulationPreset.snuggleBugs, SimulationPreset.aliens], id: \.name) { preset in
+                ForEach(PresetManager.shared.getSpecialPresets(), id: \.name) { preset in
                     Text(preset.name).tag(preset)
                 }
 
                 Text("— Empty Presets —").disabled(true)
-                ForEach([SimulationPreset.empty2Preset, SimulationPreset.empty3Preset, SimulationPreset.empty4Preset, SimulationPreset.empty5Preset, SimulationPreset.empty6Preset, SimulationPreset.empty7Preset, SimulationPreset.empty8Preset, SimulationPreset.empty9Preset], id: \.name) { preset in
+                ForEach(PresetManager.shared.getEmptyPresets(), id: \.name) { preset in
                     Text(preset.name).tag(preset)
+                }
+
+                if !settings.userPresets.isEmpty {
+                    Text("— User Presets —").disabled(true)
+                    ForEach(settings.userPresets, id: \.name) { preset in
+                        Text(preset.name).tag(preset)
+                    }
                 }
             }
             .pickerStyle(MenuPickerStyle())
-            .padding(.bottom, 10)
             
+            VStack {
+                Button("Save Preset") {
+                    presetName = ""  // Reset input
+                    isShowingSaveSheet = true  // Show sheet
+                }
+                .buttonStyle(.borderedProminent)
+
+            }
+            .padding()
+            .sheet(isPresented: $isShowingSaveSheet) {
+                VStack(spacing: 12) {  // Reduce spacing
+                    Text("Enter Preset Name")
+                        .font(.headline)
+
+                    TextField("Preset Name", text: $presetName)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .frame(width: 200)
+                        .padding(.horizontal, 10)
+                        .onSubmit {
+                            savePreset()
+                        }
+
+                    HStack {
+                        Button("Cancel") {
+                            isShowingSaveSheet = false
+                        }
+                        .buttonStyle(.bordered)
+                        .frame(width: 80)
+
+                        Spacer()
+
+                        Button("Save") {
+                            savePreset()
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .frame(width: 80)
+                        .disabled(presetName.isEmpty)
+                    }
+                    .padding(.top, 5)
+                }
+                .padding(15)
+                .frame(width: 250)
+            }
+
             HStack {
                 Button(action: {
                     let isCommandClick = NSEvent.modifierFlags.contains(.command)
@@ -72,7 +125,6 @@ struct SimulationSettingsView: View {
                         .drawingGroup()  // Renders UI as a single texture to reduce SwiftUI overhead
                         .cornerRadius(10)
                         .frame(height: 20)
-                    
                 }
                 
                 Button(action: {
@@ -123,6 +175,13 @@ struct SimulationSettingsView: View {
         }
     }
     
+    private func savePreset() {
+        if !presetName.isEmpty {
+            settings.saveCurrentPreset(named: presetName)
+            isShowingSaveSheet = false
+        }
+    }
+
     /// Reusable slider view for settings (Single-Line Layout with Bold Value)
     private func settingSlider(title: String, setting: Binding<ConfigurableSetting>) -> some View {
         HStack {

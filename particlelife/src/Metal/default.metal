@@ -211,18 +211,21 @@ kernel void compute_particle_movement(
             float distance = length(delta);
 
             if (distance < effectRadius) {
-                // Generate a uniform random angle in [0, 2π] for perturbation direction.
+                // Generate a uniform random angle in [0, 2π]
                 float angle = rand(id, 1, 123) * 6.2831853;
-                float2 randomDirection = normalize(float2(cos(angle), sin(angle)));
+                float2 randomDirection = float2(cos(angle), sin(angle));
 
-                // Generate a small random force magnitude in [-0.0002, 0.0002], then multiply by clickForce.
+                // Compute aspect ratio correction properly
+                float aspectRatio = worldSize[0] / worldSize[1];  // Invert aspect ratio
+                float2 correctedDirection = float2(randomDirection.x, randomDirection.y * aspectRatio);
+
+                // Re-normalize after applying aspect correction
+                correctedDirection = normalize(correctedDirection);
+
+                // Generate a random force magnitude in [-0.0002, 0.0002] and scale by clickForce
                 float randomMagnitude = (rand(id, 2, 456) - 0.5) * 0.0002 * clickForce;
 
-                // Compute aspect ratio correction to ensure proper scaling.
-                float aspectRatio = worldSize[1] / worldSize[0];
-                float2 correctedDirection = float2(randomDirection.x * aspectRatio, randomDirection.y);
-
-                // Apply final perturbation force.
+                // Apply final perturbation force
                 selfParticle.velocity += correctedDirection * randomMagnitude;
             }
         }

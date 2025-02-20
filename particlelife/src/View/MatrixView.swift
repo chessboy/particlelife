@@ -178,9 +178,32 @@ struct InteractionMatrixGrid: View {
         setMatrixValue(row: row, col: col, newValue: newValue)
     }
     
+//    private func setMatrixValue(row: Int, col: Int, newValue: Float) {
+//        interactionMatrix[row][col] = newValue
+//        BufferManager.shared.updateInteractionBuffer(interactionMatrix: interactionMatrix)
+//        tooltipText = String(format: "%.2f", newValue)
+//    }
+    
     private func setMatrixValue(row: Int, col: Int, newValue: Float) {
         interactionMatrix[row][col] = newValue
         BufferManager.shared.updateInteractionBuffer(interactionMatrix: interactionMatrix)
+
+        // Always store as `.custom`, regardless of starting type
+        SimulationSettings.shared.selectedPreset = SimulationPreset(
+            name: SimulationSettings.shared.selectedPreset.name,
+            numSpecies: SimulationSettings.shared.selectedPreset.numSpecies,
+            numParticles: SimulationSettings.shared.selectedPreset.numParticles,
+            forceMatrixType: .custom(interactionMatrix), // Always persist as custom
+            distributionType: SimulationSettings.shared.selectedPreset.distributionType,
+            maxDistance: SimulationSettings.shared.selectedPreset.maxDistance,
+            minDistance: SimulationSettings.shared.selectedPreset.minDistance,
+            beta: SimulationSettings.shared.selectedPreset.beta,
+            friction: SimulationSettings.shared.selectedPreset.friction,
+            repulsion: SimulationSettings.shared.selectedPreset.repulsion,
+            pointSize: SimulationSettings.shared.selectedPreset.pointSize,
+            worldSize: SimulationSettings.shared.selectedPreset.worldSize
+        )
+
         tooltipText = String(format: "%.2f", newValue)
     }
     

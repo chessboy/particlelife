@@ -22,9 +22,9 @@ class ParticleSystem: ObservableObject {
     private var lastUpdateTime: TimeInterval = Date().timeIntervalSince1970
 
     init() {
-        let preset = SimulationPreset.defaultPreset
+        let preset = PresetManager.shared.defaultPreset
         
-        SimulationSettings.shared.applyPreset(.defaultPreset, sendEvent: false)
+        SimulationSettings.shared.applyPreset(PresetManager.shared.defaultPreset, sendEvent: false)
         generateParticles(preset: preset)
         generateNewMatrix(preset: preset)
         updatePhysicsAndBuffers()

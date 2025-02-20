@@ -1,11 +1,17 @@
 import simd
 
-enum DistributionType {
+struct Particle {
+    var position: simd_float2
+    var velocity: simd_float2
+    var species: Int32
+}
+
+enum DistributionType: Codable {
     case centered, uniform, uniformCircle, centeredCircle, ring, rainbowRing,
          colorBattle, colorWheel, colorBands, line, spiral, rainbowSpiral
 }
 
-enum ParticleCount: Int, CaseIterable, Identifiable {
+enum ParticleCount: Int, CaseIterable, Identifiable, Codable {
     case k1 = 1024
     case k2 = 2048
     case k5 = 5120
@@ -16,6 +22,26 @@ enum ParticleCount: Int, CaseIterable, Identifiable {
     case k50 = 49152
 
     var id: Int { self.rawValue }
+
+    /// Returns the particle count for a given species count (1-9).
+    static func particles(for numSpecies: Int) -> ParticleCount {
+        guard (1...9).contains(numSpecies) else { return k1 }
+
+        // Map species count to an increasing particle count
+        let mapping: [Int: ParticleCount] = [
+            1: .k10,
+            2: .k10,
+            3: .k20,
+            4: .k20,
+            5: .k20,
+            6: .k40,
+            7: .k40,
+            8: .k40,
+            9: .k40
+        ]
+
+        return mapping[numSpecies] ?? .k10
+    }
 
     var displayString: String {
         switch self {

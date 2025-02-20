@@ -25,7 +25,8 @@ struct ConfigurableSetting {
 
 class SimulationSettings: ObservableObject {
     static let shared = SimulationSettings()
-    
+    @Published var userPresets: [SimulationPreset] = PresetManager.shared.getUserPresets()
+
     @Published var maxDistance = ConfigurableSetting(
         value: 0.65, defaultValue: 0.65, min: 0.5, max: 1.5, step: 0.05, format: "%.2f",
         onChange: { _ in BufferManager.shared.updatePhysicsBuffers() }
@@ -63,7 +64,7 @@ class SimulationSettings: ObservableObject {
         }
     )
     
-    @Published var selectedPreset: SimulationPreset = .defaultPreset {
+    @Published var selectedPreset: SimulationPreset = PresetManager.shared.defaultPreset {
         didSet {
             applyPreset(selectedPreset)
         }
@@ -91,5 +92,26 @@ class SimulationSettings: ObservableObject {
         if sendEvent {
             presetApplied.send()
         }
+    }
+    
+    func saveCurrentPreset(named presetName: String) {
+        var uniqueName = presetName
+        let allPresetNames = Set(PresetManager.shared.getUserPresets().map { $0.name })
+        
+        // Ensure uniqueness by appending a number if needed
+        var counter = 1
+        while allPresetNames.contains(uniqueName) {
+            uniqueName = "\(presetName) \(counter)"
+            counter += 1
+        }
+        
+        let newPreset = selectedPreset.copy(withName: uniqueName)
+        PresetManager.shared.savePreset(newPreset)
+        userPresets = PresetManager.shared.getUserPresets() // Refresh list
+    }
+    
+    func deletePreset(named presetName: String) {
+        PresetManager.shared.deletePreset(named: presetName)
+        userPresets = PresetManager.shared.getUserPresets() // Refresh list
     }
 }

@@ -8,8 +8,7 @@
 
 import Foundation
 
-enum MatrixType {
-    case test
+enum MatrixType: Codable {
     case random
     case symmetry
     case chains
@@ -18,7 +17,10 @@ enum MatrixType {
     case snakes
     case zero
     case custom([[Float]])
-
+    
+    private enum CodingKeys: String, CodingKey {
+        case type, data
+    }
 }
 
 enum MatrixGenerator {
@@ -27,14 +29,6 @@ enum MatrixGenerator {
         var matrix = [[Float]](repeating: [Float](repeating: 0.0, count: numSpecies), count: numSpecies)
         
         switch type {
-            
-        case .test:
-            for i in 0..<numSpecies {
-                for j in 0..<numSpecies {
-                    matrix[i][j] = -1.0
-                }
-            }
-
             
         case .random:
             for i in 0..<numSpecies {
@@ -103,5 +97,60 @@ enum MatrixGenerator {
         }
         
         return matrix
+    }
+}
+
+extension MatrixType {
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        
+        switch self {
+        case .random:
+            try container.encode("random", forKey: .type)
+        case .symmetry:
+            try container.encode("symmetry", forKey: .type)
+        case .chains:
+            try container.encode("chains", forKey: .type)
+        case .chains2:
+            try container.encode("chains2", forKey: .type)
+        case .chains3:
+            try container.encode("chains3", forKey: .type)
+        case .snakes:
+            try container.encode("snakes", forKey: .type)
+        case .zero:
+            try container.encode("zero", forKey: .type)
+        case .custom(let matrix):
+            try container.encode("custom", forKey: .type)
+            try container.encode(matrix, forKey: .data)
+
+        }
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let type = try container.decode(String.self, forKey: .type)
+
+        switch type {
+        case "random":
+            self = .random
+        case "symmetry":
+            self = .symmetry
+        case "chains":
+            self = .chains
+        case "chains2":
+            self = .chains2
+        case "chains3":
+            self = .chains3
+        case "snakes":
+            self = .snakes
+        case "zero":
+            self = .zero
+        case "custom":
+            let matrix = try container.decode([[Float]].self, forKey: .data)
+            self = .custom(matrix)
+        default:
+            throw DecodingError.dataCorruptedError(forKey: .type, in: container, debugDescription: "Invalid MatrixType value")
+        }
     }
 }

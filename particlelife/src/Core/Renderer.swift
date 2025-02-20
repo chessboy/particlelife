@@ -261,6 +261,7 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         guard !isPaused else { return }
         zoomLevel = 1.0
         cameraPosition = .zero
+        adjustZoomAndCameraForWorldSize(SimulationSettings.shared.worldSize.value)
         BufferManager.shared.updateZoomBuffer(zoomLevel: zoomLevel)
         BufferManager.shared.updateCameraBuffer(cameraPosition: cameraPosition)
     }
@@ -326,7 +327,7 @@ extension Renderer {
         let worldPosition = screenToWorld(location, drawableSize: view.drawableSize, viewSize: view.frame.size)
         let effectRadius: Float = isRightClick ? 3.0 : 1.0
                 
-        print("Clicked: \(isRightClick ? "Right" : "Left") at \(worldPosition)")
+        //print("Clicked: \(isRightClick ? "Right" : "Left") at \(worldPosition)")
 
         // Send click data to Metal
         BufferManager.shared.updateClickBuffer(clickPosition: worldPosition, force: effectRadius)
