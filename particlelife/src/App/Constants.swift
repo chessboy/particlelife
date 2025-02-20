@@ -22,8 +22,8 @@ struct Constants {
     ]
     
     struct Controls {
-        static let zoomStep: Float = 1.1
-        static let panStep: Float = 0.05
+        static let zoomStep: Float = 1.01
+        static let panStep: Float = 0.01
     }
     
     static let ASPECT_RATIO: Float = 1.7778
