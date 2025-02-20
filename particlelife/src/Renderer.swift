@@ -318,22 +318,22 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
 }
 
 extension Renderer {
-    
+
     /// Handles mouse clicks and perturbs nearby particles
-    func handleMouseClick(at location: CGPoint, in view: MTKView) {
+    func handleMouseClick(at location: CGPoint, in view: MTKView, isRightClick: Bool) {
         guard !isPaused else { return }
         
         let worldPosition = screenToWorld(location, drawableSize: view.drawableSize, viewSize: view.frame.size)
-        let effectRadius: Float = 0.05
-        
-        //print("clicked: location: \(location), screenToWorld: \(worldPosition)")
-        
+        let effectRadius: Float = isRightClick ? 3.0 : 1.0
+                
+        print("Clicked: \(isRightClick ? "Right" : "Left") at \(worldPosition)")
+
         // Send click data to Metal
-        BufferManager.shared.updateClickBuffer(clickPosition: worldPosition, radius: effectRadius)
+        BufferManager.shared.updateClickBuffer(clickPosition: worldPosition, force: effectRadius)
         
         // Clear click buffer after 1 frame (~16ms delay)
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.016) {
-            BufferManager.shared.updateClickBuffer(clickPosition: SIMD2<Float>(0, 0), radius: 0.0, clear: true)
+            BufferManager.shared.updateClickBuffer(clickPosition: SIMD2<Float>(0, 0), force: 0.0, clear: true)
         }
     }
     

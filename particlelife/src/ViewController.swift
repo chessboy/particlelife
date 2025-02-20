@@ -41,8 +41,13 @@ class ViewController: NSViewController {
         // Add the settings UI
         let settingsView = SimulationSettingsView(renderer: renderer)
         let hostingView = NSHostingView(rootView: settingsView)
-        hostingView.frame = CGRect(x: 20, y: 20, width: 320, height: 520)
-
+                
+        if let screen = NSScreen.main {
+            hostingView.frame = CGRect(x: 0, y: 0, width: 320, height: screen.frame.height)
+        } else {
+            hostingView.frame = CGRect(x: 0, y: 0, width: 320, height: 520)
+        }
+        
         view.addSubview(hostingView)
 
         // Ensure Metal View Fills the Window Properly
@@ -57,10 +62,17 @@ class ViewController: NSViewController {
     override var acceptsFirstResponder: Bool { true }
     
     override func mouseDown(with event: NSEvent) {
+        handleMouseEvent(event, isRightClick: false)
+    }
+
+    override func rightMouseDown(with event: NSEvent) {
+        handleMouseEvent(event, isRightClick: true)
+    }
+
+    private func handleMouseEvent(_ event: NSEvent, isRightClick: Bool) {
         let location = event.locationInWindow
-        let convertedLocation = metalView.convert(location, from: nil)
-        //print("Raw Click Location: \(location), Converted: \(convertedLocation), View Size: \(metalView.frame.size)")
-        renderer.handleMouseClick(at: convertedLocation, in: metalView)
+        let convertedLocation = metalView.convert(location, from: nil)        
+        renderer.handleMouseClick(at: convertedLocation, in: metalView, isRightClick: isRightClick)
     }
     
     override func keyDown(with event: NSEvent) {

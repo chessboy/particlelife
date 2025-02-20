@@ -19,10 +19,7 @@ struct MatrixView: View {
 
     var body: some View {
         VStack {
-            // 🔹 Species Header Row
             SpeciesHeaderRow(speciesColors: speciesColors)
-            
-            // 🔹 Interaction Matrix Grid
             
             VStack {
                 InteractionMatrixGrid(
@@ -38,8 +35,9 @@ struct MatrixView: View {
         .frame(width: 240, height: CGFloat(interactionMatrix.count + 1) * 22 - 4)
         .padding(.top, 10)
         .padding(.bottom, 20)
+        .background(Color.black)
         .cornerRadius(8)
-        .overlay(tooltipView, alignment: .topLeading) // 🔥 Floating tooltip
+        .overlay(tooltipView, alignment: .topLeading)
     }
     
     // Floating tooltip positioned dynamically

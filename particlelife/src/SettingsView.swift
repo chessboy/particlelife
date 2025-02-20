@@ -35,7 +35,18 @@ struct SimulationSettingsView: View {
             MatrixView(interactionMatrix: $particleSystem.interactionMatrix, isVisible: $isVisible, speciesColors: particleSystem.speciesColors)
             
             Picker("Preset", selection: $settings.selectedPreset) {
-                ForEach(SimulationPreset.allPresets, id: \.name) { preset in
+                Text("— Random Presets —").disabled(true)
+                ForEach([SimulationPreset.random3Preset, SimulationPreset.random6Preset, SimulationPreset.random9Preset], id: \.name) { preset in
+                    Text(preset.name).tag(preset)
+                }
+                
+                Text("— Special Presets —").disabled(true)
+                ForEach([SimulationPreset.inchworm, SimulationPreset.cells, SimulationPreset.comet, SimulationPreset.snuggleBugs, SimulationPreset.aliens], id: \.name) { preset in
+                    Text(preset.name).tag(preset)
+                }
+
+                Text("— Empty Presets —").disabled(true)
+                ForEach([SimulationPreset.empty2Preset, SimulationPreset.empty3Preset, SimulationPreset.empty4Preset, SimulationPreset.empty5Preset, SimulationPreset.empty6Preset, SimulationPreset.empty7Preset, SimulationPreset.empty8Preset, SimulationPreset.empty9Preset], id: \.name) { preset in
                     Text(preset.name).tag(preset)
                 }
             }
@@ -91,6 +102,7 @@ struct SimulationSettingsView: View {
             }
         }
         .padding(20)
+        .frame(width: 320, height: 2000)
         .background(Color.black.opacity(0.66))
         .cornerRadius(10)
         .shadow(radius: 5)

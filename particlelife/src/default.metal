@@ -17,7 +17,7 @@ struct VertexOut {
 
 struct ClickData {
     float2 position;  // x, y of click
-    float radius;     // Effect radius
+    float force;     // Effect force
 };
 
 // Fast deterministic random function for Metal shaders
@@ -203,7 +203,8 @@ kernel void compute_particle_movement(
         
         // Apply a perturbation force within a specified radius around the click position.
         float2 clickPos = clickData[0].position;
-        float effectRadius = clickData[0].radius * *worldSize;
+        float effectRadius = 0.05 * *worldSize;
+        float clickForce = clickData[0].force;
 
         if (clickPos.x != 0.0 || clickPos.y != 0.0) {
             float2 delta = selfParticle.position - clickPos;
@@ -214,8 +215,8 @@ kernel void compute_particle_movement(
                 float angle = rand(id, 1, 123) * 6.2831853;
                 float2 randomDirection = normalize(float2(cos(angle), sin(angle)));
 
-                // Generate a small random force magnitude in [-0.0002, 0.0002].
-                float randomMagnitude = (rand(id, 2, 456) - 0.5) * 0.0002;
+                // Generate a small random force magnitude in [-0.0002, 0.0002], then multiply by clickForce.
+                float randomMagnitude = (rand(id, 2, 456) - 0.5) * 0.0002 * clickForce;
 
                 // Compute aspect ratio correction to ensure proper scaling.
                 float aspectRatio = worldSize[1] / worldSize[0];

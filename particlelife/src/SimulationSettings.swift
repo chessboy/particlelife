@@ -57,7 +57,7 @@ class SimulationSettings: ObservableObject {
     )
     
     @Published var worldSize = ConfigurableSetting(
-        value: 1.0, defaultValue: 1.0, min: 0.5, max: 2.5, step: 0.25, format: "%.2f",
+        value: 1.0, defaultValue: 1.0, min: 0.5, max: 4, step: 0.25, format: "%.2f",
         onChange: { newValue in
             SimulationSettings.handleWorldSizeChange(newValue)
         }

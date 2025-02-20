@@ -24,9 +24,9 @@ class ParticleSystem: ObservableObject {
     init() {
         let preset = SimulationPreset.defaultPreset
         
+        SimulationSettings.shared.applyPreset(.defaultPreset, sendEvent: false)
         generateParticles(preset: preset)
         generateNewMatrix(preset: preset)
-        SimulationSettings.shared.applyPreset(.defaultPreset, sendEvent: false)
         updatePhysicsAndBuffers()
         
         // listen for changes when a preset is applied

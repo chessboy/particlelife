@@ -10,7 +10,7 @@ import simd
 
 struct ClickData {
     var position: SIMD2<Float>
-    var radius: Float
+    var force: Float
 }
 
 class BufferManager {
@@ -81,7 +81,7 @@ class BufferManager {
         pointSizeBuffer = createBuffer(type: Float.self)
         worldSizeBuffer = createBuffer(type: Float.self)
         initializeBoundaryBuffer()
-        updateClickBuffer(clickPosition: SIMD2<Float>(0, 0), radius: 0.0)
+        updateClickBuffer(clickPosition: SIMD2<Float>(0, 0), force: 0.0)
 
         updatePhysicsBuffers()
     }
@@ -138,9 +138,9 @@ class BufferManager {
 // Buffer Updates
 extension BufferManager {
     
-    func updateClickBuffer(clickPosition: SIMD2<Float>, radius: Float, clear: Bool = false) {
-        var clickData = clear ? ClickData(position: SIMD2<Float>(0, 0), radius: 0.0) :
-                                ClickData(position: clickPosition, radius: radius)
+    func updateClickBuffer(clickPosition: SIMD2<Float>, force: Float, clear: Bool = false) {
+        var clickData = clear ? ClickData(position: SIMD2<Float>(0, 0), force: 0.0) :
+                                ClickData(position: clickPosition, force: force)
 
         if clickBuffer == nil {
             clickBuffer = device.makeBuffer(length: MemoryLayout<ClickData>.stride, options: [])
