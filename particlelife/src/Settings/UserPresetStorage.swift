@@ -38,7 +38,7 @@ class UserPresetStorage {
     }
     
     static func deleteUserPreset(named presetName: String) {
-        var presets = loadUserPresets()
+        let presets = loadUserPresets()
 
         // Filter out the preset with the given name
         let filteredPresets = presets.filter { $0.name != presetName }

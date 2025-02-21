@@ -31,6 +31,7 @@ class ParticleSystem: ObservableObject {
         
         // listen for changes when a preset is applied
         NotificationCenter.default.addObserver(self, selector: #selector(presetApplied), name: Notification.Name.presetSelected, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(presetAppliedNoRespawn), name: Notification.Name.presetSelectedNoRespawn, object: nil)
     }
     
     /// Called when a preset is applied
@@ -39,6 +40,13 @@ class ParticleSystem: ObservableObject {
         respawn(shouldGenerateNewMatrix: true)
     }
     
+    /// Called when a preset is applied but we don't want to respawn (eg. reset button)
+    @objc private func presetAppliedNoRespawn() {
+        print("✅ Preset applied - updating Particle System - NO RESPAWN")
+        generateNewMatrix(preset: SimulationSettings.shared.selectedPreset)
+        BufferManager.shared.updateInteractionBuffer(interactionMatrix: interactionMatrix)
+    }
+
     /// Updates buffers and physics settings
     private func updatePhysicsAndBuffers() {
         BufferManager.shared.clearParticleBuffers()

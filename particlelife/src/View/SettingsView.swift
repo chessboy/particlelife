@@ -236,7 +236,7 @@ struct SimulationControlsView: View {
     var body: some View {
         HStack {
             Button("Reset") {
-                SimulationSettings.shared.selectPreset(SimulationSettings.shared.selectedPreset)
+                SimulationSettings.shared.selectPreset(SimulationSettings.shared.selectedPreset, skipRespawn: true)
             }
             .buttonStyle(SettingsButtonStyle())
             .disabled(renderer.isPaused)
