@@ -20,6 +20,7 @@ struct SimulationPreset: Hashable, Codable {
     let repulsion: Float
     let pointSize: Float
     let worldSize: Float
+    let isBuiltIn: Bool
     
     func hash(into hasher: inout Hasher) {
         hasher.combine(name)
@@ -52,7 +53,8 @@ extension SimulationPreset {
             friction: friction,
             repulsion: repulsion,
             pointSize: pointSize,
-            worldSize: worldSize
+            worldSize: worldSize,
+            isBuiltIn: false
         )
     }
 }

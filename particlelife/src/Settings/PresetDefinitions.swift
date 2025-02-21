@@ -34,7 +34,8 @@ class PresetDefinitions {
             friction: 0.2,
             repulsion: 0.03,
             pointSize: 11,
-            worldSize: 1.0
+            worldSize: 1.0,
+            isBuiltIn: true
         )
     }
     
@@ -54,7 +55,8 @@ class PresetDefinitions {
             friction: 0.2,
             repulsion: 0.03,
             pointSize: 5,
-            worldSize: 0.5
+            worldSize: 0.5,
+            isBuiltIn: true
         )
     }
 }
@@ -73,7 +75,8 @@ extension PresetDefinitions {
         friction: 0.3,
         repulsion: 0.04,
         pointSize: 21,
-        worldSize: 1.0
+        worldSize: 1.0,
+        isBuiltIn: true
     )
     
     static let cells = SimulationPreset(
@@ -92,7 +95,8 @@ extension PresetDefinitions {
         friction: 0.20,
         repulsion: 0.03,
         pointSize: 15,
-        worldSize: 1.25
+        worldSize: 1.25,
+        isBuiltIn: true
     )
     
     static let comet = SimulationPreset(
@@ -111,7 +115,8 @@ extension PresetDefinitions {
         friction: 0.20,
         repulsion: 0.03,
         pointSize: 17,
-        worldSize: 2.00
+        worldSize: 2.00,
+        isBuiltIn: true
     )
     
     static let aliens = SimulationPreset(
@@ -136,7 +141,8 @@ extension PresetDefinitions {
         friction: 0.10,
         repulsion: 0.03,
         pointSize: 19,
-        worldSize: 4
+        worldSize: 4,
+        isBuiltIn: true
     )
     
     static let snuggleBugs = SimulationPreset(
@@ -161,6 +167,7 @@ extension PresetDefinitions {
         friction: 0.20,
         repulsion: 0.01,
         pointSize: 17,
-        worldSize: 1.0
+        worldSize: 1.0,
+        isBuiltIn: true
     )
 }
