@@ -55,7 +55,7 @@ class ParticleSystem: ObservableObject {
     /// Resets the simulation and regenerates particles
     func respawn(shouldGenerateNewMatrix: Bool) {
         let preset = SimulationSettings.shared.selectedPreset
-        print("respawning: \(preset.name)")
+
         generateParticles(preset: preset)
         if shouldGenerateNewMatrix {
             generateNewMatrix(preset: preset)

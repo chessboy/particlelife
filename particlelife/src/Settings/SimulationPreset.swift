@@ -54,7 +54,7 @@ extension SimulationPreset {
             repulsion: repulsion,
             pointSize: pointSize,
             worldSize: worldSize,
-            isBuiltIn: false
+            isBuiltIn: isBuiltIn
         )
     }
 }

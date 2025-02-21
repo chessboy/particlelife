@@ -55,15 +55,29 @@ class SimulationSettings: ObservableObject {
     
     @Published var pointSize = ConfigurableSetting(
         value: 11.0, defaultValue: 11.0, min: 3.0, max: 25.0, step: 2.0, format: "%.0f",
-        onChange: { _ in BufferManager.shared.updatePhysicsBuffers() }
+        onChange:{ newValue in handlePointSizeChange(newValue) }
     )
     
     @Published var worldSize = ConfigurableSetting(
         value: 1.0, defaultValue: 1.0, min: 0.5, max: 4, step: 0.25, format: "%.2f",
-        onChange: { newValue in
-            SimulationSettings.handleWorldSizeChange(newValue)
-        }
+        onChange: { newValue in handleWorldSizeChange(newValue) }
     )
+        
+    private static func handlePointSizeChange(_ newValue: Float) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { // 50ms debounce
+            if shared.pointSize.value == newValue { // Ensure consistency
+                BufferManager.shared.updatePhysicsBuffers()
+            }
+        }
+    }
+    
+    private static func handleWorldSizeChange(_ newValue: Float) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { // 50ms debounce
+            if shared.worldSize.value == newValue { // Ensure consistency
+                BufferManager.shared.updatePhysicsBuffers()
+            }
+        }
+    }
     
     func selectPreset(_ preset: SimulationPreset) {
         guard let storedPreset = PresetManager.shared.getPreset(named: preset.name) else {
@@ -74,14 +88,6 @@ class SimulationSettings: ObservableObject {
         selectedPreset = storedPreset
         applyPreset(selectedPreset)
         NotificationCenter.default.post(name: .presetSelected, object: nil)
-    }
-    
-    private static func handleWorldSizeChange(_ newValue: Float) {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { // 50ms debounce
-            if shared.worldSize.value == newValue { // Ensure consistency
-                BufferManager.shared.updatePhysicsBuffers()
-            }
-        }
     }
     
     func applyPreset(_ preset: SimulationPreset) {
@@ -95,7 +101,22 @@ class SimulationSettings: ObservableObject {
     }
         
     func saveCurrentPreset(named presetName: String) {
-        let newPreset = selectedPreset.copy(withName: presetName)
+        let newPreset = SimulationPreset(
+            name: presetName,
+            numSpecies: selectedPreset.numSpecies,
+            numParticles: selectedPreset.numParticles,
+            forceMatrixType: selectedPreset.forceMatrixType,
+            distributionType: selectedPreset.distributionType,
+            maxDistance: maxDistance.value,
+            minDistance: minDistance.value,
+            beta: beta.value,
+            friction: friction.value,
+            repulsion: repulsion.value,
+            pointSize: pointSize.value,
+            worldSize: worldSize.value,
+            isBuiltIn: false
+        )
+        
         let persistedPreset = PresetManager.shared.addUserPreset(newPreset)
         userPresets = PresetManager.shared.getUserPresets()
         selectedPreset = persistedPreset

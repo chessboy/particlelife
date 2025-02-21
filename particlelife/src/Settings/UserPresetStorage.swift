@@ -18,6 +18,7 @@ class UserPresetStorage {
         let decoder = JSONDecoder()
         if let presets = try? decoder.decode([SimulationPreset].self, from: data) {
             print("✅ Loaded \(presets.count) user presets.")
+            print(presets)
             return presets
         } else {
             print("❌ Failed to decode user presets.")
