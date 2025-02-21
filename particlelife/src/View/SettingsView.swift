@@ -17,9 +17,11 @@ struct SimulationSettingsView: View {
     @State private var speciesColors: [Color] = ParticleSystem.shared.speciesColors
     @State private var isVisible: Bool = true
     
-    @State private var presetName: String = ""  // Stores input name
-    @State private var isShowingSaveSheet = false  // Controls sheet visibility
-
+    @State private var presetName: String = "" // for modal on save
+    @State private var isShowingSaveSheet = false
+    @State private var isShowingDeleteSheet = false
+    @State private var presetToDelete: SimulationPreset? // Holds the selected preset
+    
     var body: some View {
         VStack {
             
@@ -36,6 +38,8 @@ struct SimulationSettingsView: View {
             }
             
             MatrixView(interactionMatrix: $particleSystem.interactionMatrix, isVisible: $isVisible, renderer: renderer, speciesColors: particleSystem.speciesColors)
+                .padding(.top, 15)
+
             
             Picker("Preset", selection: Binding(
                 get: { settings.selectedPreset },
@@ -45,17 +49,17 @@ struct SimulationSettingsView: View {
                 ForEach(PresetDefinitions.randomPresets, id: \.name) { preset in
                     Text(preset.name).tag(preset)
                 }
-
+                
                 Text("— Empty Presets —").disabled(true)
                 ForEach(PresetDefinitions.emptyPresets, id: \.name) { preset in
                     Text(preset.name).tag(preset)
                 }
-
+                
                 Text("— Special Presets —").disabled(true)
                 ForEach(PresetDefinitions.specialPresets, id: \.name) { preset in
                     Text(preset.name).tag(preset)
                 }
-
+                
                 if !settings.userPresets.isEmpty {
                     Text("— User Presets —").disabled(true)
                     ForEach(settings.userPresets, id: \.name) { preset in
@@ -64,31 +68,67 @@ struct SimulationSettingsView: View {
                 }
             }
             .pickerStyle(MenuPickerStyle())
+            .padding(.top, 20)
             .disabled(renderer.isPaused)
-
-            VStack {
+            
+            HStack {
                 Button(action: {
                     presetName = ""  // Reset input
                     isShowingSaveSheet = true  // Show sheet
                 }) {
-                    Text("Save Preset")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .padding()
-                        .compositingGroup()  // Reduces GPU redraws
-                        .drawingGroup()  // Renders UI as a single texture to reduce SwiftUI overhead
-                        .cornerRadius(10)
-                        .frame(height: 20)
+                    Text("Save")
                 }
+                .buttonStyle(SettingsButtonStyle())
                 .disabled(renderer.isPaused)
-
+                
+                Button(action: {
+                    presetToDelete = settings.selectedPreset  // Set preset to delete
+                    isShowingDeleteSheet = true  // Show sheet
+                }) {
+                    Text("Delete")
+                }
+                .buttonStyle(SettingsButtonStyle())
+                .disabled(renderer.isPaused/*|| selectedPreset.isBuiltIn*/)
+//                .sheet(isPresented: $isShowingDeleteSheet) {
+//                    if let preset = presetToDelete {
+//                        VStack(spacing: 20) {
+//                            Text("Delete Preset?")
+//                                .font(.title2)
+//                                .bold()
+//
+//                            Text("Are you sure you want to delete **\(preset.name)**?")
+//                                .multilineTextAlignment(.center)
+//
+//                            HStack {
+//                                Button("Cancel") {
+//                                    isShowingDeleteSheet = false
+//                                }
+//                                .buttonStyle(SettingsButtonStyle())
+//
+//                                Button("Delete") {
+//                                    PresetManager.shared.deleteUserPreset(named: preset.name)  // Delete the preset
+//                                    // todo: select an appropriate preset like defaultPreset
+//                                    isShowingDeleteSheet = false
+//                                }
+//                                .buttonStyle(SettingsButtonStyle())
+//                                .foregroundColor(.red)  // Highlight danger action
+//                            }
+//                        }
+//                        .padding()
+//                        .frame(width: 300)
+//                        .background(Color(.systemBackground))
+//                        .clipShape(RoundedRectangle(cornerRadius: 12))
+//                        .shadow(radius: 10)
+//                    }
+//                }
             }
+            
             .padding()
             .sheet(isPresented: $isShowingSaveSheet) {
                 VStack(spacing: 12) {  // Reduce spacing
                     Text("Enter Preset Name")
                         .font(.headline)
-
+                    
                     TextField("Preset Name", text: $presetName)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                         .frame(width: 200)
@@ -96,21 +136,19 @@ struct SimulationSettingsView: View {
                         .onSubmit {
                             savePreset()
                         }
-
+                    
                     HStack {
                         Button("Cancel") {
                             isShowingSaveSheet = false
                         }
                         .buttonStyle(.bordered)
-                        .frame(width: 80)
-
-                        Spacer()
-
+                        .frame(width: 120)
+                                                
                         Button("Save") {
                             savePreset()
                         }
                         .buttonStyle(.borderedProminent)
-                        .frame(width: 80)
+                        .frame(width: 120)
                         .disabled(presetName.isEmpty)
                     }
                     .padding(.top, 5)
@@ -118,11 +156,11 @@ struct SimulationSettingsView: View {
                 .padding(15)
                 .frame(width: 250)
             }
-
+            
             HStack {
                 Button(action: {
                     let isCommandClick = NSEvent.modifierFlags.contains(.command)
-
+                    
                     if isCommandClick {
                         particleSystem.dumpPresetAsCode()
                     } else {
@@ -130,36 +168,21 @@ struct SimulationSettingsView: View {
                     }
                 }) {
                     Text("Reset")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .compositingGroup()  // Reduces GPU redraws
-                        .drawingGroup()  // Renders UI as a single texture to reduce SwiftUI overhead
-                        .cornerRadius(10)
-                        .frame(height: 20)
                 }
+                .buttonStyle(SettingsButtonStyle())
                 .disabled(renderer.isPaused)
-
+                
                 Button(action: {
                     renderer.respawnParticles()
                 }) {
                     Text("Respawn")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .compositingGroup()  // Reduces GPU redraws
-                        .drawingGroup()  // Renders UI as a single texture to reduce SwiftUI overhead
-                        .cornerRadius(10)
-                        .frame(height: 20)
                 }
+                .buttonStyle(SettingsButtonStyle())
+                .disabled(renderer.isPaused)
             }
             .padding(.bottom, 14)
-            .disabled(renderer.isPaused)
             
             VStack {
-                
                 settingSlider(title: "Max Dist", setting: $settings.maxDistance)
                 settingSlider(title: "Min Dist", setting: $settings.minDistance)
                 settingSlider(title: "Beta", setting: $settings.beta)
@@ -168,6 +191,7 @@ struct SimulationSettingsView: View {
                 settingSlider(title: "Point Size", setting: $settings.pointSize)
                 settingSlider(title: "World Size", setting: $settings.worldSize)
             }
+            .padding(.top, 10)
         }
         .padding(20)
         .frame(width: 320, height: 2000)
@@ -193,7 +217,7 @@ struct SimulationSettingsView: View {
             isShowingSaveSheet = false
         }
     }
-
+    
     /// Reusable slider view for settings (Single-Line Layout with Bold Value)
     private func settingSlider(title: String, setting: Binding<ConfigurableSetting>) -> some View {
         HStack {
@@ -211,6 +235,22 @@ struct SimulationSettingsView: View {
         }
         .padding(.horizontal)
         .disabled(renderer.isPaused)
+    }
+}
+
+struct SettingsButtonStyle: ButtonStyle {
+    @Environment(\.isEnabled) private var isEnabled  // ✅ Get isEnabled from the environment
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.headline)
+            .foregroundColor(.white)
+            .frame(width: 120, height: 30)
+            .background(Color(red: 0.4, green: 0.4, blue: 0.4).opacity(0.75))
+            .clipShape(RoundedRectangle(cornerRadius: 6))
+            .compositingGroup()
+            .drawingGroup()
+            .opacity(configuration.isPressed ? 0.7 : (isEnabled ? 1.0 : 0.6))
     }
 }
 

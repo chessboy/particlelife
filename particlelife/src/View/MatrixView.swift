@@ -37,8 +37,8 @@ struct MatrixView: View {
         }
         .frame(width: 240, height: CGFloat(interactionMatrix.count + 1) * 22 - 4)
         .padding(.top, 10)
-        .padding(.bottom, 20)
-        .background(Color.black)
+        .padding(.bottom, 10)
+        .background(renderer.isPaused ? Color(red: 0.5, green: 0, blue: 0).opacity(0.75) : Color.black)
         .cornerRadius(8)
         .overlay(tooltipView, alignment: .topLeading)
     }
