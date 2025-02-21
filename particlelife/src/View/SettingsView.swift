@@ -24,6 +24,10 @@ struct SimulationSettingsView: View {
 
     var body: some View {
         VStack {
+            Image("logo")
+                .resizable()
+                .frame(width: 200, height: 200)
+    
             SimulationHeaderView(renderer: renderer)
             MatrixView(interactionMatrix: $particleSystem.interactionMatrix, isVisible: $isVisible, renderer: renderer, speciesColors: particleSystem.speciesColors)
                 .padding(.top, 15)
@@ -290,4 +294,10 @@ struct SettingsButtonStyle: ButtonStyle {
             .drawingGroup()
             .opacity(configuration.isPressed ? 0.7 : (isEnabled ? 1.0 : 0.6))
     }
+}
+
+#Preview {
+    let mtkView = MTKView()
+    let renderer = Renderer(mtkView: mtkView)
+    return NSHostingView(rootView: SimulationSettingsView(renderer: renderer))
 }

@@ -36,7 +36,7 @@ class ParticleSystem: ObservableObject {
     
     /// Called when a preset is applied
     @objc private func presetApplied() {
-        print("✅ Preset applied - updating Particle System")
+        print("✅ Preset applied - updating Particle System with respawn")
         respawn(shouldGenerateNewMatrix: true)
     }
     
