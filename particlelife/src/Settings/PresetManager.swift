@@ -27,4 +27,14 @@ class PresetManager {
         userPresets.append(savedPreset)
         return savedPreset
     }
+    
+    func deleteUserPreset(named presetName: String) {
+        // Remove from storage
+        UserPresetStorage.deleteUserPreset(named: presetName)
+
+        // Remove from in-memory list
+        userPresets.removeAll { $0.name == presetName }
+
+        print("🗑️ Preset deleted: \(presetName)")
+    }
 }

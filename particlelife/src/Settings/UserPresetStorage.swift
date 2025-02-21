@@ -37,6 +37,21 @@ class UserPresetStorage {
         return newPreset
     }
     
+    static func deleteUserPreset(named presetName: String) {
+        var presets = loadUserPresets()
+
+        // Filter out the preset with the given name
+        let filteredPresets = presets.filter { $0.name != presetName }
+
+        if presets.count == filteredPresets.count {
+            print("⚠️ Preset '\(presetName)' not found. No deletion occurred.")
+            return
+        }
+
+        persistUserPresets(filteredPresets)
+        print("🗑️ Deleted preset: \(presetName)")
+    }
+    
     static func persistUserPresets(_ presets: [SimulationPreset]) {
         let encoder = JSONEncoder()
         if let data = try? encoder.encode(presets) {

@@ -136,7 +136,9 @@ struct DeletePresetSheet: View {
                 .buttonStyle(SettingsButtonStyle())
 
                 Button("Delete") {
-                    //todo: PresetManager.shared.deleteUserPreset(named: presetToDelete.name)
+                    PresetManager.shared.deleteUserPreset(named: presetToDelete.name)
+                    SimulationSettings.shared.userPresets = PresetManager.shared.getUserPresets()
+                    SimulationSettings.shared.selectPreset(PresetDefinitions.getDefaultPreset())
                     isShowingDeleteSheet = false
                 }
                 .buttonStyle(SettingsButtonStyle())
@@ -145,7 +147,6 @@ struct DeletePresetSheet: View {
         }
         .padding()
         .frame(width: 300)
-        //.background(Color(.systemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .shadow(radius: 10)
     }
