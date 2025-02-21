@@ -105,12 +105,12 @@ class SimulationSettings: ObservableObject {
         worldSize.value = preset.worldSize
     }
         
-    func saveCurrentPreset(named presetName: String) {
+    func saveCurrentPreset(named presetName: String, interactionMatrix: [[Float]]) {
         let newPreset = SimulationPreset(
             name: presetName,
             numSpecies: selectedPreset.numSpecies,
             numParticles: selectedPreset.numParticles,
-            forceMatrixType: selectedPreset.forceMatrixType,
+            forceMatrixType: .custom(interactionMatrix),
             distributionType: selectedPreset.distributionType,
             maxDistance: maxDistance.value,
             minDistance: minDistance.value,

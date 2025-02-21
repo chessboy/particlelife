@@ -110,7 +110,7 @@ struct SavePresetSheet: View {
 
     private func savePreset() {
         if !presetName.isEmpty {
-            SimulationSettings.shared.saveCurrentPreset(named: presetName)
+            SimulationSettings.shared.saveCurrentPreset(named: presetName, interactionMatrix: ParticleSystem.shared.interactionMatrix)
             isShowingSaveSheet = false
         }
     }
