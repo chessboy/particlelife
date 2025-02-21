@@ -11,7 +11,7 @@ import Combine
 struct ConfigurableSetting {
     var value: Float {
         didSet {
-            onChange?(value) // Triggers the update when `value` changes
+            onChange?(value)
         }
     }
     
@@ -20,12 +20,13 @@ struct ConfigurableSetting {
     let max: Float
     let step: Float
     let format: String
-    var onChange: ((Float) -> Void)? // Callback for updates
+    var onChange: ((Float) -> Void)?
 }
 
 class SimulationSettings: ObservableObject {
     static let shared = SimulationSettings()
     @Published var userPresets: [SimulationPreset] = PresetManager.shared.getUserPresets()
+    @Published var selectedPreset: SimulationPreset = PresetDefinitions.getDefaultPreset()
 
     @Published var maxDistance = ConfigurableSetting(
         value: 0.65, defaultValue: 0.65, min: 0.5, max: 1.5, step: 0.05, format: "%.2f",
@@ -64,13 +65,16 @@ class SimulationSettings: ObservableObject {
         }
     )
     
-    @Published var selectedPreset: SimulationPreset = PresetManager.shared.defaultPreset {
-        didSet {
-            applyPreset(selectedPreset)
+    func selectPreset(_ preset: SimulationPreset) {
+        guard let storedPreset = PresetManager.shared.getPreset(named: preset.name) else {
+            print("❌ Error: Preset '\(preset.name)' not found in storage.")
+            return
         }
+
+        selectedPreset = storedPreset
+        applyPreset(selectedPreset)
+        NotificationCenter.default.post(name: .presetSelected, object: nil)
     }
-    
-    let presetApplied = PassthroughSubject<Void, Never>()
     
     private static func handleWorldSizeChange(_ newValue: Float) {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { // 50ms debounce
@@ -79,8 +83,8 @@ class SimulationSettings: ObservableObject {
             }
         }
     }
-
-    func applyPreset(_ preset: SimulationPreset, sendEvent: Bool = true) {
+    
+    func applyPreset(_ preset: SimulationPreset) {
         maxDistance.value = preset.maxDistance
         minDistance.value = preset.minDistance
         beta.value = preset.beta
@@ -88,30 +92,12 @@ class SimulationSettings: ObservableObject {
         repulsion.value = preset.repulsion
         pointSize.value = preset.pointSize
         worldSize.value = preset.worldSize
-        
-        if sendEvent {
-            presetApplied.send()
-        }
     }
-    
+        
     func saveCurrentPreset(named presetName: String) {
-        var uniqueName = presetName
-        let allPresetNames = Set(PresetManager.shared.getUserPresets().map { $0.name })
-        
-        // Ensure uniqueness by appending a number if needed
-        var counter = 1
-        while allPresetNames.contains(uniqueName) {
-            uniqueName = "\(presetName) \(counter)"
-            counter += 1
-        }
-        
-        let newPreset = selectedPreset.copy(withName: uniqueName)
-        PresetManager.shared.savePreset(newPreset)
-        userPresets = PresetManager.shared.getUserPresets() // Refresh list
-    }
-    
-    func deletePreset(named presetName: String) {
-        PresetManager.shared.deletePreset(named: presetName)
-        userPresets = PresetManager.shared.getUserPresets() // Refresh list
+        let newPreset = selectedPreset.copy(withName: presetName)
+        let persistedPreset = PresetManager.shared.addUserPreset(newPreset)
+        userPresets = PresetManager.shared.getUserPresets()
+        selectedPreset = persistedPreset
     }
 }

@@ -22,17 +22,21 @@ class ParticleSystem: ObservableObject {
     private var lastUpdateTime: TimeInterval = Date().timeIntervalSince1970
 
     init() {
-        let preset = PresetManager.shared.defaultPreset
+        let defaultPreset = PresetDefinitions.getDefaultPreset()
         
-        SimulationSettings.shared.applyPreset(PresetManager.shared.defaultPreset, sendEvent: false)
-        generateParticles(preset: preset)
-        generateNewMatrix(preset: preset)
+        SimulationSettings.shared.applyPreset(defaultPreset)
+        generateParticles(preset: defaultPreset)
+        generateNewMatrix(preset: defaultPreset)
         updatePhysicsAndBuffers()
         
         // listen for changes when a preset is applied
-        SimulationSettings.shared.presetApplied
-            .sink { [weak self] in self?.respawn(shouldGenerateNewMatrix: true) }
-            .store(in: &cancellables)
+        NotificationCenter.default.addObserver(self, selector: #selector(presetApplied), name: Notification.Name.presetSelected, object: nil)
+    }
+    
+    /// Called when a preset is applied
+    @objc private func presetApplied() {
+        print("✅ Preset applied - updating Particle System")
+        respawn(shouldGenerateNewMatrix: true)
     }
     
     /// Updates buffers and physics settings

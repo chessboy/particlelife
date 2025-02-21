@@ -28,20 +28,23 @@ struct SimulationPreset: Hashable, Codable {
     static func == (lhs: SimulationPreset, rhs: SimulationPreset) -> Bool {
         return lhs.name == rhs.name
     }
-    
-    func copy(withName newName: String) -> SimulationPreset {
-        var copiedForceMatrixType = forceMatrixType
+}
+
+extension SimulationPreset {
+    /// Convenience initializer to modify name and/or forceMatrixType
+    func copy(withName newName: String? = nil, newForceMatrixType: MatrixType? = nil) -> SimulationPreset {
+        var copiedForceMatrixType = newForceMatrixType ?? forceMatrixType  // Use new matrix if provided
 
         // Ensure deep copy of custom matrices
-        if case .custom(let matrix) = forceMatrixType {
-            copiedForceMatrixType = .custom(matrix.map { $0.map { $0 } }) // Deep copy
+        if case .custom(let matrix) = copiedForceMatrixType {
+            copiedForceMatrixType = .custom(matrix.map { $0.map { $0 } })  // Deep copy to avoid mutation issues
         }
 
         return SimulationPreset(
-            name: newName,
+            name: newName ?? name,  // Use new name if provided, else keep original
             numSpecies: numSpecies,
             numParticles: numParticles,
-            forceMatrixType: copiedForceMatrixType, // Use copied version
+            forceMatrixType: copiedForceMatrixType,  // Use copied or new version
             distributionType: distributionType,
             maxDistance: maxDistance,
             minDistance: minDistance,

@@ -89,7 +89,7 @@ class ViewController: NSViewController {
 
     override func keyDown(with event: NSEvent) {
         if event.modifierFlags.contains(.command) && event.characters == "r" {
-            renderer.resetParticles()
+            renderer.respawnParticles()
             return
         }
         

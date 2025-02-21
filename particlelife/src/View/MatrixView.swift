@@ -15,6 +15,8 @@ struct MatrixView: View {
     @State private var tooltipPosition: CGPoint = .zero
     @State private var tooltipText: String = ""
     
+    @ObservedObject var renderer: Renderer
+
     let speciesColors: [Color]
 
     var body: some View {
@@ -28,7 +30,8 @@ struct MatrixView: View {
                     interactionMatrix: $interactionMatrix,
                     hoveredCell: $hoveredCell,
                     tooltipText: $tooltipText,
-                    tooltipPosition: $tooltipPosition
+                    tooltipPosition: $tooltipPosition,
+                    renderer: renderer
                 )
             }
         }
@@ -75,6 +78,8 @@ struct InteractionMatrixGrid: View {
     @Binding var tooltipText: String
     @Binding var tooltipPosition: CGPoint
     
+    @ObservedObject var renderer: Renderer
+
     var body: some View {
         LazyVStack(spacing: 2) {
             ForEach(interactionMatrix.indices, id: \.self) { row in
@@ -83,7 +88,6 @@ struct InteractionMatrixGrid: View {
         }
     }
     
-    /// Extracted row rendering logic into a separate function
     @ViewBuilder
     private func rowView(row: Int) -> some View {
         LazyHStack(spacing: 2) {
@@ -104,7 +108,7 @@ struct InteractionMatrixGrid: View {
             }
         }
     }
-    /// Extracted cell rendering logic into a separate function
+
     @ViewBuilder
     private func cellView(row: Int, col: Int) -> some View {
         let value = interactionMatrix[row][col]
@@ -127,7 +131,7 @@ struct InteractionMatrixGrid: View {
                 }
             }
             .onTapGesture {
-                if let hovered = hoveredCell {
+                if let hovered = hoveredCell, !renderer.isPaused {
                     cycleMatrixValue(row: hovered.row, col: hovered.col)
                 }
             }
@@ -177,34 +181,14 @@ struct InteractionMatrixGrid: View {
 
         setMatrixValue(row: row, col: col, newValue: newValue)
     }
-    
-//    private func setMatrixValue(row: Int, col: Int, newValue: Float) {
-//        interactionMatrix[row][col] = newValue
-//        BufferManager.shared.updateInteractionBuffer(interactionMatrix: interactionMatrix)
-//        tooltipText = String(format: "%.2f", newValue)
-//    }
-    
+        
     private func setMatrixValue(row: Int, col: Int, newValue: Float) {
         interactionMatrix[row][col] = newValue
         BufferManager.shared.updateInteractionBuffer(interactionMatrix: interactionMatrix)
-
-        // Always store as `.custom`, regardless of starting type
-        SimulationSettings.shared.selectedPreset = SimulationPreset(
-            name: SimulationSettings.shared.selectedPreset.name,
-            numSpecies: SimulationSettings.shared.selectedPreset.numSpecies,
-            numParticles: SimulationSettings.shared.selectedPreset.numParticles,
-            forceMatrixType: .custom(interactionMatrix), // Always persist as custom
-            distributionType: SimulationSettings.shared.selectedPreset.distributionType,
-            maxDistance: SimulationSettings.shared.selectedPreset.maxDistance,
-            minDistance: SimulationSettings.shared.selectedPreset.minDistance,
-            beta: SimulationSettings.shared.selectedPreset.beta,
-            friction: SimulationSettings.shared.selectedPreset.friction,
-            repulsion: SimulationSettings.shared.selectedPreset.repulsion,
-            pointSize: SimulationSettings.shared.selectedPreset.pointSize,
-            worldSize: SimulationSettings.shared.selectedPreset.worldSize
-        )
-
         tooltipText = String(format: "%.2f", newValue)
+        
+        // update the current preset's matrix
+        SimulationSettings.shared.selectedPreset = SimulationSettings.shared.selectedPreset.copy(withName: nil, newForceMatrixType: .custom(interactionMatrix))
     }
     
     private func computeTooltipPosition(row: Int, col: Int) -> CGPoint {

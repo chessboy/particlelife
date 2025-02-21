@@ -35,21 +35,24 @@ struct SimulationSettingsView: View {
                 Text("\(renderer.zoomLevel, specifier: "%.2f")x")
             }
             
-            MatrixView(interactionMatrix: $particleSystem.interactionMatrix, isVisible: $isVisible, speciesColors: particleSystem.speciesColors)
+            MatrixView(interactionMatrix: $particleSystem.interactionMatrix, isVisible: $isVisible, renderer: renderer, speciesColors: particleSystem.speciesColors)
             
-            Picker("Preset", selection: $settings.selectedPreset) {
+            Picker("Preset", selection: Binding(
+                get: { settings.selectedPreset },
+                set: { newPreset in settings.selectPreset(newPreset) }
+            )) {
                 Text("— Random Presets —").disabled(true)
-                ForEach(PresetManager.shared.getRandomPresets(), id: \.name) { preset in
-                    Text(preset.name).tag(preset)
-                }
-
-                Text("— Special Presets —").disabled(true)
-                ForEach(PresetManager.shared.getSpecialPresets(), id: \.name) { preset in
+                ForEach(PresetDefinitions.randomPresets, id: \.name) { preset in
                     Text(preset.name).tag(preset)
                 }
 
                 Text("— Empty Presets —").disabled(true)
-                ForEach(PresetManager.shared.getEmptyPresets(), id: \.name) { preset in
+                ForEach(PresetDefinitions.emptyPresets, id: \.name) { preset in
+                    Text(preset.name).tag(preset)
+                }
+
+                Text("— Special Presets —").disabled(true)
+                ForEach(PresetDefinitions.specialPresets, id: \.name) { preset in
                     Text(preset.name).tag(preset)
                 }
 
@@ -61,13 +64,23 @@ struct SimulationSettingsView: View {
                 }
             }
             .pickerStyle(MenuPickerStyle())
-            
+            .disabled(renderer.isPaused)
+
             VStack {
-                Button("Save Preset") {
+                Button(action: {
                     presetName = ""  // Reset input
                     isShowingSaveSheet = true  // Show sheet
+                }) {
+                    Text("Save Preset")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .padding()
+                        .compositingGroup()  // Reduces GPU redraws
+                        .drawingGroup()  // Renders UI as a single texture to reduce SwiftUI overhead
+                        .cornerRadius(10)
+                        .frame(height: 20)
                 }
-                .buttonStyle(.borderedProminent)
+                .disabled(renderer.isPaused)
 
             }
             .padding()
@@ -113,7 +126,7 @@ struct SimulationSettingsView: View {
                     if isCommandClick {
                         particleSystem.dumpPresetAsCode()
                     } else {
-                        settings.applyPreset(SimulationSettings.shared.selectedPreset, sendEvent: false)
+                        settings.applyPreset(SimulationSettings.shared.selectedPreset)
                     }
                 }) {
                     Text("Reset")
@@ -126,9 +139,10 @@ struct SimulationSettingsView: View {
                         .cornerRadius(10)
                         .frame(height: 20)
                 }
-                
+                .disabled(renderer.isPaused)
+
                 Button(action: {
-                    renderer.resetParticles()
+                    renderer.respawnParticles()
                 }) {
                     Text("Respawn")
                         .font(.headline)
@@ -140,7 +154,9 @@ struct SimulationSettingsView: View {
                         .cornerRadius(10)
                         .frame(height: 20)
                 }
-            }.padding(.bottom, 14)
+            }
+            .padding(.bottom, 14)
+            .disabled(renderer.isPaused)
             
             VStack {
                 
@@ -155,13 +171,9 @@ struct SimulationSettingsView: View {
         }
         .padding(20)
         .frame(width: 320, height: 2000)
-        .background(Color.black.opacity(0.66))
+        .background(renderer.isPaused ? Color(red: 0.5, green: 0, blue: 0).opacity(0.75) : Color.black.opacity(0.75))
         .cornerRadius(10)
         .shadow(radius: 5)
-        .onReceive(NotificationCenter.default.publisher(for: .respawn)) { _ in
-            interactionMatrix = ParticleSystem.shared.interactionMatrix
-            speciesColors = ParticleSystem.shared.speciesColors
-        }
         .opacity(isVisible ? 1.0 : 0.0)
         .allowsHitTesting(isVisible) // Disable interaction when invisible
         .animation(.easeInOut(duration: 0.3), value: isVisible)
@@ -198,6 +210,7 @@ struct SimulationSettingsView: View {
             )
         }
         .padding(.horizontal)
+        .disabled(renderer.isPaused)
     }
 }
 

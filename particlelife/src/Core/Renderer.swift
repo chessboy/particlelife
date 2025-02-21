@@ -12,7 +12,7 @@ import Combine
 class Renderer: NSObject, MTKViewDelegate, ObservableObject {
     
     private let drawWorldBoundary = true
-
+    
     @Published var fps: Int = 0
     @Published var isPaused: Bool = false {
         didSet {
@@ -22,10 +22,10 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
             }
         }
     }
-
+    
     var cameraPosition: simd_float2 = .zero
     var zoomLevel: Float = 1.0
-
+    
     private var lastUpdateTime: TimeInterval = Date().timeIntervalSince1970
     private var frameCount = 0
     
@@ -39,9 +39,9 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
     
     private var cancellables = Set<AnyCancellable>()
     private var worldSizeObserver: AnyCancellable?
-
+    
     var mtkView: MTKView?
-
+    
     init(mtkView: MTKView? = nil) {
         super.init()
         
@@ -58,17 +58,16 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         
         // listeners
         NotificationCenter.default.addObserver(self, selector: #selector(handleAppWillResignActive), name: NSApplication.willResignActiveNotification, object: nil)
-
+        
         worldSizeObserver = SimulationSettings.shared.$worldSize.sink { [weak self] newWorldSize in
             self?.adjustZoomAndCameraForWorldSize(newWorldSize.value)
         }
-
-        SimulationSettings.shared.presetApplied
-            .sink { [weak self] in self?.presetApplied() }
-            .store(in: &cancellables)
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(presetApplied), name: Notification.Name.presetSelected, object: nil)
     }
     
-    func presetApplied() {
+    /// Called when a preset is applied
+    @objc private func presetApplied() {
         if isPaused {
             isPaused.toggle()
         }
@@ -78,7 +77,7 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         let baseSize: Float = 1.0
         let minZoom: Float = 0.1
         let maxZoom: Float = 4.5
-
+        
         zoomLevel = min(max(baseSize / newWorldSize, minZoom), maxZoom)
         BufferManager.shared.updateZoomBuffer(zoomLevel: zoomLevel)
         
@@ -108,7 +107,7 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         
         let vertexFunction = library.makeFunction(name: "vertex_main") // For particles
         let fragmentFunction = library.makeFunction(name: "fragment_main") // Shared fragment shader
-
+        
         // Setup Particle Pipeline
         let pipelineDescriptor = MTLRenderPipelineDescriptor()
         pipelineDescriptor.vertexFunction = vertexFunction
@@ -130,15 +129,15 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
     /// Lazy setup for boundary pipeline
     private func setupBoundaryPipeline() {
         guard let device = device, let library = device.makeDefaultLibrary() else { return }
-
+        
         let boundaryVertexFunction = library.makeFunction(name: "vertex_boundary")
         let fragmentFunction = library.makeFunction(name: "fragment_main")
-
+        
         let boundaryPipelineDescriptor = MTLRenderPipelineDescriptor()
         boundaryPipelineDescriptor.vertexFunction = boundaryVertexFunction
         boundaryPipelineDescriptor.fragmentFunction = fragmentFunction
         boundaryPipelineDescriptor.colorAttachments[0].pixelFormat = .bgra8Unorm
-
+        
         do {
             boundaryPipelineState = try device.makeRenderPipelineState(descriptor: boundaryPipelineDescriptor)
         } catch {
@@ -150,13 +149,13 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         if isPaused || !BufferManager.shared.areBuffersInitialized {
             return
         }
-
+        
         let commandBuffer = commandQueue?.makeCommandBuffer()
         
         updateSimulationState()
         runComputePass(commandBuffer: commandBuffer)
         runRenderPass(commandBuffer: commandBuffer, view: view)
-
+        
         commandBuffer?.commit()
     }
     
@@ -164,30 +163,30 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
     private func updateSimulationState() {
         let currentTime = Date().timeIntervalSince1970
         frameCount += 1
-
+        
         if currentTime - lastUpdateTime >= 1.0 {
             let capturedFPS = frameCount
-
+            
             DispatchQueue.main.async {
                 self.fps = capturedFPS
                 self.objectWillChange.send()
             }
-
+            
             frameCount = 0
             lastUpdateTime = currentTime
         }
-
+        
         particleSystem.update()
-
+        
         BufferManager.shared.updateCameraBuffer(cameraPosition: cameraPosition)
         BufferManager.shared.updateZoomBuffer(zoomLevel: zoomLevel)
     }
-        
+    
     // Runs the Metal Compute Pass
     private func runComputePass(commandBuffer: MTLCommandBuffer?) {
         guard let computeEncoder = commandBuffer?.makeComputeCommandEncoder(),
               let computePipeline = computePipeline else { return }
-
+        
         computeEncoder.setComputePipelineState(computePipeline)
         
         computeEncoder.setBuffer(BufferManager.shared.particleBuffer, offset: 0, index: 0)
@@ -203,11 +202,7 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         computeEncoder.setBuffer(BufferManager.shared.zoomBuffer, offset: 0, index: 10)
         computeEncoder.setBuffer(BufferManager.shared.worldSizeBuffer, offset: 0, index: 11)
         computeEncoder.setBuffer(BufferManager.shared.clickBuffer, offset: 0, index: 12)
-        
-//        if let clickData = BufferManager.shared.readClickBuffer() {
-//            print("ClickData - Position: \(clickData.position), Radius: \(clickData.radius)")
-//        }
-
+                
         let threadGroupSize = 512
         let particleCount = SimulationSettings.shared.selectedPreset.numParticles.rawValue
         let threadGroups = (particleCount + threadGroupSize - 1) / threadGroupSize
@@ -220,12 +215,12 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         guard let drawable = view.currentDrawable,
               let pipelineState = pipelineState,
               let passDescriptor = view.currentRenderPassDescriptor else { return }
-
+        
         passDescriptor.colorAttachments[0].loadAction = .clear
         passDescriptor.colorAttachments[0].clearColor = MTLClearColor(red: 0.05, green: 0.05, blue: 0.05, alpha: 1.0)
-
+        
         guard let renderEncoder = commandBuffer?.makeRenderCommandEncoder(descriptor: passDescriptor) else { return }
-
+        
         // Draw World Boundary (Only if enabled)
         if drawWorldBoundary {
             if boundaryPipelineState == nil {
@@ -249,12 +244,12 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         renderEncoder.setVertexBuffer(BufferManager.shared.worldSizeBuffer, offset: 0, index: 4)
         let particleCount = SimulationSettings.shared.selectedPreset.numParticles.rawValue
         renderEncoder.drawPrimitives(type: .point, vertexStart: 0, vertexCount: particleCount)
-
+        
         // wrap up
         renderEncoder.endEncoding()
         commandBuffer?.present(drawable)
     }
-        
+    
     // Zoom Controls
     
     func resetPanAndZoom() {
@@ -277,26 +272,26 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         zoomLevel /= Constants.Controls.zoomStep
         BufferManager.shared.updateZoomBuffer(zoomLevel: zoomLevel)
     }
-
+    
     // Pan Controls
     func panLeft() {
         guard !isPaused else { return }
         cameraPosition.x -= Constants.Controls.panStep / zoomLevel
         BufferManager.shared.updateCameraBuffer(cameraPosition: cameraPosition)
     }
-
+    
     func panRight() {
         guard !isPaused else { return }
         cameraPosition.x += Constants.Controls.panStep / zoomLevel
         BufferManager.shared.updateCameraBuffer(cameraPosition: cameraPosition)
     }
-
+    
     func panUp() {
         guard !isPaused else { return }
         cameraPosition.y += Constants.Controls.panStep / zoomLevel
         BufferManager.shared.updateCameraBuffer(cameraPosition: cameraPosition)
     }
-
+    
     func panDown() {
         guard !isPaused else { return }
         cameraPosition.y -= Constants.Controls.panStep / zoomLevel
@@ -306,29 +301,29 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
     private func updateCamera() {
         BufferManager.shared.updateCameraBuffer(cameraPosition: cameraPosition)
     }
-
-    func resetParticles() {
+    
+    func respawnParticles() {
         if isPaused {
             isPaused.toggle()
         }
         particleSystem.respawn(shouldGenerateNewMatrix: false)
-        NotificationCenter.default.post(name: .respawn, object: nil)
+        //NotificationCenter.default.post(name: .respawn, object: nil)
     }
-
+    
     func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {}
 }
 
 extension Renderer {
-
+    
     /// Handles mouse clicks and perturbs nearby particles
     func handleMouseClick(at location: CGPoint, in view: MTKView, isRightClick: Bool) {
         guard !isPaused else { return }
         
         let worldPosition = screenToWorld(location, drawableSize: view.drawableSize, viewSize: view.frame.size)
         let effectRadius: Float = isRightClick ? 3.0 : 1.0
-                
+        
         //print("Clicked: \(isRightClick ? "Right" : "Left") at \(worldPosition)")
-
+        
         // Send click data to Metal
         BufferManager.shared.updateClickBuffer(clickPosition: worldPosition, force: effectRadius)
         
