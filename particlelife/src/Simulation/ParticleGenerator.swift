@@ -10,6 +10,26 @@ enum DistributionType: Codable, CaseIterable {
     case centered, uniform, uniformCircle, centeredCircle, ring, rainbowRing,
          colorBattle, colorWheel, colorBands, line, spiral, rainbowSpiral
     
+    /// Determines if the distribution should be recentered after generation
+    var shouldRecenter: Bool {
+        switch self {
+        case .centered, .uniform, .colorBands, .line:
+            return true
+        default:
+            return false
+        }
+    }
+
+    /// Determines if the distribution should scale to maintain aspect ratio
+    var shouldScaleToAspectRatio: Bool {
+        switch self {
+        case .uniform, .line, .colorBands:
+            return true
+        default:
+            return false
+        }
+    }
+
     var displayName: String {
         switch self {
         case .centered: return "Centered"

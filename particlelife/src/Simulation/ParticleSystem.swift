@@ -84,16 +84,35 @@ class ParticleSystem: ObservableObject {
     
     /// Generates a new set of particles
     private func generateParticles(preset: SimulationPreset) {
-        particles = ParticleGenerator.generate(distribution: preset.distributionType, particleCount: preset.particleCount, speciesCount: preset.speciesCount)
+        particles = ParticleGenerator.generate(
+            distribution: preset.distributionType,
+            particleCount: preset.particleCount,
+            speciesCount: preset.speciesCount
+        )
 
         let worldSize = SimulationSettings.shared.worldSize.value
-        let scaleFactorX = worldSize * Constants.ASPECT_RATIO  // Scale X differently to match screen proportions
-        let scaleFactorY = worldSize  // Keep Y as worldSize
+        let scaleFactorX = preset.distributionType.shouldScaleToAspectRatio ? worldSize * Constants.ASPECT_RATIO : worldSize
+        let scaleFactorY = worldSize
 
-        // Scale particle positions based on screen shape
-        for i in particles.indices {
-            particles[i].position.x *= scaleFactorX
-            particles[i].position.y *= scaleFactorY
+        if preset.distributionType.shouldRecenter {
+            // Compute the centroid before scaling
+            var center = SIMD2<Float>(0, 0)
+            for p in particles {
+                center += p.position
+            }
+            center /= Float(particles.count) // Compute average center
+
+            // Scale, aspect correct, and recenter
+            for i in particles.indices {
+                particles[i].position.x = (particles[i].position.x - center.x) * scaleFactorX
+                particles[i].position.y = (particles[i].position.y - center.y) * scaleFactorY
+            }
+        } else {
+            // Just apply scaling/aspect correction
+            for i in particles.indices {
+                particles[i].position.x *= scaleFactorX
+                particles[i].position.y *= scaleFactorY
+            }
         }
     }
     
