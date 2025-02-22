@@ -24,7 +24,7 @@ class PresetDefinitions {
     static func makeRandomPreset(speciesCount: Int, forceMatrixType: MatrixType = .random) -> SimulationPreset {
         return SimulationPreset(
             name: "Random \(speciesCount)x\(speciesCount)",
-            numSpecies: speciesCount,
+            speciesCount: speciesCount,
             particleCount: .k40,
             matrixType: forceMatrixType,
             distributionType: .uniform,
@@ -45,7 +45,7 @@ class PresetDefinitions {
         
         return SimulationPreset(
             name: "Empty \(speciesCount)x\(speciesCount)",
-            numSpecies: speciesCount,
+            speciesCount: speciesCount,
             particleCount: ParticleCount.particles(for: speciesCount),
             matrixType: emptyMatrix,
             distributionType: .uniform,
@@ -65,7 +65,7 @@ extension PresetDefinitions {
 
     static let snake = SimulationPreset(
         name: "Snake",
-        numSpecies: 9,
+        speciesCount: 9,
         particleCount: .k40,
         matrixType: .custom([
             [1.00, 0.25, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00],
@@ -91,7 +91,7 @@ extension PresetDefinitions {
     
     static let cells = SimulationPreset(
         name: "Cells",
-        numSpecies: 3,
+        speciesCount: 3,
         particleCount: .k40,
         matrixType: .custom([
             [-1.00,  -0.05,  1.00],
@@ -111,7 +111,7 @@ extension PresetDefinitions {
     
     static let comet = SimulationPreset(
         name: "Comet",
-        numSpecies: 3,
+        speciesCount: 3,
         particleCount: .k40,
         matrixType: .custom([
             [-1.00, 1.00, -0.25],
@@ -131,7 +131,7 @@ extension PresetDefinitions {
     
     static let spaceWars = SimulationPreset(
         name: "Space Wars",
-        numSpecies: 9,
+        speciesCount: 9,
         particleCount: .k40,
         matrixType: .custom([
             [0.99, 0.16, -0.79, 0.89, -0.13, 0.94, 0.94, 0.33, 0.18],
@@ -157,7 +157,7 @@ extension PresetDefinitions {
     
     static let snuggleBugs = SimulationPreset(
         name: "Snuggle Bugs",
-        numSpecies: 9,
+        speciesCount: 9,
         particleCount: .k40,
         matrixType: .custom([
             [0.25, 0.20, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00],

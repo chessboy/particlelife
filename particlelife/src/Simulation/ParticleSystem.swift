@@ -54,7 +54,7 @@ class ParticleSystem: ObservableObject {
         BufferManager.shared.initializeParticleBuffers(
             particles: particles,
             interactionMatrix: interactionMatrix,
-            numSpecies: SimulationSettings.shared.selectedPreset.numSpecies
+            speciesCount: SimulationSettings.shared.selectedPreset.speciesCount
         )
         BufferManager.shared.updatePhysicsBuffers()
         BufferManager.shared.updateCameraBuffer(cameraPosition: .zero)
@@ -84,7 +84,7 @@ class ParticleSystem: ObservableObject {
     
     /// Generates a new set of particles
     private func generateParticles(preset: SimulationPreset) {
-        particles = ParticleGenerator.generate(distribution: preset.distributionType, particleCount: preset.particleCount, numSpecies: preset.numSpecies)
+        particles = ParticleGenerator.generate(distribution: preset.distributionType, particleCount: preset.particleCount, speciesCount: preset.speciesCount)
 
         let worldSize = SimulationSettings.shared.worldSize.value
         let scaleFactorX = worldSize * Constants.ASPECT_RATIO  // Scale X differently to match screen proportions
@@ -99,16 +99,16 @@ class ParticleSystem: ObservableObject {
     
     /// Generates a new interaction matrix and updates colors
     private func generateNewMatrix(preset: SimulationPreset) {
-        interactionMatrix = MatrixGenerator.generateInteractionMatrix(numSpecies: preset.numSpecies, type: preset.matrixType)
-        generateSpeciesColors(numSpecies: preset.numSpecies)
+        interactionMatrix = MatrixGenerator.generateInteractionMatrix(speciesCount: preset.speciesCount, type: preset.matrixType)
+        generateSpeciesColors(speciesCount: preset.speciesCount)
     }
 
     /// Generates colors for each species
-    private func generateSpeciesColors(numSpecies: Int) {
+    private func generateSpeciesColors(speciesCount: Int) {
         let predefinedColors = Constants.speciesColors
             
         DispatchQueue.main.async {
-            self.speciesColors = (0..<numSpecies).map { species in
+            self.speciesColors = (0..<speciesCount).map { species in
                 predefinedColors[species % predefinedColors.count]
             }
             self.objectWillChange.send()
@@ -129,7 +129,7 @@ class ParticleSystem: ObservableObject {
         let code = """
         static let untitledPreset = SimulationPreset(
             name: "Untitled",
-            numSpecies: \(preset.numSpecies),
+            speciesCount: \(preset.speciesCount),
             particleCount: .\(preset.particleCount),
             matrixType: .custom(\(getInteractionMatrixString())),
             distributionType: .\(preset.distributionType),

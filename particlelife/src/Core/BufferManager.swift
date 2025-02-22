@@ -95,7 +95,7 @@ class BufferManager {
         return device.makeBuffer(length: MemoryLayout<T>.stride * count, options: [])
     }
     
-    func initializeParticleBuffers(particles: [Particle], interactionMatrix: [[Float]], numSpecies: Int) {
+    func initializeParticleBuffers(particles: [Particle], interactionMatrix: [[Float]], speciesCount: Int) {
         // Ensure particle buffer exists
         let particleSize = MemoryLayout<Particle>.stride * particles.count
         if particleBuffer == nil || particleBuffer!.length != particleSize {
@@ -111,11 +111,11 @@ class BufferManager {
         }
         interactionBuffer?.contents().copyMemory(from: flatMatrix, byteCount: matrixSize)
         
-        // Ensure numSpecies buffer exists
+        // Ensure speciesCount buffer exists
         if numSpeciesBuffer == nil {
             numSpeciesBuffer = createBuffer(type: Int.self)
         }
-        updateNumSpeciesBuffer(numSpecies: numSpecies)
+        updateNumSpeciesBuffer(speciesCount: speciesCount)
     }
     
     private func flattenInteractionMatrix(_ matrix: [[Float]]) -> [Float] {
@@ -188,15 +188,15 @@ extension BufferManager {
         interactionBuffer.contents().copyMemory(from: flatMatrix, byteCount: flatMatrix.count * MemoryLayout<Float>.stride)
     }
     
-    func updateNumSpeciesBuffer(numSpecies: Int) {
-        updateBuffer(numSpeciesBuffer, with: numSpecies)
+    func updateNumSpeciesBuffer(speciesCount: Int) {
+        updateBuffer(numSpeciesBuffer, with: speciesCount)
     }
     
     func updateDeltaTimeBuffer(dt: inout Float) {
         updateBuffer(deltaTimeBuffer, with: dt)
     }
     
-    func updateInteractionMatrix(matrix: [[Float]], numSpecies: Int) {
+    func updateInteractionMatrix(matrix: [[Float]], speciesCount: Int) {
         let flatMatrix = flattenInteractionMatrix(matrix)
         let matrixSize = flatMatrix.count * MemoryLayout<Float>.stride
         
@@ -205,7 +205,7 @@ extension BufferManager {
         }
         interactionBuffer?.contents().copyMemory(from: flatMatrix, byteCount: matrixSize)
         
-        updateNumSpeciesBuffer(numSpecies: numSpecies)
+        updateNumSpeciesBuffer(speciesCount: speciesCount)
     }
     
     private func updateBuffer<T>(_ buffer: MTLBuffer?, with value: T) {

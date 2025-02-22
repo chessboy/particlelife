@@ -135,7 +135,7 @@ float2 computeWrappedDistance(float2 posA, float2 posB, float worldSize) {
 kernel void compute_particle_movement(
     device Particle *particles [[buffer(0)]],
     constant float *interactionMatrix [[buffer(1)]],
-    constant int *numSpecies [[buffer(2)]],
+    constant int *speciesCount [[buffer(2)]],
     constant float *dt [[buffer(3)]],
     constant float *maxDistance [[buffer(4)]],
     constant float *minDistance [[buffer(5)]],
@@ -154,7 +154,7 @@ kernel void compute_particle_movement(
     float2 force = float2(0.0, 0.0);
     Particle selfParticle = particles[id];
     
-    if (selfParticle.species < 0 || selfParticle.species >= *numSpecies) {
+    if (selfParticle.species < 0 || selfParticle.species >= *speciesCount) {
         selfParticle.species = 0;  // Debug: Prevent invalid species values
     }
     particles[id] = selfParticle;
@@ -170,7 +170,7 @@ kernel void compute_particle_movement(
         if (distance > *minDistance && distance < *maxDistance) {
             int selfSpecies = selfParticle.species;
             int otherSpecies = other.species;
-            float influence = interactionMatrix[selfSpecies * (*numSpecies) + otherSpecies];
+            float influence = interactionMatrix[selfSpecies * (*speciesCount) + otherSpecies];
 
             // Attraction/repulsion based on species interaction matrix.
             // Influence is scaled so that force is strongest at minDistance and weakens at maxDistance.

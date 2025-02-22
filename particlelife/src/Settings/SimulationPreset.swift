@@ -9,7 +9,7 @@ import Foundation
 
 struct SimulationPreset: Hashable, Codable {
     let name: String
-    let numSpecies: Int
+    let speciesCount: Int
     let particleCount: ParticleCount
     let matrixType: MatrixType
     let distributionType: DistributionType
@@ -43,7 +43,7 @@ extension SimulationPreset {
 
         return SimulationPreset(
             name: newName ?? name,
-            numSpecies: numSpecies,
+            speciesCount: speciesCount,
             particleCount: newParticleCount ?? particleCount,
             matrixType: copiedMatrixType,
             distributionType: newDistributionType ?? distributionType,

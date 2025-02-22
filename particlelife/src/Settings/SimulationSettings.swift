@@ -113,7 +113,7 @@ class SimulationSettings: ObservableObject {
     func saveCurrentPreset(named presetName: String, interactionMatrix: [[Float]]) {
         let newPreset = SimulationPreset(
             name: presetName,
-            numSpecies: selectedPreset.numSpecies,
+            speciesCount: selectedPreset.speciesCount,
             particleCount: selectedPreset.particleCount,
             matrixType: .custom(interactionMatrix),
             distributionType: selectedPreset.distributionType,

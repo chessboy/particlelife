@@ -25,30 +25,30 @@ enum MatrixType: Codable {
 
 enum MatrixGenerator {
     
-    static func generateInteractionMatrix(numSpecies: Int, type: MatrixType) -> [[Float]] {
-        var matrix = [[Float]](repeating: [Float](repeating: 0.0, count: numSpecies), count: numSpecies)
+    static func generateInteractionMatrix(speciesCount: Int, type: MatrixType) -> [[Float]] {
+        var matrix = [[Float]](repeating: [Float](repeating: 0.0, count: speciesCount), count: speciesCount)
         
         switch type {
             
         case .random:
-            for i in 0..<numSpecies {
-                for j in 0..<numSpecies {
+            for i in 0..<speciesCount {
+                for j in 0..<speciesCount {
                     matrix[i][j] = Float.random(in: -1.0...1.0)
                 }
             }
             
         case .symmetry:
-            for i in 0..<numSpecies {
-                for j in i..<numSpecies {
+            for i in 0..<speciesCount {
+                for j in i..<speciesCount {
                     matrix[i][j] = Float.random(in: -1.0...1.0)
                     matrix[j][i] = matrix[i][j]  // Make it symmetric
                 }
             }
             
         case .chains:
-            for i in 0..<numSpecies {
-                for j in 0..<numSpecies {
-                    if j == i || j == (i + 1) % numSpecies || j == (i + numSpecies - 1) % numSpecies {
+            for i in 0..<speciesCount {
+                for j in 0..<speciesCount {
+                    if j == i || j == (i + 1) % speciesCount || j == (i + speciesCount - 1) % speciesCount {
                         matrix[i][j] = 1.0  // Strong attraction to neighbors
                     } else {
                         matrix[i][j] = -1.0 // Repulsion for non-neighbors
@@ -57,11 +57,11 @@ enum MatrixGenerator {
             }
             
         case .chains2:
-            for i in 0..<numSpecies {
-                for j in 0..<numSpecies {
+            for i in 0..<speciesCount {
+                for j in 0..<speciesCount {
                     if j == i {
                         matrix[i][j] = 1.0
-                    } else if j == (i + 1) % numSpecies || j == (i + numSpecies - 1) % numSpecies {
+                    } else if j == (i + 1) % speciesCount || j == (i + speciesCount - 1) % speciesCount {
                         matrix[i][j] = 0.2  // Weak attraction to neighbors
                     } else {
                         matrix[i][j] = -1.0 // Strong repulsion
@@ -70,11 +70,11 @@ enum MatrixGenerator {
             }
             
         case .chains3:
-            for i in 0..<numSpecies {
-                for j in 0..<numSpecies {
+            for i in 0..<speciesCount {
+                for j in 0..<speciesCount {
                     if j == i {
                         matrix[i][j] = 1.0
-                    } else if j == (i + 1) % numSpecies || j == (i + numSpecies - 1) % numSpecies {
+                    } else if j == (i + 1) % speciesCount || j == (i + speciesCount - 1) % speciesCount {
                         matrix[i][j] = 0.2  // Slight attraction to neighbors
                     } else {
                         matrix[i][j] = 0.0  // Neutral interaction
@@ -83,9 +83,9 @@ enum MatrixGenerator {
             }
             
         case .snakes:
-            for i in 0..<numSpecies {
+            for i in 0..<speciesCount {
                 matrix[i][i] = 1.0 // Strong self-attraction
-                matrix[i][(i + 1) % numSpecies] = 0.2 // Weak attraction to the next species
+                matrix[i][(i + 1) % speciesCount] = 0.2 // Weak attraction to the next species
             }
             
         case .zero:
