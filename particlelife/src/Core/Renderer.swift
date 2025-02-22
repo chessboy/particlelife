@@ -205,7 +205,7 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         computeEncoder.setBuffer(BufferManager.shared.clickBuffer, offset: 0, index: 12)
                 
         let threadGroupSize = 512
-        let particleCount = SimulationSettings.shared.selectedPreset.numParticles.rawValue
+        let particleCount = SimulationSettings.shared.selectedPreset.particleCount.rawValue
         let threadGroups = (particleCount + threadGroupSize - 1) / threadGroupSize
         computeEncoder.dispatchThreadgroups(MTLSize(width: threadGroups, height: 1, depth: 1),
                                             threadsPerThreadgroup: MTLSize(width: threadGroupSize, height: 1, depth: 1))
@@ -243,7 +243,7 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         renderEncoder.setVertexBuffer(BufferManager.shared.zoomBuffer, offset: 0, index: 2)
         renderEncoder.setVertexBuffer(BufferManager.shared.pointSizeBuffer, offset: 0, index: 3)
         renderEncoder.setVertexBuffer(BufferManager.shared.worldSizeBuffer, offset: 0, index: 4)
-        let particleCount = SimulationSettings.shared.selectedPreset.numParticles.rawValue
+        let particleCount = SimulationSettings.shared.selectedPreset.particleCount.rawValue
         renderEncoder.drawPrimitives(type: .point, vertexStart: 0, vertexCount: particleCount)
         
         // wrap up

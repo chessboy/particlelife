@@ -10,7 +10,7 @@ import Foundation
 class PresetDefinitions {
     
     static let randomPresets = [3, 6, 9].map { makeRandomPreset(speciesCount: $0) }
-    static let specialPresets = [inchworm, cells, comet, snuggleBugs, aliens]
+    static let specialPresets = [snake, cells, comet, snuggleBugs, spaceWars]
     static let emptyPresets = (2...9).map { makeEmptyPreset(speciesCount: $0) }
     
     static func getAllBuiltInPresets() -> [SimulationPreset] {
@@ -25,8 +25,8 @@ class PresetDefinitions {
         return SimulationPreset(
             name: "Random \(speciesCount)x\(speciesCount)",
             numSpecies: speciesCount,
-            numParticles: .k40,
-            forceMatrixType: forceMatrixType,
+            particleCount: .k40,
+            matrixType: forceMatrixType,
             distributionType: .uniform,
             maxDistance: 0.65,
             minDistance: 0.04,
@@ -46,8 +46,8 @@ class PresetDefinitions {
         return SimulationPreset(
             name: "Empty \(speciesCount)x\(speciesCount)",
             numSpecies: speciesCount,
-            numParticles: ParticleCount.particles(for: speciesCount),
-            forceMatrixType: emptyMatrix,
+            particleCount: ParticleCount.particles(for: speciesCount),
+            matrixType: emptyMatrix,
             distributionType: .uniform,
             maxDistance: 0.65,
             minDistance: 0.04,
@@ -63,32 +63,42 @@ class PresetDefinitions {
 
 extension PresetDefinitions {
 
-    static let inchworm = SimulationPreset(
-        name: "Inchworm",
-        numSpecies: 6,
-        numParticles: .k30,
-        forceMatrixType: .snakes,
-        distributionType: .colorBands,
-        maxDistance: 0.8,
-        minDistance: 0.08,
-        beta: 0.28,
-        friction: 0.3,
-        repulsion: 0.04,
-        pointSize: 21,
-        worldSize: 1.0,
+    static let snake = SimulationPreset(
+        name: "Snake",
+        numSpecies: 9,
+        particleCount: .k40,
+        matrixType: .custom([
+            [1.00, 0.25, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00],
+            [0.00, 1.00, 0.25, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00],
+            [0.00, 0.00, 1.00, 0.25, 0.00, 0.00, 0.00, 0.00, 0.00],
+            [0.00, 0.00, 0.00, 1.00, 0.25, 0.00, 0.00, 0.00, 0.00],
+            [0.00, 0.00, 0.00, 0.00, 1.00, 0.25, 0.04, 0.00, 0.00],
+            [0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.25, 0.25],
+            [0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 1.00, 0.00, 0.00],
+            [0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, -0.25, 0.00],
+            [0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, -0.25]
+        ]),
+        distributionType: .line,
+        maxDistance: 0.60,
+        minDistance: 0.02,
+        beta: 0.15,
+        friction: 0.20,
+        repulsion: 0.03,
+        pointSize: 5,
+        worldSize: 0.75,
         isBuiltIn: true
     )
     
     static let cells = SimulationPreset(
         name: "Cells",
         numSpecies: 3,
-        numParticles: .k40,
-        forceMatrixType: .custom([
-            [-1.00,  -0.25,  1.00],
-            [-0.25,  0.50,  -0.25],
-            [1.00,  -0.25,  -1.00]
+        particleCount: .k40,
+        matrixType: .custom([
+            [-1.00,  -0.05,  1.00],
+            [-0.05,  0.50,  -0.05],
+            [1.00,  -0.05,  -1.00]
         ]),
-        distributionType: .uniform,
+        distributionType: .line,
         maxDistance: 0.80,
         minDistance: 0.04,
         beta: 0.30,
@@ -102,8 +112,8 @@ extension PresetDefinitions {
     static let comet = SimulationPreset(
         name: "Comet",
         numSpecies: 3,
-        numParticles: .k40,
-        forceMatrixType: .custom([
+        particleCount: .k40,
+        matrixType: .custom([
             [-1.00, 1.00, -0.25],
             [1.00, -1.00, 0.50],
             [-0.25, -0.25, 0.50]
@@ -119,11 +129,11 @@ extension PresetDefinitions {
         isBuiltIn: true
     )
     
-    static let aliens = SimulationPreset(
-        name: "Aliens",
+    static let spaceWars = SimulationPreset(
+        name: "Space Wars",
         numSpecies: 9,
-        numParticles: .k40,
-        forceMatrixType: .custom([
+        particleCount: .k40,
+        matrixType: .custom([
             [0.99, 0.16, -0.79, 0.89, -0.13, 0.94, 0.94, 0.33, 0.18],
             [-0.68, -0.99, 0.63, 0.30, 0.26, 0.32, 0.06, 0.63, 0.47],
             [-0.59, -0.64, 0.81, -0.17, -0.97, 0.68, 0.90, 0.19, 0.31],
@@ -148,8 +158,8 @@ extension PresetDefinitions {
     static let snuggleBugs = SimulationPreset(
         name: "Snuggle Bugs",
         numSpecies: 9,
-        numParticles: .k40,
-        forceMatrixType: .custom([
+        particleCount: .k40,
+        matrixType: .custom([
             [0.25, 0.20, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00],
             [0.00, 0.25, 0.20, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00],
             [0.00, 0.00, 0.25, 0.20, 0.00, 0.00, 0.00, 0.00, 0.00],

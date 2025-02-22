@@ -6,9 +6,26 @@ struct Particle {
     var species: Int32
 }
 
-enum DistributionType: Codable {
+enum DistributionType: Codable, CaseIterable {
     case centered, uniform, uniformCircle, centeredCircle, ring, rainbowRing,
          colorBattle, colorWheel, colorBands, line, spiral, rainbowSpiral
+    
+    var displayName: String {
+        switch self {
+        case .centered: return "Centered"
+        case .uniform: return "Uniform"
+        case .uniformCircle: return "Uniform Circle"
+        case .centeredCircle: return "Centered Circle"
+        case .ring: return "Ring"
+        case .rainbowRing: return "Rainbow Ring"
+        case .colorBattle: return "Color Battle"
+        case .colorWheel: return "Color Wheel"
+        case .colorBands: return "Color Bands"
+        case .line: return "Line"
+        case .spiral: return "Spiral"
+        case .rainbowSpiral: return "Rainbow Spiral"
+        }
+    }
 }
 
 enum ParticleCount: Int, CaseIterable, Identifiable, Codable {
@@ -23,6 +40,30 @@ enum ParticleCount: Int, CaseIterable, Identifiable, Codable {
 
     var id: Int { self.rawValue }
 
+    var displayString: String {
+        switch self {
+        case .k1: return "1K"
+        case .k2: return "2K"
+        case .k5: return "5K"
+        case .k10: return "10K"
+        case .k20: return "20K"
+        case .k30: return "30K"
+        case .k40: return "40K"
+        case .k50: return "50K"
+        }
+    }
+}
+
+extension ParticleCount {
+    /// Returns the smallest and largest values for use in a slider
+    static var minValue: Int { allCases.first?.rawValue ?? 1024 }
+    static var maxValue: Int { allCases.last?.rawValue ?? 49152 }
+
+    /// Finds the closest matching ParticleCount case
+    static func closest(to value: Int) -> ParticleCount {
+        return allCases.min(by: { abs($0.rawValue - value) < abs($1.rawValue - value) }) ?? .k10
+    }
+    
     /// Returns the particle count for a given species count (1-9).
     static func particles(for numSpecies: Int) -> ParticleCount {
         guard (1...9).contains(numSpecies) else { return k1 }
@@ -43,25 +84,15 @@ enum ParticleCount: Int, CaseIterable, Identifiable, Codable {
         return mapping[numSpecies] ?? .k10
     }
 
-    var displayString: String {
-        switch self {
-        case .k1: return "1K"
-        case .k2: return "2K"
-        case .k5: return "5K"
-        case .k10: return "10K"
-        case .k20: return "20K"
-        case .k30: return "30K"
-        case .k40: return "40K"
-        case .k50: return "50K"
-        }
-    }
 }
 
 struct ParticleGenerator {
     
-    static func generate(distribution: DistributionType, count: Int, numSpecies: Int) -> [Particle] {
+    static func generate(distribution: DistributionType, particleCount: ParticleCount, numSpecies: Int) -> [Particle] {
         
-        print("ParticleGenerator.generate: distribution: \(distribution), count: \(count), numSpecies: \(numSpecies)")
+        print("ParticleGenerator.generate: distribution: \(distribution), count: \(particleCount.displayString), numSpecies: \(numSpecies)")
+        
+        let count = particleCount.rawValue
         
         switch distribution {
         case .centered:

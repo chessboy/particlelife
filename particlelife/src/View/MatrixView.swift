@@ -188,7 +188,7 @@ struct InteractionMatrixGrid: View {
         tooltipText = String(format: "%.2f", newValue)
         
         // update the current preset's matrix
-        SimulationSettings.shared.selectedPreset = SimulationSettings.shared.selectedPreset.copy(withName: nil, newForceMatrixType: .custom(interactionMatrix))
+        SimulationSettings.shared.selectedPreset = SimulationSettings.shared.selectedPreset.copy(withName: nil, newMatrixType: .custom(interactionMatrix))
     }
     
     private func computeTooltipPosition(row: Int, col: Int) -> CGPoint {

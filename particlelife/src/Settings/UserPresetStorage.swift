@@ -15,9 +15,10 @@ class UserPresetStorage {
             print("ℹ️ No user presets found in storage.")
             return []
         }
+        
         let decoder = JSONDecoder()
         if let presets = try? decoder.decode([SimulationPreset].self, from: data) {
-            print("✅ Loaded \(presets.count) user presets.")
+            print("✅ Loaded \(presets.count) user preset\(presets.count == 1 ? "" : "s").")
             print(presets)
             return presets
         } else {
@@ -32,15 +33,11 @@ class UserPresetStorage {
         let newPreset = preset.copy(withName: uniqueName)
         presets.append(newPreset)
         persistUserPresets(presets)
-        print("✅ Saved preset: \(newPreset.name)")
-
         return newPreset
     }
     
     static func deleteUserPreset(named presetName: String) {
         let presets = loadUserPresets()
-
-        // Filter out the preset with the given name
         let filteredPresets = presets.filter { $0.name != presetName }
 
         if presets.count == filteredPresets.count {
@@ -49,7 +46,6 @@ class UserPresetStorage {
         }
 
         persistUserPresets(filteredPresets)
-        print("🗑️ Deleted preset: \(presetName)")
     }
     
     static func persistUserPresets(_ presets: [SimulationPreset]) {

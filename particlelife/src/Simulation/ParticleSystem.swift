@@ -20,6 +20,7 @@ class ParticleSystem: ObservableObject {
     
     private var cancellables = Set<AnyCancellable>()
     private var lastUpdateTime: TimeInterval = Date().timeIntervalSince1970
+    private var lastDT: Float = 0.001
 
     init() {
         let defaultPreset = PresetDefinitions.getDefaultPreset()
@@ -71,9 +72,19 @@ class ParticleSystem: ObservableObject {
         updatePhysicsAndBuffers()
     }
     
+    func particleCountWillChange(newCount: ParticleCount) {
+        let settings = SimulationSettings.shared
+        guard newCount != settings.selectedPreset.particleCount else { return }
+        
+        let newPreset = SimulationSettings.shared.selectedPreset.copy(newParticleCount: newCount)
+        generateParticles(preset: newPreset)
+        updatePhysicsAndBuffers()
+        SimulationSettings.shared.selectedPreset = newPreset
+    }
+    
     /// Generates a new set of particles
     private func generateParticles(preset: SimulationPreset) {
-        particles = ParticleGenerator.generate(distribution: preset.distributionType, count: preset.numParticles.rawValue, numSpecies: preset.numSpecies)
+        particles = ParticleGenerator.generate(distribution: preset.distributionType, particleCount: preset.particleCount, numSpecies: preset.numSpecies)
 
         let worldSize = SimulationSettings.shared.worldSize.value
         let scaleFactorX = worldSize * Constants.ASPECT_RATIO  // Scale X differently to match screen proportions
@@ -88,7 +99,7 @@ class ParticleSystem: ObservableObject {
     
     /// Generates a new interaction matrix and updates colors
     private func generateNewMatrix(preset: SimulationPreset) {
-        interactionMatrix = MatrixGenerator.generateInteractionMatrix(numSpecies: preset.numSpecies, type: preset.forceMatrixType)
+        interactionMatrix = MatrixGenerator.generateInteractionMatrix(numSpecies: preset.numSpecies, type: preset.matrixType)
         generateSpeciesColors(numSpecies: preset.numSpecies)
     }
 
@@ -119,8 +130,8 @@ class ParticleSystem: ObservableObject {
         static let untitledPreset = SimulationPreset(
             name: "Untitled",
             numSpecies: \(preset.numSpecies),
-            numParticles: .\(preset.numParticles),
-            forceMatrixType: .custom(\(getInteractionMatrixString())),
+            particleCount: .\(preset.particleCount),
+            matrixType: .custom(\(getInteractionMatrixString())),
             distributionType: .\(preset.distributionType),
             maxDistance: \(String(format: "%.2f", settings.maxDistance.value)),
             minDistance: \(String(format: "%.2f", settings.minDistance.value)),
@@ -128,14 +139,13 @@ class ParticleSystem: ObservableObject {
             friction: \(String(format: "%.2f", settings.friction.value)),
             repulsion: \(String(format: "%.2f", settings.repulsion.value)),
             pointSize: \(Int(settings.pointSize.value)),
-            worldSize: \(String(format: "%.2f", settings.worldSize.value))
+            worldSize: \(String(format: "%.2f", settings.worldSize.value)),
+            isBuiltIn: true
         )
         """
 
         print(code)
     }
-
-    var lastDT: Float = 0.001
     
     /// Updates delta time for particle movement
     func update() {

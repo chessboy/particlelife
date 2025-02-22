@@ -62,13 +62,18 @@ class SimulationSettings: ObservableObject {
         value: 1.0, defaultValue: 1.0, min: 0.5, max: 4, step: 0.25, format: "%.2f",
         onChange: { newValue in handleWorldSizeChange(newValue) }
     )
-        
+    
     private static func handlePointSizeChange(_ newValue: Float) {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { // 50ms debounce
             if shared.pointSize.value == newValue { // Ensure consistency
                 BufferManager.shared.updatePhysicsBuffers()
             }
         }
+    }
+    
+    func updateDistributionType(_ newType: DistributionType) {
+        selectedPreset = selectedPreset.copy(newDistributionType: newType)
+        NotificationCenter.default.post(name: .presetSelected, object: nil)
     }
     
     private static func handleWorldSizeChange(_ newValue: Float) {
@@ -109,8 +114,8 @@ class SimulationSettings: ObservableObject {
         let newPreset = SimulationPreset(
             name: presetName,
             numSpecies: selectedPreset.numSpecies,
-            numParticles: selectedPreset.numParticles,
-            forceMatrixType: .custom(interactionMatrix),
+            particleCount: selectedPreset.particleCount,
+            matrixType: .custom(interactionMatrix),
             distributionType: selectedPreset.distributionType,
             maxDistance: maxDistance.value,
             minDistance: minDistance.value,

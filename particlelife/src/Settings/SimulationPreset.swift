@@ -10,8 +10,8 @@ import Foundation
 struct SimulationPreset: Hashable, Codable {
     let name: String
     let numSpecies: Int
-    let numParticles: ParticleCount
-    let forceMatrixType: MatrixType
+    let particleCount: ParticleCount
+    let matrixType: MatrixType
     let distributionType: DistributionType
     let maxDistance: Float
     let minDistance: Float
@@ -33,20 +33,20 @@ struct SimulationPreset: Hashable, Codable {
 
 extension SimulationPreset {
     /// Convenience initializer to modify name and/or forceMatrixType
-    func copy(withName newName: String? = nil, newForceMatrixType: MatrixType? = nil) -> SimulationPreset {
-        var copiedForceMatrixType = newForceMatrixType ?? forceMatrixType  // Use new matrix if provided
+    func copy(withName newName: String? = nil, newParticleCount: ParticleCount? = nil, newMatrixType: MatrixType? = nil, newDistributionType: DistributionType? = nil) -> SimulationPreset {
+        var copiedMatrixType = newMatrixType ?? matrixType  // Use new matrix if provided
 
         // Ensure deep copy of custom matrices
-        if case .custom(let matrix) = copiedForceMatrixType {
-            copiedForceMatrixType = .custom(matrix.map { $0.map { $0 } })  // Deep copy to avoid mutation issues
+        if case .custom(let matrix) = copiedMatrixType {
+            copiedMatrixType = .custom(matrix.map { $0.map { $0 } })  // Deep copy
         }
 
         return SimulationPreset(
-            name: newName ?? name,  // Use new name if provided, else keep original
+            name: newName ?? name,
             numSpecies: numSpecies,
-            numParticles: numParticles,
-            forceMatrixType: copiedForceMatrixType,  // Use copied or new version
-            distributionType: distributionType,
+            particleCount: newParticleCount ?? particleCount,
+            matrixType: copiedMatrixType,
+            distributionType: newDistributionType ?? distributionType,
             maxDistance: maxDistance,
             minDistance: minDistance,
             beta: beta,
