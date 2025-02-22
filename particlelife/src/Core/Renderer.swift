@@ -190,9 +190,9 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         
         computeEncoder.setComputePipelineState(computePipeline)
         
-        computeEncoder.setBuffer(BufferManager.shared.particleBuffer, offset: 0, index: 0)
+        computeEncoder.setBuffer(BufferManager.shared.particleCountBuffer, offset: 0, index: 0)
         computeEncoder.setBuffer(BufferManager.shared.interactionBuffer, offset: 0, index: 1)
-        computeEncoder.setBuffer(BufferManager.shared.numSpeciesBuffer, offset: 0, index: 2)
+        computeEncoder.setBuffer(BufferManager.shared.speciesCountBuffer, offset: 0, index: 2)
         computeEncoder.setBuffer(BufferManager.shared.deltaTimeBuffer, offset: 0, index: 3)
         computeEncoder.setBuffer(BufferManager.shared.maxDistanceBuffer, offset: 0, index: 4)
         computeEncoder.setBuffer(BufferManager.shared.minDistanceBuffer, offset: 0, index: 5)
@@ -238,7 +238,7 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         
         // Draw Particles
         renderEncoder.setRenderPipelineState(pipelineState)
-        renderEncoder.setVertexBuffer(BufferManager.shared.particleBuffer, offset: 0, index: 0)
+        renderEncoder.setVertexBuffer(BufferManager.shared.particleCountBuffer, offset: 0, index: 0)
         renderEncoder.setVertexBuffer(BufferManager.shared.cameraBuffer, offset: 0, index: 1)
         renderEncoder.setVertexBuffer(BufferManager.shared.zoomBuffer, offset: 0, index: 2)
         renderEncoder.setVertexBuffer(BufferManager.shared.pointSizeBuffer, offset: 0, index: 3)
