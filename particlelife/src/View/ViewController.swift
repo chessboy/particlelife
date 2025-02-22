@@ -15,6 +15,8 @@ class ViewController: NSViewController {
     private var panningDown = false
     private var actionTimer: Timer?
 
+    var hostingView: NSHostingView<SimulationSettingsView>!
+
     override func viewWillAppear() {
         super.viewWillAppear()
         self.view.window?.makeFirstResponder(self)
@@ -50,24 +52,31 @@ class ViewController: NSViewController {
         
         renderer = Renderer(mtkView: metalView)
 
-        // Add the settings UI
-        let settingsView = SimulationSettingsView(renderer: renderer)
-        let hostingView = NSHostingView(rootView: settingsView)
-                
-        if let screen = NSScreen.main {
-            hostingView.frame = CGRect(x: 0, y: 0, width: 320, height: screen.frame.height)
-        } else {
-            hostingView.frame = CGRect(x: 0, y: 0, width: 320, height: 520)
-        }
+        addSettingsPanel()
         
-        view.addSubview(hostingView)
-
         // Ensure Metal View Fills the Window Properly
         NSLayoutConstraint.activate([
             metalView.topAnchor.constraint(equalTo: view.topAnchor),
             metalView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             metalView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             metalView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+        ])
+    }
+    
+    func addSettingsPanel() {
+        let settingsView = SimulationSettingsView(renderer: renderer)
+        let hostingView = NSHostingView(rootView: settingsView)
+
+        // Let SwiftUI determine height
+        hostingView.translatesAutoresizingMaskIntoConstraints = false
+
+        view.addSubview(hostingView)
+
+        // Constrain to desired width and let height be flexible
+        NSLayoutConstraint.activate([
+            hostingView.widthAnchor.constraint(equalToConstant: 320),
+            hostingView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            hostingView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10)
         ])
     }
     

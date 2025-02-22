@@ -24,8 +24,6 @@ struct SimulationSettingsView: View {
     
     var body: some View {
         VStack {
-            Spacer()
-
             SimulationHeaderView(renderer: renderer)
             
             MatrixView(interactionMatrix: $particleSystem.interactionMatrix, isVisible: $isVisible, renderer: renderer, speciesColors: particleSystem.speciesColors)
@@ -50,11 +48,9 @@ struct SimulationSettingsView: View {
             
             SimulationSlidersView(settings: settings, renderer: renderer)
                 .padding(.top, 10)
-            
-            Spacer()
         }
         .padding(20)
-        .frame(width: 320, height: 2000)
+        .frame(width: 320) // Keep fixed width
         .background(renderer.isPaused ? Color(red: 0.5, green: 0, blue: 0).opacity(0.75) : Color.black.opacity(0.75))
         .cornerRadius(10)
         .shadow(radius: 5)
@@ -75,6 +71,11 @@ struct SimulationSettingsView: View {
                     withAnimation { isVisible.toggle() }
                 }
                 return event
+            }
+        }
+        .onHover { hovering in
+            withAnimation {
+                isVisible = hovering
             }
         }
     }
@@ -240,7 +241,6 @@ struct SimulationSlidersView: View {
             Text(settings.selectedPreset.particleCount.displayString)
                 .bold()
                 .frame(width: 37, alignment: .trailing)
-                //.padding(.right, 10)
             
             Stepper("", onIncrement: {
                 if let next = ParticleCount.allCases.first(where: { $0.rawValue > settings.selectedPreset.particleCount.rawValue }) {
