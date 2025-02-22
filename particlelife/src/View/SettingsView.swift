@@ -198,7 +198,7 @@ struct SimulationControlsView: View {
                     ParticleSystem.shared.dumpPresetAsCode()
                 }
                 else {
-                    SimulationSettings.shared.selectPreset(SimulationSettings.shared.selectedPreset, skipRespawn: true)
+                    SimulationSettings.shared.selectPreset(SimulationSettings.shared.selectedPreset)
                 }
             }
             .buttonStyle(SettingsButtonStyle())
@@ -220,6 +220,7 @@ struct SimulationSlidersView: View {
     var body: some View {
         VStack {
             
+            speciesCountStepper()
             particleCountStepper()
             settingSlider(title: "Max Dist", setting: $settings.maxDistance)
             settingSlider(title: "Min Dist", setting: $settings.minDistance)
@@ -229,6 +230,29 @@ struct SimulationSlidersView: View {
             settingSlider(title: "Point Size", setting: $settings.pointSize)
             settingSlider(title: "World Size", setting: $settings.worldSize)
         }
+    }
+    
+    private func speciesCountStepper() -> some View {
+        HStack(spacing: 0) {
+            Text("Species:")
+                .frame(width: 75, alignment: .trailing)
+
+            Text("\(settings.selectedPreset.speciesCount)")
+                .bold()
+                .frame(width: 37, alignment: .trailing)
+
+            Stepper("", onIncrement: {
+                if settings.selectedPreset.speciesCount < 9 {
+                    ParticleSystem.shared.speciesCountWillChange(newCount: settings.selectedPreset.speciesCount + 1)
+                }
+            }, onDecrement: {
+                if settings.selectedPreset.speciesCount > 1 {
+                    ParticleSystem.shared.speciesCountWillChange(newCount: settings.selectedPreset.speciesCount - 1)
+                }
+            })
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding(.horizontal)
     }
     
     private func particleCountStepper() -> some View {

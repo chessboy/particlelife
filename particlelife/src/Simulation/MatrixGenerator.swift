@@ -21,11 +21,21 @@ enum MatrixType: Codable {
     private enum CodingKeys: String, CodingKey {
         case type, data
     }
+    
+    /// Returns `true` if the matrix is `.custom` and contains only zeros.
+    var isEmpty: Bool {
+        if case let .custom(matrix) = self {
+            return matrix.allSatisfy { row in row.allSatisfy { $0 == 0 } }
+        }
+        return false
+    }
 }
 
 enum MatrixGenerator {
     
     static func generateInteractionMatrix(speciesCount: Int, type: MatrixType) -> [[Float]] {
+        print("[DEBUG] Generating interaction matrix...speciesCount: \(speciesCount), type: \(type)")
+        
         var matrix = [[Float]](repeating: [Float](repeating: 0.0, count: speciesCount), count: speciesCount)
         
         switch type {
@@ -93,7 +103,23 @@ enum MatrixGenerator {
             break
             
         case .custom(let matrix):
-            return matrix
+            let currentSize = matrix.count
+            if currentSize != speciesCount {
+                print("[DEBUG] Resizing custom matrix from \(currentSize) to \(speciesCount)")
+                
+                var newMatrix = [[Float]](repeating: [Float](repeating: 0.0, count: speciesCount), count: speciesCount)
+                
+                // Copy existing values into the new matrix, keeping as much data as possible
+                let minSize = min(currentSize, speciesCount)
+                for i in 0..<minSize {
+                    for j in 0..<minSize {
+                        newMatrix[i][j] = matrix[i][j]
+                    }
+                }
+                return newMatrix
+            }
+            
+            return matrix // If speciesCount is unchanged, return as is
         }
         
         return matrix

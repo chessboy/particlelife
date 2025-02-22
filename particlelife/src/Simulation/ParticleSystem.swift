@@ -28,7 +28,7 @@ class ParticleSystem: ObservableObject {
         SimulationSettings.shared.applyPreset(defaultPreset)
         generateParticles(preset: defaultPreset)
         generateNewMatrix(preset: defaultPreset)
-        updatePhysicsAndBuffers()
+        updatePhysicsAndBuffers(preset: defaultPreset)
         
         // listen for changes when a preset is applied
         NotificationCenter.default.addObserver(self, selector: #selector(presetApplied), name: Notification.Name.presetSelected, object: nil)
@@ -49,12 +49,12 @@ class ParticleSystem: ObservableObject {
     }
 
     /// Updates buffers and physics settings
-    private func updatePhysicsAndBuffers() {
+    private func updatePhysicsAndBuffers(preset: SimulationPreset) {
         BufferManager.shared.clearParticleBuffers()
         BufferManager.shared.initializeParticleBuffers(
             particles: particles,
             interactionMatrix: interactionMatrix,
-            speciesCount: SimulationSettings.shared.selectedPreset.speciesCount
+            speciesCount: preset.speciesCount
         )
         BufferManager.shared.updatePhysicsBuffers()
         BufferManager.shared.updateCameraBuffer(cameraPosition: .zero)
@@ -69,7 +69,24 @@ class ParticleSystem: ObservableObject {
         if shouldGenerateNewMatrix {
             generateNewMatrix(preset: preset)
         }
-        updatePhysicsAndBuffers()
+        updatePhysicsAndBuffers(preset: preset)
+    }
+    
+    func speciesCountWillChange(newCount: Int) {
+        let settings = SimulationSettings.shared
+
+        guard newCount != settings.selectedPreset.speciesCount else {
+            print("[DEBUG] No change needed, speciesCount is already", settings.selectedPreset.speciesCount)
+            return
+        }
+
+        let newPreset = settings.selectedPreset.copy(newSpeciesCount: newCount)
+
+        generateNewMatrix(preset: newPreset)
+        generateParticles(preset: newPreset)
+        updatePhysicsAndBuffers(preset: newPreset)
+
+        SimulationSettings.shared.selectedPreset = newPreset
     }
     
     func particleCountWillChange(newCount: ParticleCount) {
@@ -78,17 +95,23 @@ class ParticleSystem: ObservableObject {
         
         let newPreset = SimulationSettings.shared.selectedPreset.copy(newParticleCount: newCount)
         generateParticles(preset: newPreset)
-        updatePhysicsAndBuffers()
+        updatePhysicsAndBuffers(preset: newPreset)
         SimulationSettings.shared.selectedPreset = newPreset
     }
     
     /// Generates a new set of particles
     private func generateParticles(preset: SimulationPreset) {
+        
+        print("generateParticles: speciesCount: \(preset.speciesCount), particleCount: \(preset.particleCount)")
+        
         particles = ParticleGenerator.generate(
             distribution: preset.distributionType,
             particleCount: preset.particleCount,
             speciesCount: preset.speciesCount
         )
+
+        let uniqueSpecies = Set(particles.map { $0.species })
+        print("[DEBUG] Unique species in new particles:", uniqueSpecies)
 
         let worldSize = SimulationSettings.shared.worldSize.value
         let scaleFactorX = preset.distributionType.shouldScaleToAspectRatio ? worldSize * Constants.ASPECT_RATIO : worldSize

@@ -33,7 +33,7 @@ struct SimulationPreset: Hashable, Codable {
 
 extension SimulationPreset {
     /// Convenience initializer to modify name and/or forceMatrixType
-    func copy(withName newName: String? = nil, newParticleCount: ParticleCount? = nil, newMatrixType: MatrixType? = nil, newDistributionType: DistributionType? = nil) -> SimulationPreset {
+    func copy(withName newName: String? = nil, newSpeciesCount: Int? = nil, newParticleCount: ParticleCount? = nil, newMatrixType: MatrixType? = nil, newDistributionType: DistributionType? = nil) -> SimulationPreset {
         var copiedMatrixType = newMatrixType ?? matrixType  // Use new matrix if provided
 
         // Ensure deep copy of custom matrices
@@ -43,7 +43,7 @@ extension SimulationPreset {
 
         return SimulationPreset(
             name: newName ?? name,
-            speciesCount: speciesCount,
+            speciesCount: newSpeciesCount ?? speciesCount,
             particleCount: newParticleCount ?? particleCount,
             matrixType: copiedMatrixType,
             distributionType: newDistributionType ?? distributionType,

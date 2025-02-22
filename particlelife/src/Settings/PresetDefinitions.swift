@@ -11,7 +11,7 @@ class PresetDefinitions {
     
     static let randomPresets = [3, 6, 9].map { makeRandomPreset(speciesCount: $0) }
     static let specialPresets = [snake, cells, comet, snuggleBugs, spaceWars]
-    static let emptyPresets = (2...9).map { makeEmptyPreset(speciesCount: $0) }
+    static let emptyPresets = (1...9).map { makeEmptyPreset(speciesCount: $0) }
     
     static func getAllBuiltInPresets() -> [SimulationPreset] {
         return randomPresets + specialPresets + emptyPresets
@@ -21,12 +21,12 @@ class PresetDefinitions {
         return randomPresets[0]
     }
     
-    static func makeRandomPreset(speciesCount: Int, forceMatrixType: MatrixType = .random) -> SimulationPreset {
+    static func makeRandomPreset(speciesCount: Int) -> SimulationPreset {
         return SimulationPreset(
             name: "Random \(speciesCount)x\(speciesCount)",
             speciesCount: speciesCount,
             particleCount: .k40,
-            matrixType: forceMatrixType,
+            matrixType: .random,
             distributionType: .uniform,
             maxDistance: 0.65,
             minDistance: 0.04,
