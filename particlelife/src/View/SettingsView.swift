@@ -20,7 +20,6 @@ struct SimulationSettingsView: View {
     @State private var isShowingSaveSheet = false
     @State private var isShowingDeleteSheet = false
     @State private var presetName: String = ""
-    @State private var presetToDelete: SimulationPreset?
     
     var body: some View {
         VStack {
@@ -39,7 +38,6 @@ struct SimulationSettingsView: View {
             PresetButtonsView(
                 isShowingSaveSheet: $isShowingSaveSheet,
                 isShowingDeleteSheet: $isShowingDeleteSheet,
-                presetToDelete: $presetToDelete,
                 renderer: renderer
             )
             
@@ -57,13 +55,11 @@ struct SimulationSettingsView: View {
         .opacity(isVisible ? 1.0 : 0.0)
         .allowsHitTesting(isVisible)
         .animation(.easeInOut(duration: 0.3), value: isVisible)
-        .sheet(isPresented: $isShowingSaveSheet) {
+        .popover(isPresented: $isShowingSaveSheet) {
             SavePresetSheet(isShowingSaveSheet: $isShowingSaveSheet, presetName: $presetName)
         }
-        .sheet(isPresented: $isShowingDeleteSheet) {
-            if let preset = presetToDelete {
-                DeletePresetSheet(isShowingDeleteSheet: $isShowingDeleteSheet, presetToDelete: preset)
-            }
+        .popover(isPresented: $isShowingDeleteSheet) {
+            DeletePresetSheet(isShowingDeleteSheet: $isShowingDeleteSheet)
         }
         .onAppear {
             NSEvent.addLocalMonitorForEvents(matching: [.keyDown]) { event in
@@ -74,8 +70,10 @@ struct SimulationSettingsView: View {
             }
         }
         .onHover { hovering in
-            withAnimation {
-                isVisible = hovering
+            if !isShowingSaveSheet && !isShowingDeleteSheet {
+                withAnimation {
+                    isVisible = hovering
+                }
             }
         }
     }
@@ -168,7 +166,6 @@ struct PresetPickerView: View {
 struct PresetButtonsView: View {
     @Binding var isShowingSaveSheet: Bool
     @Binding var isShowingDeleteSheet: Bool
-    @Binding var presetToDelete: SimulationPreset?
     @ObservedObject var renderer: Renderer
     
     var body: some View {
@@ -180,8 +177,9 @@ struct PresetButtonsView: View {
             .disabled(renderer.isPaused)
             
             Button("Delete") {
-                presetToDelete = SimulationSettings.shared.selectedPreset
-                isShowingDeleteSheet = true
+                if !SimulationSettings.shared.selectedPreset.isBuiltIn {
+                    isShowingDeleteSheet = true
+                }
             }
             .buttonStyle(SettingsButtonStyle())
             .disabled(renderer.isPaused || SimulationSettings.shared.selectedPreset.isBuiltIn)
@@ -314,7 +312,7 @@ struct SavePresetSheet: View {
 
 struct DeletePresetSheet: View {
     @Binding var isShowingDeleteSheet: Bool
-    let presetToDelete: SimulationPreset
+    let presetToDelete = SimulationSettings.shared.selectedPreset
     
     var body: some View {
         VStack(spacing: 20) {

@@ -72,7 +72,7 @@ extension PresetDefinitions {
             [0.00, 1.00, 0.25, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00],
             [0.00, 0.00, 1.00, 0.25, 0.00, 0.00, 0.00, 0.00, 0.00],
             [0.00, 0.00, 0.00, 1.00, 0.25, 0.00, 0.00, 0.00, 0.00],
-            [0.00, 0.00, 0.00, 0.00, 1.00, 0.00, 0.04, 0.00, 0.00],
+            [0.00, 0.00, 0.00, 0.00, 1.00, 0.00, 0.015, 0.00, 0.00],
             [0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, -0.25, 0.00],
             [0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 1.00, 0.00, 0.00],
             [0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, -0.25, 0.00],
@@ -88,7 +88,6 @@ extension PresetDefinitions {
         worldSize: 0.75,
         isBuiltIn: true
     )
-    
     static let cells = SimulationPreset(
         name: "Cells",
         speciesCount: 3,
@@ -144,17 +143,16 @@ extension PresetDefinitions {
             [0.66, 0.28, 0.30, 0.81, -0.23, -0.63, 0.59, 0.10, -0.23],
             [0.94, 0.87, -0.77, -0.56, -0.11, -0.92, 0.40, 0.22, -0.44]
         ]),
-        distributionType: .colorWheel,
-        maxDistance: 0.75,
-        minDistance: 0.04,
+        distributionType: .line,
+        maxDistance: 1.05,
+        minDistance: 0.02,
         beta: 0.30,
         friction: 0.10,
         repulsion: 0.03,
         pointSize: 19,
-        worldSize: 4,
+        worldSize: 4.00,
         isBuiltIn: true
     )
-    
     static let snuggleBugs = SimulationPreset(
         name: "Snuggle Bugs",
         speciesCount: 9,
