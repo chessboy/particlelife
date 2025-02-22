@@ -35,10 +35,10 @@ class ViewController: NSViewController {
         
         if let screen = NSScreen.main {
             let screenFrame = screen.frame  // Gets actual screen size
-            print("Screen Size: \(screenFrame.size)")
+            Logger.log("Screen Size: \(screenFrame.size)")
             metalView = MTKView(frame: screenFrame, device: MTLCreateSystemDefaultDevice())
         } else {
-            print("❌ Could not get screen size, falling back to view.bounds")
+            Logger.log("❌ Could not get screen size, falling back to view.bounds", level: .error)
             metalView = MTKView(frame: view.bounds, device: MTLCreateSystemDefaultDevice())
         }
         

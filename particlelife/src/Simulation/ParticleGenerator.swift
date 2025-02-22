@@ -110,7 +110,7 @@ struct ParticleGenerator {
     
     static func generate(distribution: DistributionType, particleCount: ParticleCount, speciesCount: Int) -> [Particle] {
         
-        print("ParticleGenerator.generate: distribution: \(distribution), count: \(particleCount.displayString), speciesCount: \(speciesCount)")
+        Logger.log("Distribution: \(distribution), count: \(particleCount.displayString), speciesCount: \(speciesCount)", level: .debug)
         
         let count = particleCount.rawValue
         

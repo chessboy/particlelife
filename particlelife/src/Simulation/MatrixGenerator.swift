@@ -34,7 +34,7 @@ enum MatrixType: Codable {
 enum MatrixGenerator {
     
     static func generateInteractionMatrix(speciesCount: Int, type: MatrixType) -> [[Float]] {
-        print("[DEBUG] Generating interaction matrix...speciesCount: \(speciesCount), type: \(type)")
+        Logger.log("Generating interaction matrix: speciesCount: \(speciesCount), type: \(type)", level: .debug)
         
         var matrix = [[Float]](repeating: [Float](repeating: 0.0, count: speciesCount), count: speciesCount)
         
@@ -105,7 +105,7 @@ enum MatrixGenerator {
         case .custom(let matrix):
             let currentSize = matrix.count
             if currentSize != speciesCount {
-                print("[DEBUG] Resizing custom matrix from \(currentSize) to \(speciesCount)")
+                Logger.log("Resizing custom matrix from \(currentSize) to \(speciesCount)", level: .debug)
                 
                 var newMatrix = [[Float]](repeating: [Float](repeating: 0.0, count: speciesCount), count: speciesCount)
                 

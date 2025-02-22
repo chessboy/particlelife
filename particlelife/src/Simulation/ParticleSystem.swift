@@ -37,13 +37,13 @@ class ParticleSystem: ObservableObject {
     
     /// Called when a preset is applied
     @objc private func presetApplied() {
-        print("✅ Preset applied - updating Particle System with respawn")
+        Logger.log("Preset applied - updating Particle System with respawn")
         respawn(shouldGenerateNewMatrix: true)
     }
     
     /// Called when a preset is applied but we don't want to respawn (eg. reset button)
     @objc private func presetAppliedNoRespawn() {
-        print("✅ Preset applied - updating Particle System - NO RESPAWN")
+        Logger.log("Preset applied - updating Particle System - NO RESPAWN")
         generateNewMatrix(preset: SimulationSettings.shared.selectedPreset)
         BufferManager.shared.updateInteractionBuffer(interactionMatrix: interactionMatrix)
     }
@@ -76,7 +76,7 @@ class ParticleSystem: ObservableObject {
         let settings = SimulationSettings.shared
 
         guard newCount != settings.selectedPreset.speciesCount else {
-            print("[DEBUG] No change needed, speciesCount is already", settings.selectedPreset.speciesCount)
+            Logger.log("No change needed, speciesCount is already \(settings.selectedPreset.speciesCount)", level: .debug)
             return
         }
 
@@ -102,7 +102,7 @@ class ParticleSystem: ObservableObject {
     /// Generates a new set of particles
     private func generateParticles(preset: SimulationPreset) {
         
-        print("generateParticles: speciesCount: \(preset.speciesCount), particleCount: \(preset.particleCount)")
+        Logger.log("generateParticles: speciesCount: \(preset.speciesCount), particleCount: \(preset.particleCount)")
         
         particles = ParticleGenerator.generate(
             distribution: preset.distributionType,
@@ -111,7 +111,7 @@ class ParticleSystem: ObservableObject {
         )
 
         let uniqueSpecies = Set(particles.map { $0.species })
-        print("[DEBUG] Unique species in new particles:", uniqueSpecies)
+        Logger.log("Unique species in new particles: \(uniqueSpecies)", level: .debug)
 
         let worldSize = SimulationSettings.shared.worldSize.value
         let scaleFactorX = preset.distributionType.shouldScaleToAspectRatio ? worldSize * Constants.ASPECT_RATIO : worldSize

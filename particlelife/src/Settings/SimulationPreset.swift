@@ -29,18 +29,32 @@ struct SimulationPreset: Hashable, Codable {
     static func == (lhs: SimulationPreset, rhs: SimulationPreset) -> Bool {
         return lhs.name == rhs.name
     }
+    
+    var description: String {
+            """
+            Preset: \(name)
+            ├─ Species Count: \(speciesCount)
+            ├─ Particle Count: \(particleCount)
+            ├─ Distribution: \(distributionType)
+            ├─ Matrix Type: \(matrixType)
+            ├─ Max Distance: \(maxDistance), Min Distance: \(minDistance)
+            ├─ Beta: \(beta), Friction: \(friction), Repulsion: \(repulsion)
+            ├─ Point Size: \(pointSize), World Size: \(worldSize)
+            └─ Built-in: \(isBuiltIn)
+            """
+    }
 }
 
 extension SimulationPreset {
     /// Convenience initializer to modify name and/or forceMatrixType
     func copy(withName newName: String? = nil, newSpeciesCount: Int? = nil, newParticleCount: ParticleCount? = nil, newMatrixType: MatrixType? = nil, newDistributionType: DistributionType? = nil) -> SimulationPreset {
         var copiedMatrixType = newMatrixType ?? matrixType  // Use new matrix if provided
-
+        
         // Ensure deep copy of custom matrices
         if case .custom(let matrix) = copiedMatrixType {
             copiedMatrixType = .custom(matrix.map { $0.map { $0 } })  // Deep copy
         }
-
+        
         return SimulationPreset(
             name: newName ?? name,
             speciesCount: newSpeciesCount ?? speciesCount,

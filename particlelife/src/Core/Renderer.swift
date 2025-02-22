@@ -48,8 +48,9 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         if let mtkView = mtkView {
             self.device = mtkView.device
             mtkView.delegate = self
+            Logger.log("Running on Metal device")
         } else {
-            print("⚠️ Running in Preview Mode - Metal Rendering Disabled")
+            Logger.log("Running in Preview Mode - Metal Rendering Disabled", level: .warning)
         }
         
         self.commandQueue = device?.makeCommandQueue()
@@ -93,7 +94,7 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
     // Combine compute + render pipeline setup into a single function
     private func setupPipelines() {
         guard let library = device?.makeDefaultLibrary() else {
-            print("⚠️ Warning: Failed to load Metal shader library")
+            Logger.log("Failed to load Metal shader library", level: .error)
             return
         }
         
@@ -142,7 +143,7 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         do {
             boundaryPipelineState = try device.makeRenderPipelineState(descriptor: boundaryPipelineDescriptor)
         } catch {
-            print("❌ Failed to create boundary pipeline state: \(error)")
+            Logger.logWithError("Failed to create boundary pipeline state", error: error)
         }
     }
     
@@ -322,9 +323,7 @@ extension Renderer {
         
         let worldPosition = screenToWorld(location, drawableSize: view.drawableSize, viewSize: view.frame.size)
         let effectRadius: Float = isRightClick ? 3.0 : 1.0
-        
-        //print("Clicked: \(isRightClick ? "Right" : "Left") at \(worldPosition)")
-        
+                
         // Send click data to Metal
         BufferManager.shared.updateClickBuffer(clickPosition: worldPosition, force: effectRadius)
         

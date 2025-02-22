@@ -25,13 +25,13 @@ class PresetManager {
     func addUserPreset(_ preset: SimulationPreset) -> SimulationPreset {
         let savedPreset = UserPresetStorage.saveUserPreset(preset)
         userPresets.append(savedPreset)
-        print("💾 Preset saved: \(savedPreset)")
+        Logger.log("Preset saved: \(savedPreset)")
         return savedPreset
     }
     
     func deleteUserPreset(named presetName: String) {
         UserPresetStorage.deleteUserPreset(named: presetName)
         userPresets.removeAll { $0.name == presetName }
-        print("🗑️ Preset deleted: \(presetName)")
+        Logger.log("Preset deleted: \(presetName)")
     }
 }

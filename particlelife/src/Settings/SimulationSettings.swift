@@ -86,7 +86,7 @@ class SimulationSettings: ObservableObject {
     
     func selectPreset(_ preset: SimulationPreset, skipRespawn: Bool = false) {
         guard let storedPreset = PresetManager.shared.getPreset(named: preset.name) else {
-            print("❌ Error: Preset '\(preset.name)' not found in storage.")
+            Logger.log("Preset '\(preset.name)' not found in storage.", level: .error)
             return
         }
 

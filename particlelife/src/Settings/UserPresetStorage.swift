@@ -12,17 +12,22 @@ class UserPresetStorage {
 
     static func loadUserPresets() -> [SimulationPreset] {
         guard let data = UserDefaults.standard.data(forKey: userPresetsKey) else {
-            print("ℹ️ No user presets found in storage.")
+            Logger.log("No user presets found in storage")
+
             return []
         }
         
         let decoder = JSONDecoder()
         if let presets = try? decoder.decode([SimulationPreset].self, from: data) {
-            print("✅ Loaded \(presets.count) user preset\(presets.count == 1 ? "" : "s").")
-            print(presets)
-            return presets
+            let sortedPresets = presets.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+            
+            Logger.log("Loaded \(sortedPresets.count) user preset\(sortedPresets.count == 1 ? "" : "s"):\n" +
+                sortedPresets.map { "  - \($0.name) (\($0.speciesCount) species, \($0.particleCount))" }.joined(separator: "\n")
+            )
+            
+            return sortedPresets
         } else {
-            print("❌ Failed to decode user presets.")
+            Logger.log("Failed to decode user presets", level: .error)
             return []
         }
     }
@@ -41,7 +46,7 @@ class UserPresetStorage {
         let filteredPresets = presets.filter { $0.name != presetName }
 
         if presets.count == filteredPresets.count {
-            print("⚠️ Preset '\(presetName)' not found. No deletion occurred.")
+            Logger.log("Preset '\(presetName)' not found. No deletion occurred", level: .error)
             return
         }
 
@@ -53,7 +58,7 @@ class UserPresetStorage {
         if let data = try? encoder.encode(presets) {
             UserDefaults.standard.set(data, forKey: userPresetsKey)
         } else {
-            print("❌ Failed to encode user presets.")
+            Logger.log("Failed to encode user presets", level: .error)
         }
     }
 
