@@ -45,7 +45,7 @@ class PresetDefinitions {
         let emptyMatrix = MatrixType.custom(Array(repeating: Array(repeating: 0.0, count: speciesCount), count: speciesCount))
         
         return SimulationPreset(
-            name: "Empty",
+            name: "New",
             speciesCount: speciesCount,
             particleCount: ParticleCount.particles(for: speciesCount),
             matrixType: emptyMatrix,

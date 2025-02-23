@@ -26,32 +26,33 @@ struct SimulationSettingsView: View {
             SimulationHeaderView(renderer: renderer)
             
             MatrixView(interactionMatrix: $particleSystem.interactionMatrix, isVisible: $isVisible, renderer: renderer, speciesColors: particleSystem.speciesColors)
-                .padding(.top, 15)
-                        
-            PresetPickerView(settings: settings, renderer: renderer)
-                .padding(.top, 20)
             
-            MarixPickerView(settings: settings, renderer: renderer)
-                .padding(.top, 10)
+            VStack(spacing: 20) {
+                PresetPickerView(settings: settings, renderer: renderer)
+                MarixPickerView(settings: settings, renderer: renderer)
+                DistributionPickerView(settings: settings, renderer: renderer)
+            }
+            .padding(.top, 15)
+            
+            VStack(spacing: 20) {
+                PresetButtonsView(
+                    isShowingSaveSheet: $isShowingSaveSheet,
+                    isShowingDeleteSheet: $isShowingDeleteSheet,
+                    renderer: renderer
+                )
+                Divider().background(Color.white.opacity(0.2))
+                SimulationButtonsView(renderer: renderer)
+            }
+            .padding(.top, 20)
+            .padding(.bottom, 10)
 
-            DistributionPickerView(settings: settings, renderer: renderer)
-                .padding(.top, 10)
-                .padding(.bottom, 20)
-
-            PresetButtonsView(
-                isShowingSaveSheet: $isShowingSaveSheet,
-                isShowingDeleteSheet: $isShowingDeleteSheet,
-                renderer: renderer
-            )
-            
-            SimulationControlsView(renderer: renderer)
-                .padding(.bottom, 14)
-            
             SimulationSlidersView(settings: settings, renderer: renderer)
                 .padding(.top, 10)
+            
+            Spacer()
         }
         .padding(20)
-        .frame(width: 320) // Keep fixed width
+        .frame(width: 340) // Keep fixed width
         .background(renderer.isPaused ? Color(red: 0.5, green: 0, blue: 0).opacity(0.75) : Color.black.opacity(0.75))
         .cornerRadius(10)
         .shadow(radius: 5)
@@ -105,25 +106,28 @@ struct PresetPickerView: View {
             Text("Preset:")
                 .frame(width: 90, alignment: .trailing)
             Picker("", selection: Binding(
-                get: { settings.selectedPreset },
-                set: { newPreset in
-                    if newPreset != settings.selectedPreset {
+                get: { settings.selectedPreset.id },
+                set: { newPresetID in
+                    if let newPreset = ([
+                        PresetDefinitions.randomPreset,
+                        PresetDefinitions.emptyPreset
+                    ] + PresetDefinitions.specialPresets + settings.userPresets)
+                        .first(where: { $0.id == newPresetID }) {
                         settings.selectPreset(newPreset)
                     }
                 }
             )) {
-                Text(PresetDefinitions.randomPreset.name).tag(PresetDefinitions.randomPreset)
-                Text(PresetDefinitions.emptyPreset.name).tag(PresetDefinitions.emptyPreset)
-                
-                Text("— Special Presets —").disabled(true)
-                ForEach(PresetDefinitions.specialPresets, id: \.name) { preset in
-                    Text(preset.name).tag(preset)
+                Text("⬜ \(PresetDefinitions.emptyPreset.name)").tag(PresetDefinitions.emptyPreset.id)
+                Text("🔀 \(PresetDefinitions.randomPreset.name)").tag(PresetDefinitions.randomPreset.id)
+                Text("").disabled(true)
+                ForEach(PresetDefinitions.specialPresets, id: \.id) { preset in
+                    Text("⭐ \(preset.name)").tag(preset.id)
                 }
                 
                 if !settings.userPresets.isEmpty {
-                    Text("— User Presets —").disabled(true)
-                    ForEach(settings.userPresets, id: \.name) { preset in
-                        Text(preset.name).tag(preset)
+                    Text("").disabled(true)
+                    ForEach(settings.userPresets, id: \.id) { preset in
+                        Text("📁 \(preset.name)").tag(preset.id)
                     }
                 }
             }
@@ -195,14 +199,14 @@ struct PresetButtonsView: View {
     @ObservedObject var renderer: Renderer
     
     var body: some View {
-        HStack {
-            Button("Save") {
+        HStack(spacing: 20) {
+            Button("📁  Save") {
                 isShowingSaveSheet = true
             }
             .buttonStyle(SettingsButtonStyle())
             .disabled(renderer.isPaused)
             
-            Button("Delete") {
+            Button("❌  Delete") {
                 if !SimulationSettings.shared.selectedPreset.isBuiltIn {
                     isShowingDeleteSheet = true
                 }
@@ -213,12 +217,12 @@ struct PresetButtonsView: View {
     }
 }
 
-struct SimulationControlsView: View {
+struct SimulationButtonsView: View {
     @ObservedObject var renderer: Renderer
     
     var body: some View {
-        HStack {
-            Button("Reset") {
+        HStack(spacing: 20) {
+            Button("↩️  Reset") {
                 let commandDown = NSEvent.modifierFlags.contains(.command)
                 if commandDown {
                     ParticleSystem.shared.dumpPresetAsCode()
@@ -230,7 +234,7 @@ struct SimulationControlsView: View {
             .buttonStyle(SettingsButtonStyle())
             .disabled(renderer.isPaused)
             
-            Button("Respawn") {
+            Button("♻️  Respawn") {
                 renderer.respawnParticles()
             }
             .buttonStyle(SettingsButtonStyle())
@@ -244,10 +248,11 @@ struct SimulationSlidersView: View {
     @ObservedObject var renderer: Renderer
     
     var body: some View {
-        VStack {
+        VStack(spacing: 20) {
             
-            speciesCountStepper()
-            particleCountStepper()
+            speciesCountPicker()
+            particleCountPicker()
+            Divider().background(Color.white.opacity(0.2))
             settingSlider(title: "Max Dist", setting: $settings.maxDistance)
             settingSlider(title: "Min Dist", setting: $settings.minDistance)
             settingSlider(title: "Beta", setting: $settings.beta)
@@ -258,48 +263,42 @@ struct SimulationSlidersView: View {
         }
     }
     
-    private func speciesCountStepper() -> some View {
+    private func speciesCountPicker() -> some View {
         HStack(spacing: 0) {
             Text("Species:")
                 .frame(width: 75, alignment: .trailing)
-
-            Text("\(settings.selectedPreset.speciesCount)")
-                .bold()
-                .frame(width: 37, alignment: .trailing)
-
-            Stepper("", onIncrement: {
-                if settings.selectedPreset.speciesCount < 9 {
-                    ParticleSystem.shared.speciesCountWillChange(newCount: settings.selectedPreset.speciesCount + 1)
+            
+            Picker("", selection: Binding(
+                get: { settings.selectedPreset.speciesCount },
+                set: { newCount in
+                    ParticleSystem.shared.speciesCountWillChange(newCount: newCount)
                 }
-            }, onDecrement: {
-                if settings.selectedPreset.speciesCount > 1 {
-                    ParticleSystem.shared.speciesCountWillChange(newCount: settings.selectedPreset.speciesCount - 1)
+            )) {
+                ForEach(1...9, id: \.self) { count in
+                    Text("\(count)").tag(count)
                 }
-            })
+            }
             .frame(maxWidth: .infinity, alignment: .leading)
+            .pickerStyle(MenuPickerStyle())
         }
         .padding(.horizontal)
     }
-    
-    private func particleCountStepper() -> some View {
+    private func particleCountPicker() -> some View {
         HStack(spacing: 0) {
             Text("Particles:")
                 .frame(width: 75, alignment: .trailing)
-
-            Text(settings.selectedPreset.particleCount.displayString)
-                .bold()
-                .frame(width: 37, alignment: .trailing)
             
-            Stepper("", onIncrement: {
-                if let next = ParticleCount.allCases.first(where: { $0.rawValue > settings.selectedPreset.particleCount.rawValue }) {
-                    ParticleSystem.shared.particleCountWillChange(newCount: next)
+            Picker("", selection: Binding(
+                get: { settings.selectedPreset.particleCount },
+                set: { newCount in
+                    ParticleSystem.shared.particleCountWillChange(newCount: newCount)
                 }
-            }, onDecrement: {
-                if let prev = ParticleCount.allCases.last(where: { $0.rawValue < settings.selectedPreset.particleCount.rawValue }) {
-                    ParticleSystem.shared.particleCountWillChange(newCount: prev)
+            )) {
+                ForEach(ParticleCount.allCases, id: \.self) { count in
+                    Text(count.displayString).tag(count)
                 }
-            })
-            .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .pickerStyle(MenuPickerStyle())
         }
         .padding(.horizontal)
     }
@@ -399,16 +398,21 @@ struct DeletePresetSheet: View {
 
 struct SettingsButtonStyle: ButtonStyle {
     @Environment(\.isEnabled) private var isEnabled
+    
     func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(.headline)
-            .foregroundColor(.white)
-            .frame(width: 120, height: 30)
-            .background(Color(red: 0.4, green: 0.4, blue: 0.4).opacity(0.75))
-            .clipShape(RoundedRectangle(cornerRadius: 6))
-            .compositingGroup()
-            .drawingGroup()
-            .opacity(configuration.isPressed ? 0.7 : (isEnabled ? 1.0 : 0.6))
+        HStack {
+            configuration.label
+                .font(.system(size: 14, weight: .medium)) // Bigger, slightly bolder text
+                .foregroundColor(.white)
+            Spacer() // Push text/icons to the left
+        }
+        .padding(.horizontal, 10) // More breathing room
+        .frame(width: 120, height: 30)
+        .background(Color(red: 0.3, green: 0.3, blue: 0.3).opacity(0.85)) // Darker background
+        .clipShape(RoundedRectangle(cornerRadius: 6))
+        .compositingGroup()
+        .drawingGroup()
+        .opacity(configuration.isPressed ? 0.7 : (isEnabled ? 1.0 : 0.6))
     }
 }
 

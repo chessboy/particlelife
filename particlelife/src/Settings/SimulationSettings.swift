@@ -90,17 +90,21 @@ class SimulationSettings: ObservableObject {
     }
     
     func selectPreset(_ preset: SimulationPreset, skipRespawn: Bool = false) {
-        
-        if selectedPreset.isBuiltIn && selectedPreset.name == "" {
-            
-        }
-        
         guard let storedPreset = PresetManager.shared.getPreset(named: preset.name) else {
             Logger.log("Preset '\(preset.name)' not found in storage.", level: .error)
             return
         }
 
-        selectedPreset = storedPreset
+        var presetToApply = storedPreset
+
+        if !storedPreset.shouldResetSpeciesCount {
+            Logger.log("Preserving speciesCount (\(selectedPreset.speciesCount)) while selecting preset '\(preset.name)'")
+            presetToApply = storedPreset.copy(newSpeciesCount: selectedPreset.speciesCount)  // Carry over species count
+        } else {
+            Logger.log("Ignoring previous speciesCount (\(selectedPreset.speciesCount)), using preset value: \(storedPreset.speciesCount)")
+        }
+
+        selectedPreset = presetToApply
         applyPreset(selectedPreset)
         
         if skipRespawn {

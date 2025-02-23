@@ -7,7 +7,8 @@
 
 import Foundation
 
-struct SimulationPreset: Hashable, Codable {
+struct SimulationPreset: Identifiable, Codable, Hashable {
+    let id: UUID
     let name: String
     let speciesCount: Int
     let particleCount: ParticleCount
@@ -22,7 +23,41 @@ struct SimulationPreset: Hashable, Codable {
     let worldSize: Float
     let isBuiltIn: Bool
     let shouldResetSpeciesCount: Bool
-    
+
+    init(
+        id: UUID = UUID(),
+        name: String,
+        speciesCount: Int,
+        particleCount: ParticleCount,
+        matrixType: MatrixType,
+        distributionType: DistributionType,
+        maxDistance: Float,
+        minDistance: Float,
+        beta: Float,
+        friction: Float,
+        repulsion: Float,
+        pointSize: Float,
+        worldSize: Float,
+        isBuiltIn: Bool,
+        shouldResetSpeciesCount: Bool
+    ) {
+        self.id = id
+        self.name = name
+        self.speciesCount = speciesCount
+        self.particleCount = particleCount
+        self.matrixType = matrixType
+        self.distributionType = distributionType
+        self.maxDistance = maxDistance
+        self.minDistance = minDistance
+        self.beta = beta
+        self.friction = friction
+        self.repulsion = repulsion
+        self.pointSize = pointSize
+        self.worldSize = worldSize
+        self.isBuiltIn = isBuiltIn
+        self.shouldResetSpeciesCount = shouldResetSpeciesCount
+    }
+
     func hash(into hasher: inout Hasher) {
         hasher.combine(name)
     }
@@ -49,7 +84,7 @@ extension SimulationPreset {
 
     /// Coding keys (needed for custom decoding)
     enum CodingKeys: String, CodingKey {
-        case name, speciesCount, particleCount, matrixType, distributionType
+        case id, name, speciesCount, particleCount, matrixType, distributionType
         case maxDistance, minDistance, beta, friction, repulsion
         case pointSize, worldSize, isBuiltIn
         case shouldResetSpeciesCount
@@ -59,6 +94,8 @@ extension SimulationPreset {
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
 
+        // Generate a UUID if it's missing
+        id = (try? container.decode(UUID.self, forKey: .id)) ?? UUID()
         name = try container.decode(String.self, forKey: .name)
         speciesCount = try container.decode(Int.self, forKey: .speciesCount)
         particleCount = try container.decode(ParticleCount.self, forKey: .particleCount)
@@ -72,11 +109,9 @@ extension SimulationPreset {
         pointSize = try container.decode(Float.self, forKey: .pointSize)
         worldSize = try container.decode(Float.self, forKey: .worldSize)
         isBuiltIn = try container.decode(Bool.self, forKey: .isBuiltIn)
-
-        // Gracefully handle missing new field
-        shouldResetSpeciesCount = try container.decodeIfPresent(Bool.self, forKey: .shouldResetSpeciesCount) ?? true
+        shouldResetSpeciesCount = try container.decode(Bool.self, forKey: .shouldResetSpeciesCount)
     }
-
+    
     /// Custom encoding (ensures all fields are saved)
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
@@ -102,7 +137,7 @@ extension SimulationPreset {
     
     var description: String {
             """
-            Preset: \(name)
+            Preset: \(name) (\(id))
             ├─ Species Count: \(speciesCount)
             ├─ Particle Count: \(particleCount)
             ├─ Distribution: \(distributionType)
@@ -158,6 +193,7 @@ extension SimulationPreset {
 extension SimulationPreset {
     /// Creates a modified copy of the preset, with special handling for custom matrices
     func copy(
+        id: UUID? = nil,  // Allow overriding the UUID (default = keep original)
         withName newName: String? = nil,
         newSpeciesCount: Int? = nil,
         newParticleCount: ParticleCount? = nil,
@@ -181,6 +217,7 @@ extension SimulationPreset {
         }
 
         return SimulationPreset(
+            id: id ?? self.id,  // Preserve existing UUID unless explicitly changed
             name: newName ?? name,
             speciesCount: newSpeciesCount ?? speciesCount,
             particleCount: newParticleCount ?? particleCount,

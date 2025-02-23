@@ -76,7 +76,7 @@ class ViewController: NSViewController {
         NSLayoutConstraint.activate([
             hostingView.widthAnchor.constraint(equalToConstant: 320),
             hostingView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            hostingView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10)
+            hostingView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 0)
         ])
     }
     
