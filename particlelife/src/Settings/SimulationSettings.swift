@@ -134,7 +134,8 @@ class SimulationSettings: ObservableObject {
             repulsion: repulsion.value,
             pointSize: pointSize.value,
             worldSize: worldSize.value,
-            isBuiltIn: false
+            isBuiltIn: false,
+            shouldResetSpeciesCount: true
         )
         
         let persistedPreset = PresetManager.shared.addUserPreset(newPreset)

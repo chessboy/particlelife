@@ -11,7 +11,7 @@ class PresetDefinitions {
     
     static let randomPreset = makeRandomPreset(speciesCount: 3)
     static let emptyPreset = makeEmptyPreset(speciesCount: 3)
-    static let specialPresets = [snake, cells, comet, snuggleBugs, spaceWars]
+    static let specialPresets = [snake, cells, comet, sandArt, spaceWars]
     
     static func getAllBuiltInPresets() -> [SimulationPreset] {
         return [randomPreset] + [emptyPreset] + specialPresets
@@ -23,7 +23,7 @@ class PresetDefinitions {
     
     static func makeRandomPreset(speciesCount: Int) -> SimulationPreset {
         return SimulationPreset(
-            name: "Random \(speciesCount)x\(speciesCount)",
+            name: "Random",
             speciesCount: speciesCount,
             particleCount: .k40,
             matrixType: .random,
@@ -35,7 +35,8 @@ class PresetDefinitions {
             repulsion: 0.03,
             pointSize: 11,
             worldSize: 1.0,
-            isBuiltIn: true
+            isBuiltIn: true,
+            shouldResetSpeciesCount: false
         )
     }
     
@@ -44,7 +45,7 @@ class PresetDefinitions {
         let emptyMatrix = MatrixType.custom(Array(repeating: Array(repeating: 0.0, count: speciesCount), count: speciesCount))
         
         return SimulationPreset(
-            name: "Empty \(speciesCount)x\(speciesCount)",
+            name: "Empty",
             speciesCount: speciesCount,
             particleCount: ParticleCount.particles(for: speciesCount),
             matrixType: emptyMatrix,
@@ -56,7 +57,8 @@ class PresetDefinitions {
             repulsion: 0.03,
             pointSize: 5,
             worldSize: 0.5,
-            isBuiltIn: true
+            isBuiltIn: true,
+            shouldResetSpeciesCount: false
         )
     }
 }
@@ -86,7 +88,8 @@ extension PresetDefinitions {
         repulsion: 0.03,
         pointSize: 5,
         worldSize: 0.75,
-        isBuiltIn: true
+        isBuiltIn: true,
+        shouldResetSpeciesCount: true
     )
     
     static let cells = SimulationPreset(
@@ -106,7 +109,8 @@ extension PresetDefinitions {
         repulsion: 0.03,
         pointSize: 15,
         worldSize: 1.25,
-        isBuiltIn: true
+        isBuiltIn: true,
+        shouldResetSpeciesCount: true
     )
     
     static let comet = SimulationPreset(
@@ -126,7 +130,8 @@ extension PresetDefinitions {
         repulsion: 0.03,
         pointSize: 17,
         worldSize: 2.00,
-        isBuiltIn: true
+        isBuiltIn: true,
+        shouldResetSpeciesCount: true
     )
     
     static let spaceWars = SimulationPreset(
@@ -152,31 +157,31 @@ extension PresetDefinitions {
         repulsion: 0.03,
         pointSize: 19,
         worldSize: 4.00,
-        isBuiltIn: true
+        isBuiltIn: true,
+        shouldResetSpeciesCount: true
     )
-    static let snuggleBugs = SimulationPreset(
-        name: "Snuggle Bugs",
-        speciesCount: 9,
+    
+    static let sandArt = SimulationPreset(
+        name: "Sand Art",
+        speciesCount: 6,
         particleCount: .k40,
         matrixType: .custom([
-            [0.25, 0.20, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00],
-            [0.00, 0.25, 0.20, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00],
-            [0.00, 0.00, 0.25, 0.20, 0.00, 0.00, 0.00, 0.00, 0.00],
-            [0.00, 0.00, 0.00, 0.25, 0.20, 0.00, 0.00, 0.00, 0.00],
-            [0.00, 0.00, 0.00, 0.00, 0.25, 0.20, 0.00, 0.00, 0.00],
-            [0.00, 0.00, 0.00, 0.00, 0.00, 0.25, 0.20, 0.00, 0.00],
-            [0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.25, 0.20, 0.00],
-            [0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.25, 0.20],
-            [0.20, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.25]
+            [0.00, -0.75, 0.00, 0.00, 0.00, 0.00],
+            [0.00, 0.00, -1.00, 0.00, 0.00, 0.25],
+            [0.00, 0.00, 0.00, 0.00, 0.00, 0.00],
+            [0.50, 0.00, 0.00, -0.75, 0.00, -0.75],
+            [0.00, 0.00, 0.00, 0.00, 0.00, 0.00],
+            [0.00, 0.00, 0.25, -0.50, 0.00, 0.00]
         ]),
-        distributionType: .uniform,
-        maxDistance: 0.50,
-        minDistance: 0.05,
-        beta: 0.1,
-        friction: 0.20,
-        repulsion: 0.01,
-        pointSize: 17,
-        worldSize: 1.0,
-        isBuiltIn: true
+        distributionType: .line,
+        maxDistance: 0.60,
+        minDistance: 0.02,
+        beta: 0.30,
+        friction: 0.15,
+        repulsion: 0.14,
+        pointSize: 7,
+        worldSize: 0.50,
+        isBuiltIn: false,
+        shouldResetSpeciesCount: true
     )
 }

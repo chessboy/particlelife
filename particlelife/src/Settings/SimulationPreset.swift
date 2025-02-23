@@ -21,13 +21,80 @@ struct SimulationPreset: Hashable, Codable {
     let pointSize: Float
     let worldSize: Float
     let isBuiltIn: Bool
+    let shouldResetSpeciesCount: Bool
     
     func hash(into hasher: inout Hasher) {
         hasher.combine(name)
     }
+}
+
+extension SimulationPreset {
     
     static func == (lhs: SimulationPreset, rhs: SimulationPreset) -> Bool {
-        return lhs.name == rhs.name
+        return lhs.name == rhs.name &&
+               lhs.speciesCount == rhs.speciesCount &&
+               lhs.particleCount == rhs.particleCount &&
+               lhs.matrixType == rhs.matrixType &&
+               lhs.distributionType == rhs.distributionType &&
+               lhs.maxDistance == rhs.maxDistance &&
+               lhs.minDistance == rhs.minDistance &&
+               lhs.beta == rhs.beta &&
+               lhs.friction == rhs.friction &&
+               lhs.repulsion == rhs.repulsion &&
+               lhs.pointSize == rhs.pointSize &&
+               lhs.worldSize == rhs.worldSize &&
+               lhs.isBuiltIn == rhs.isBuiltIn &&
+               lhs.shouldResetSpeciesCount == rhs.shouldResetSpeciesCount
+    }
+
+    /// Coding keys (needed for custom decoding)
+    enum CodingKeys: String, CodingKey {
+        case name, speciesCount, particleCount, matrixType, distributionType
+        case maxDistance, minDistance, beta, friction, repulsion
+        case pointSize, worldSize, isBuiltIn
+        case shouldResetSpeciesCount
+    }
+
+    /// Custom decoding to handle missing fields
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        name = try container.decode(String.self, forKey: .name)
+        speciesCount = try container.decode(Int.self, forKey: .speciesCount)
+        particleCount = try container.decode(ParticleCount.self, forKey: .particleCount)
+        matrixType = try container.decode(MatrixType.self, forKey: .matrixType)
+        distributionType = try container.decode(DistributionType.self, forKey: .distributionType)
+        maxDistance = try container.decode(Float.self, forKey: .maxDistance)
+        minDistance = try container.decode(Float.self, forKey: .minDistance)
+        beta = try container.decode(Float.self, forKey: .beta)
+        friction = try container.decode(Float.self, forKey: .friction)
+        repulsion = try container.decode(Float.self, forKey: .repulsion)
+        pointSize = try container.decode(Float.self, forKey: .pointSize)
+        worldSize = try container.decode(Float.self, forKey: .worldSize)
+        isBuiltIn = try container.decode(Bool.self, forKey: .isBuiltIn)
+
+        // Gracefully handle missing new field
+        shouldResetSpeciesCount = try container.decodeIfPresent(Bool.self, forKey: .shouldResetSpeciesCount) ?? true
+    }
+
+    /// Custom encoding (ensures all fields are saved)
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+
+        try container.encode(name, forKey: .name)
+        try container.encode(speciesCount, forKey: .speciesCount)
+        try container.encode(particleCount, forKey: .particleCount)
+        try container.encode(matrixType, forKey: .matrixType)
+        try container.encode(distributionType, forKey: .distributionType)
+        try container.encode(maxDistance, forKey: .maxDistance)
+        try container.encode(minDistance, forKey: .minDistance)
+        try container.encode(beta, forKey: .beta)
+        try container.encode(friction, forKey: .friction)
+        try container.encode(repulsion, forKey: .repulsion)
+        try container.encode(pointSize, forKey: .pointSize)
+        try container.encode(worldSize, forKey: .worldSize)
+        try container.encode(isBuiltIn, forKey: .isBuiltIn)
+        try container.encode(shouldResetSpeciesCount, forKey: .shouldResetSpeciesCount)
     }
 }
 
@@ -44,6 +111,7 @@ extension SimulationPreset {
             ├─ Beta: \(beta), Friction: \(friction), Repulsion: \(repulsion)
             ├─ Point Size: \(pointSize), World Size: \(worldSize)
             └─ Built-in: \(isBuiltIn)
+            └─ Should Reset SpeciesCount: \(shouldResetSpeciesCount)
             """
     }
 
@@ -67,7 +135,7 @@ extension SimulationPreset {
     /// Returns a string representation of the preset in Swift code format
     var asCode: String {
         return """
-        static let \(name.replacingOccurrences(of: " ", with: "_")) = SimulationPreset(
+        static let \(name.camelCase()) = SimulationPreset(
             name: "\(name)",
             speciesCount: \(speciesCount),
             particleCount: .\(particleCount),
@@ -81,6 +149,7 @@ extension SimulationPreset {
             pointSize: \(Int(pointSize)),
             worldSize: \(String(format: "%.2f", worldSize)),
             isBuiltIn: \(isBuiltIn)
+            shouldResetSpeciesCount: \(shouldResetSpeciesCount)
         )
         """
     }
@@ -101,7 +170,8 @@ extension SimulationPreset {
         newRepulsion: Float? = nil,
         newPointSize: Float? = nil,
         newWorldSize: Float? = nil,
-        newIsBuiltIn: Bool? = nil
+        newIsBuiltIn: Bool? = nil,
+        newShouldResetSpeciesCount: Bool? = nil
     ) -> SimulationPreset {
         var copiedMatrixType = newMatrixType ?? matrixType  // Use new matrix if provided
         
@@ -123,7 +193,8 @@ extension SimulationPreset {
             repulsion: newRepulsion ?? repulsion,
             pointSize: newPointSize ?? pointSize,
             worldSize: newWorldSize ?? worldSize,
-            isBuiltIn: newIsBuiltIn ?? isBuiltIn
+            isBuiltIn: newIsBuiltIn ?? isBuiltIn,
+            shouldResetSpeciesCount: newShouldResetSpeciesCount ?? shouldResetSpeciesCount
         )
     }
 }
