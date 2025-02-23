@@ -8,7 +8,7 @@ import Foundation
 
 class PresetManager {
     static let shared = PresetManager()
-    private var userPresets: [SimulationPreset] = UserPresetStorage.loadUserPresets()
+    private var userPresets: [SimulationPreset] = UserPresetStorage.loadUserPresets(checkMigration: true)
     
     func getUserPresets() -> [SimulationPreset] {
         return userPresets.sorted  { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }

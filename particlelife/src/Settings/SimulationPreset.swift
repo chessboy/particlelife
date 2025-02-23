@@ -29,6 +29,9 @@ struct SimulationPreset: Hashable, Codable {
     static func == (lhs: SimulationPreset, rhs: SimulationPreset) -> Bool {
         return lhs.name == rhs.name
     }
+}
+
+extension SimulationPreset {
     
     var description: String {
             """
@@ -43,32 +46,84 @@ struct SimulationPreset: Hashable, Codable {
             └─ Built-in: \(isBuiltIn)
             """
     }
+
+    /// Extracts the matrix from `MatrixType` if it's `.custom`
+    private var interactionMatrixString: String {
+        guard case .custom(let matrix) = matrixType else { return "[]" }
+
+        return "[\n" + matrix
+            .map { "        [" + $0.map { String(format: "%.2f", $0) }.joined(separator: ", ") + "]" }
+            .joined(separator: ",\n") + "\n    ]"
+    }
+
+    /// Returns a string representation of `MatrixType`, handling `.custom` separately
+    private var matrixTypeString: String {
+        if case .custom = matrixType {
+            return ".custom(\(interactionMatrixString))"
+        }
+        return ".\(matrixType)" // Converts the enum case to a string automatically
+    }
+
+    /// Returns a string representation of the preset in Swift code format
+    var asCode: String {
+        return """
+        static let \(name.replacingOccurrences(of: " ", with: "_")) = SimulationPreset(
+            name: "\(name)",
+            speciesCount: \(speciesCount),
+            particleCount: .\(particleCount),
+            matrixType: \(matrixTypeString),
+            distributionType: .\(distributionType),
+            maxDistance: \(String(format: "%.2f", maxDistance)),
+            minDistance: \(String(format: "%.2f", minDistance)),
+            beta: \(String(format: "%.2f", beta)),
+            friction: \(String(format: "%.2f", friction)),
+            repulsion: \(String(format: "%.2f", repulsion)),
+            pointSize: \(Int(pointSize)),
+            worldSize: \(String(format: "%.2f", worldSize)),
+            isBuiltIn: \(isBuiltIn)
+        )
+        """
+    }
 }
 
 extension SimulationPreset {
-    /// Convenience initializer to modify name and/or forceMatrixType
-    func copy(withName newName: String? = nil, newSpeciesCount: Int? = nil, newParticleCount: ParticleCount? = nil, newMatrixType: MatrixType? = nil, newDistributionType: DistributionType? = nil) -> SimulationPreset {
+    /// Creates a modified copy of the preset, with special handling for custom matrices
+    func copy(
+        withName newName: String? = nil,
+        newSpeciesCount: Int? = nil,
+        newParticleCount: ParticleCount? = nil,
+        newMatrixType: MatrixType? = nil,
+        newDistributionType: DistributionType? = nil,
+        newMaxDistance: Float? = nil,
+        newMinDistance: Float? = nil,
+        newBeta: Float? = nil,
+        newFriction: Float? = nil,
+        newRepulsion: Float? = nil,
+        newPointSize: Float? = nil,
+        newWorldSize: Float? = nil,
+        newIsBuiltIn: Bool? = nil
+    ) -> SimulationPreset {
         var copiedMatrixType = newMatrixType ?? matrixType  // Use new matrix if provided
         
         // Ensure deep copy of custom matrices
         if case .custom(let matrix) = copiedMatrixType {
             copiedMatrixType = .custom(matrix.map { $0.map { $0 } })  // Deep copy
         }
-        
+
         return SimulationPreset(
             name: newName ?? name,
             speciesCount: newSpeciesCount ?? speciesCount,
             particleCount: newParticleCount ?? particleCount,
             matrixType: copiedMatrixType,
             distributionType: newDistributionType ?? distributionType,
-            maxDistance: maxDistance,
-            minDistance: minDistance,
-            beta: beta,
-            friction: friction,
-            repulsion: repulsion,
-            pointSize: pointSize,
-            worldSize: worldSize,
-            isBuiltIn: isBuiltIn
+            maxDistance: newMaxDistance ?? maxDistance,
+            minDistance: newMinDistance ?? minDistance,
+            beta: newBeta ?? beta,
+            friction: newFriction ?? friction,
+            repulsion: newRepulsion ?? repulsion,
+            pointSize: newPointSize ?? pointSize,
+            worldSize: newWorldSize ?? worldSize,
+            isBuiltIn: newIsBuiltIn ?? isBuiltIn
         )
     }
 }

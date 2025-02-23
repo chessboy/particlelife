@@ -8,22 +8,45 @@
 
 import Foundation
 
-enum MatrixType: Codable {
+enum MatrixType: Codable, Hashable, CaseIterable {
     case random
     case symmetry
     case chains
     case chains2
     case chains3
     case snakes
-    case zero
     case custom([[Float]])
+
+    static var allCases: [MatrixType] {
+        return [.random, .symmetry, .chains, .chains2, .chains3, .snakes, .custom([[Float]]())]
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(name)
+    }
+
+    static func == (lhs: MatrixType, rhs: MatrixType) -> Bool {
+        return lhs.name == rhs.name
+    }
+
+    var name: String {
+        switch self {
+        case .random: return "Random"
+        case .symmetry: return "Symmetry"
+        case .chains: return "Chains"
+        case .chains2: return "Chains 2"
+        case .chains3: return "Chains 3"
+        case .snakes: return "Snakes"
+        case .custom: return "Custom"
+        }
+    }
     
     private enum CodingKeys: String, CodingKey {
         case type, data
     }
     
     /// Returns `true` if the matrix is `.custom` and contains only zeros.
-    var isEmpty: Bool {
+    var isEmptyCustomMatrix: Bool {
         if case let .custom(matrix) = self {
             return matrix.allSatisfy { row in row.allSatisfy { $0 == 0 } }
         }
@@ -39,7 +62,7 @@ enum MatrixGenerator {
         var matrix = [[Float]](repeating: [Float](repeating: 0.0, count: speciesCount), count: speciesCount)
         
         switch type {
-            
+
         case .random:
             for i in 0..<speciesCount {
                 for j in 0..<speciesCount {
@@ -97,11 +120,7 @@ enum MatrixGenerator {
                 matrix[i][i] = 1.0 // Strong self-attraction
                 matrix[i][(i + 1) % speciesCount] = 0.2 // Weak attraction to the next species
             }
-            
-        case .zero:
-            // Already initialized with all zeros.
-            break
-            
+                        
         case .custom(let matrix):
             let currentSize = matrix.count
             if currentSize != speciesCount {
@@ -144,8 +163,6 @@ extension MatrixType {
             try container.encode("chains3", forKey: .type)
         case .snakes:
             try container.encode("snakes", forKey: .type)
-        case .zero:
-            try container.encode("zero", forKey: .type)
         case .custom(let matrix):
             try container.encode("custom", forKey: .type)
             try container.encode(matrix, forKey: .data)
@@ -170,8 +187,6 @@ extension MatrixType {
             self = .chains3
         case "snakes":
             self = .snakes
-        case "zero":
-            self = .zero
         case "custom":
             let matrix = try container.decode([[Float]].self, forKey: .data)
             self = .custom(matrix)

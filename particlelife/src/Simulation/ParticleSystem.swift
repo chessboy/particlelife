@@ -102,7 +102,7 @@ class ParticleSystem: ObservableObject {
     /// Generates a new set of particles
     private func generateParticles(preset: SimulationPreset) {
         
-        Logger.log("generateParticles: speciesCount: \(preset.speciesCount), particleCount: \(preset.particleCount)")
+        Logger.log("generateParticles: speciesCount: \(preset.speciesCount), particleCount: \(preset.particleCount), matrixType: \(preset.matrixType)")
         
         particles = ParticleGenerator.generate(
             distribution: preset.distributionType,
@@ -157,36 +157,8 @@ class ParticleSystem: ObservableObject {
         }
     }
 
-    /// Returns a string representation of the interaction matrix
-    func getInteractionMatrixString() -> String {
-        return "[\n" + interactionMatrix
-            .map { "        [" + $0.map { String(format: "%.2f", $0) }.joined(separator: ", ") + "]" }
-            .joined(separator: ",\n") + "\n    ]"
-    }
-    
     func dumpPresetAsCode() {
-        let settings = SimulationSettings.shared
-        let preset = settings.selectedPreset
-
-        let code = """
-        static let untitledPreset = SimulationPreset(
-            name: "Untitled",
-            speciesCount: \(preset.speciesCount),
-            particleCount: .\(preset.particleCount),
-            matrixType: .custom(\(getInteractionMatrixString())),
-            distributionType: .\(preset.distributionType),
-            maxDistance: \(String(format: "%.2f", settings.maxDistance.value)),
-            minDistance: \(String(format: "%.2f", settings.minDistance.value)),
-            beta: \(String(format: "%.2f", settings.beta.value)),
-            friction: \(String(format: "%.2f", settings.friction.value)),
-            repulsion: \(String(format: "%.2f", settings.repulsion.value)),
-            pointSize: \(Int(settings.pointSize.value)),
-            worldSize: \(String(format: "%.2f", settings.worldSize.value)),
-            isBuiltIn: true
-        )
-        """
-
-        print(code)
+        print(SimulationSettings.shared.selectedPreset.asCode)
     }
     
     /// Updates delta time for particle movement

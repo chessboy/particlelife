@@ -19,7 +19,7 @@ struct SimulationSettingsView: View {
     @State private var isVisible: Bool = true
     @State private var isShowingSaveSheet = false
     @State private var isShowingDeleteSheet = false
-    @State private var presetName: String = ""
+    @State private var presetName: String = "Untitled"
     
     var body: some View {
         VStack {
@@ -27,10 +27,13 @@ struct SimulationSettingsView: View {
             
             MatrixView(interactionMatrix: $particleSystem.interactionMatrix, isVisible: $isVisible, renderer: renderer, speciesColors: particleSystem.speciesColors)
                 .padding(.top, 15)
-            
+                        
             PresetPickerView(settings: settings, renderer: renderer)
                 .padding(.top, 20)
             
+            MarixPickerView(settings: settings, renderer: renderer)
+                .padding(.top, 10)
+
             DistributionPickerView(settings: settings, renderer: renderer)
                 .padding(.top, 10)
                 .padding(.bottom, 20)
@@ -93,32 +96,6 @@ struct SimulationHeaderView: View {
     }
 }
 
-struct DistributionPickerView: View {
-    @ObservedObject var settings: SimulationSettings
-    @ObservedObject var renderer: Renderer
-    
-    var body: some View {
-        HStack(spacing: 0) {
-            Text("Distribution:")
-                .frame(width: 100, alignment: .trailing)
-            Picker("", selection: Binding(
-                get: { settings.selectedPreset.distributionType },
-                set: { newType in
-                    if newType != settings.selectedPreset.distributionType {
-                        settings.updateDistributionType(newType)
-                    }
-                }
-            )) {
-                ForEach(DistributionType.allCases, id: \.self) { type in
-                    Text(type.displayName).tag(type)
-                }
-            }
-            .pickerStyle(MenuPickerStyle())
-            .disabled(renderer.isPaused)
-        }
-    }
-}
-
 struct PresetPickerView: View {
     @ObservedObject var settings: SimulationSettings
     @ObservedObject var renderer: Renderer
@@ -126,7 +103,7 @@ struct PresetPickerView: View {
     var body: some View {
         HStack(spacing: 0) {
             Text("Preset:")
-                .frame(width: 100, alignment: .trailing)
+                .frame(width: 90, alignment: .trailing)
             Picker("", selection: Binding(
                 get: { settings.selectedPreset },
                 set: { newPreset in
@@ -135,15 +112,8 @@ struct PresetPickerView: View {
                     }
                 }
             )) {
-                Text("— Random Presets —").disabled(true)
-                ForEach(PresetDefinitions.randomPresets, id: \.name) { preset in
-                    Text(preset.name).tag(preset)
-                }
-                
-                Text("— Empty Presets —").disabled(true)
-                ForEach(PresetDefinitions.emptyPresets, id: \.name) { preset in
-                    Text(preset.name).tag(preset)
-                }
+                Text(PresetDefinitions.randomPreset.name).tag(PresetDefinitions.randomPreset)
+                Text(PresetDefinitions.emptyPreset.name).tag(PresetDefinitions.emptyPreset)
                 
                 Text("— Special Presets —").disabled(true)
                 ForEach(PresetDefinitions.specialPresets, id: \.name) { preset in
@@ -160,6 +130,62 @@ struct PresetPickerView: View {
             .pickerStyle(MenuPickerStyle())
             .disabled(renderer.isPaused)
         }
+        .frame(width: 248)
+    }
+}
+
+struct MarixPickerView: View {
+    @ObservedObject var settings: SimulationSettings
+    @ObservedObject var renderer: Renderer
+    
+    var body: some View {
+        HStack(spacing: 0) {
+            Text("Matrix:")
+                .frame(width: 90, alignment: .trailing)
+            Picker("", selection: Binding(
+                get: { settings.selectedPreset.matrixType },
+                set: { newType in
+                    if newType != settings.selectedPreset.matrixType {
+                        settings.updateMatrixType(newType)
+                    }
+                }
+            )) {
+                ForEach(MatrixType.allCases, id: \.self) { type in
+                    Text(type.name).tag(type)
+                }
+            }
+            .pickerStyle(MenuPickerStyle())
+            .disabled(renderer.isPaused)
+        }
+        .frame(width: 248)
+    }
+    
+}
+
+struct DistributionPickerView: View {
+    @ObservedObject var settings: SimulationSettings
+    @ObservedObject var renderer: Renderer
+    
+    var body: some View {
+        HStack(spacing: 0) {
+            Text("Distribution:")
+                .frame(width: 90, alignment: .trailing)
+            Picker("", selection: Binding(
+                get: { settings.selectedPreset.distributionType },
+                set: { newType in
+                    if newType != settings.selectedPreset.distributionType {
+                        settings.updateDistributionType(newType)
+                    }
+                }
+            )) {
+                ForEach(DistributionType.allCases, id: \.self) { type in
+                    Text(type.displayName).tag(type)
+                }
+            }
+            .pickerStyle(MenuPickerStyle())
+            .disabled(renderer.isPaused)
+        }
+        .frame(width: 248)
     }
 }
 
@@ -329,6 +355,7 @@ struct SavePresetSheet: View {
     private func savePreset() {
         if !presetName.isEmpty {
             SimulationSettings.shared.saveCurrentPreset(named: presetName, interactionMatrix: ParticleSystem.shared.interactionMatrix)
+            presetName = "Untitled"
             isShowingSaveSheet = false
         }
     }

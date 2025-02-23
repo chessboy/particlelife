@@ -15,7 +15,7 @@ struct LoggerConfig {
 enum LogLevel: String {
     case error = "❌ ERROR"
     case warning = "⚠️ WARNING"
-    case debug = "🐞 DEBUG"
+    case debug = "🔍 DEBUG"
     case info = "ℹ️ INFO"
     
     var padded: String {

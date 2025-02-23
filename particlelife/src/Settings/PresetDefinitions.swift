@@ -9,16 +9,16 @@ import Foundation
 
 class PresetDefinitions {
     
-    static let randomPresets = [3, 6, 9].map { makeRandomPreset(speciesCount: $0) }
+    static let randomPreset = makeRandomPreset(speciesCount: 3)
+    static let emptyPreset = makeEmptyPreset(speciesCount: 3)
     static let specialPresets = [snake, cells, comet, snuggleBugs, spaceWars]
-    static let emptyPresets = (1...9).map { makeEmptyPreset(speciesCount: $0) }
     
     static func getAllBuiltInPresets() -> [SimulationPreset] {
-        return randomPresets + specialPresets + emptyPresets
+        return [randomPreset] + [emptyPreset] + specialPresets
     }
     
     static func getDefaultPreset() -> SimulationPreset {
-        return randomPresets[0]
+        return emptyPreset
     }
     
     static func makeRandomPreset(speciesCount: Int) -> SimulationPreset {
@@ -88,6 +88,7 @@ extension PresetDefinitions {
         worldSize: 0.75,
         isBuiltIn: true
     )
+    
     static let cells = SimulationPreset(
         name: "Cells",
         speciesCount: 3,

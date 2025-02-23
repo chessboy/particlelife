@@ -71,11 +71,16 @@ class SimulationSettings: ObservableObject {
         }
     }
     
+    func updateMatrixType(_ newType: MatrixType) {
+        selectedPreset = selectedPreset.copy(newMatrixType: newType)
+        NotificationCenter.default.post(name: .presetSelected, object: nil)
+    }
+
     func updateDistributionType(_ newType: DistributionType) {
         selectedPreset = selectedPreset.copy(newDistributionType: newType)
         NotificationCenter.default.post(name: .presetSelected, object: nil)
     }
-    
+
     private static func handleWorldSizeChange(_ newValue: Float) {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { // 50ms debounce
             if shared.worldSize.value == newValue { // Ensure consistency
@@ -85,6 +90,11 @@ class SimulationSettings: ObservableObject {
     }
     
     func selectPreset(_ preset: SimulationPreset, skipRespawn: Bool = false) {
+        
+        if selectedPreset.isBuiltIn && selectedPreset.name == "" {
+            
+        }
+        
         guard let storedPreset = PresetManager.shared.getPreset(named: preset.name) else {
             Logger.log("Preset '\(preset.name)' not found in storage.", level: .error)
             return
