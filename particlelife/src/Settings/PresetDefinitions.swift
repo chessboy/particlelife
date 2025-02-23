@@ -11,7 +11,7 @@ class PresetDefinitions {
     
     static let randomPreset = makeRandomPreset(speciesCount: 3)
     static let emptyPreset = makeEmptyPreset(speciesCount: 3)
-    static let specialPresets = [snake, cells, comet, sandArt, spaceWars]
+    static let specialPresets = [snake, cells, sandArt, spaceWars]
     
     static func getAllBuiltInPresets() -> [SimulationPreset] {
         return [randomPreset] + [emptyPreset] + specialPresets

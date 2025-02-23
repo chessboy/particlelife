@@ -35,16 +35,15 @@ struct SimulationSettingsView: View {
             .padding(.top, 15)
             
             VStack(spacing: 20) {
-                PresetButtonsView(
-                    isShowingSaveSheet: $isShowingSaveSheet,
-                    isShowingDeleteSheet: $isShowingDeleteSheet,
-                    renderer: renderer
-                )
+                PresetButtonsView(isShowingSaveSheet: $isShowingSaveSheet, isShowingDeleteSheet: $isShowingDeleteSheet, renderer: renderer)
                 Divider().background(Color.white.opacity(0.2))
+                SpeciesAndParticlesView(settings: settings, renderer: renderer)
+                    .padding(.top, 6)
                 SimulationButtonsView(renderer: renderer)
+                    .padding(.top, 6)
             }
             .padding(.top, 20)
-            .padding(.bottom, 10)
+            .padding(.bottom, 4)
 
             SimulationSlidersView(settings: settings, renderer: renderer)
                 .padding(.top, 10)
@@ -243,31 +242,22 @@ struct SimulationButtonsView: View {
     }
 }
 
-struct SimulationSlidersView: View {
+struct SpeciesAndParticlesView: View {
     @ObservedObject var settings: SimulationSettings
     @ObservedObject var renderer: Renderer
-    
+
     var body: some View {
         VStack(spacing: 20) {
-            
             speciesCountPicker()
             particleCountPicker()
-            Divider().background(Color.white.opacity(0.2))
-            settingSlider(title: "Max Dist", setting: $settings.maxDistance)
-            settingSlider(title: "Min Dist", setting: $settings.minDistance)
-            settingSlider(title: "Beta", setting: $settings.beta)
-            settingSlider(title: "Friction", setting: $settings.friction)
-            settingSlider(title: "Repulsion", setting: $settings.repulsion)
-            settingSlider(title: "Point Size", setting: $settings.pointSize)
-            settingSlider(title: "World Size", setting: $settings.worldSize)
         }
     }
     
     private func speciesCountPicker() -> some View {
         HStack(spacing: 0) {
             Text("Species:")
-                .frame(width: 75, alignment: .trailing)
-            
+                .frame(width: 90, alignment: .trailing)
+
             Picker("", selection: Binding(
                 get: { settings.selectedPreset.speciesCount },
                 set: { newCount in
@@ -281,13 +271,15 @@ struct SimulationSlidersView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .pickerStyle(MenuPickerStyle())
         }
+        .frame(width: 248)
         .padding(.horizontal)
     }
+    
     private func particleCountPicker() -> some View {
         HStack(spacing: 0) {
             Text("Particles:")
-                .frame(width: 75, alignment: .trailing)
-            
+                .frame(width: 90, alignment: .trailing)
+
             Picker("", selection: Binding(
                 get: { settings.selectedPreset.particleCount },
                 set: { newCount in
@@ -300,7 +292,26 @@ struct SimulationSlidersView: View {
             }
             .pickerStyle(MenuPickerStyle())
         }
+        .frame(width: 248)
         .padding(.horizontal)
+    }
+}
+
+struct SimulationSlidersView: View {
+    @ObservedObject var settings: SimulationSettings
+    @ObservedObject var renderer: Renderer
+    
+    var body: some View {
+        VStack(spacing: 20) {
+            Divider().background(Color.white.opacity(0.2))
+            settingSlider(title: "Max Dist", setting: $settings.maxDistance)
+            settingSlider(title: "Min Dist", setting: $settings.minDistance)
+            settingSlider(title: "Beta", setting: $settings.beta)
+            settingSlider(title: "Friction", setting: $settings.friction)
+            settingSlider(title: "Repulsion", setting: $settings.repulsion)
+            settingSlider(title: "Point Size", setting: $settings.pointSize)
+            settingSlider(title: "World Size", setting: $settings.worldSize)
+        }
     }
     
     private func settingSlider(title: String, setting: Binding<ConfigurableSetting>) -> some View {
