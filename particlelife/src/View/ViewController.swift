@@ -41,7 +41,7 @@ class ViewController: NSViewController {
         )
 
         window.setFrameOrigin(centeredOrigin)
-        Logger.log("✅ Window centered on screen")
+        Logger.log("Window centered on screen")
     }
 
     override func viewDidLoad() {
@@ -81,10 +81,21 @@ class ViewController: NSViewController {
         constrainWindowAspectRatio()
     }
     
+    private var retryCount = 0
+    private let maxRetries = 10 // Prevent infinite loops
+
     func constrainWindowAspectRatio() {
+
         guard let window = view.window else {
-            Logger.log("Window not available yet, delaying aspect ratio constraint...")
-            DispatchQueue.main.async { self.constrainWindowAspectRatio() } // Retry after layout
+            if retryCount < maxRetries {
+                retryCount += 1
+                Logger.log("Window not available yet, retrying (\(retryCount)/\(maxRetries))...")
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    self.constrainWindowAspectRatio()
+                }
+            } else {
+                Logger.log("Max retries reached. Window still not available.", level: .error)
+            }
             return
         }
 
@@ -97,7 +108,7 @@ class ViewController: NSViewController {
         window.setContentSize(NSSize(width: minWidth, height: minHeight))
         window.minSize = NSSize(width: minWidth, height: minHeight)
 
-        Logger.log("Window aspect ratio locked")
+        Logger.log("Window aspect ratio locked after \(retryCount) tr\(retryCount == 1 ? "y" : "ies")")
     }
     func addSettingsPanel() {
         let settingsView = SimulationSettingsView(renderer: renderer)

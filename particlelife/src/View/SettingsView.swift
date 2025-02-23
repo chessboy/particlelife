@@ -7,9 +7,7 @@
 
 import SwiftUI
 import MetalKit
-
-import SwiftUI
-import MetalKit
+import SceneKit
 
 struct SimulationSettingsView: View {
     @ObservedObject var particleSystem = ParticleSystem.shared
@@ -65,7 +63,7 @@ struct SimulationSettingsView: View {
         .padding(.horizontal, 20)
         .frame(width: 340) // Keep fixed width
         .background(renderer.isPaused ? Color(red: 0.5, green: 0, blue: 0).opacity(0.75) : Color.black.opacity(0.75))
-        .cornerRadius(10)
+        .cornerRadius(20)
         .shadow(radius: 5)
         .opacity(isVisible ? 1.0 : 0.0)
         .allowsHitTesting(isVisible)
