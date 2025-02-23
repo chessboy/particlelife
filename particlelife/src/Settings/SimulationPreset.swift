@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct SimulationPreset: Identifiable, Codable, Hashable {
+struct SimulationPreset: Identifiable {
     let id: UUID
     let name: String
     let speciesCount: Int
@@ -23,7 +23,7 @@ struct SimulationPreset: Identifiable, Codable, Hashable {
     let worldSize: Float
     let isBuiltIn: Bool
     let shouldResetSpeciesCount: Bool
-
+    
     init(
         id: UUID = UUID(),
         name: String,
@@ -57,31 +57,33 @@ struct SimulationPreset: Identifiable, Codable, Hashable {
         self.isBuiltIn = isBuiltIn
         self.shouldResetSpeciesCount = shouldResetSpeciesCount
     }
+}
 
+extension SimulationPreset: Hashable {
+    
     func hash(into hasher: inout Hasher) {
         hasher.combine(name)
     }
-}
-
-extension SimulationPreset {
     
     static func == (lhs: SimulationPreset, rhs: SimulationPreset) -> Bool {
         return lhs.name == rhs.name &&
-               lhs.speciesCount == rhs.speciesCount &&
-               lhs.particleCount == rhs.particleCount &&
-               lhs.matrixType == rhs.matrixType &&
-               lhs.distributionType == rhs.distributionType &&
-               lhs.maxDistance == rhs.maxDistance &&
-               lhs.minDistance == rhs.minDistance &&
-               lhs.beta == rhs.beta &&
-               lhs.friction == rhs.friction &&
-               lhs.repulsion == rhs.repulsion &&
-               lhs.pointSize == rhs.pointSize &&
-               lhs.worldSize == rhs.worldSize &&
-               lhs.isBuiltIn == rhs.isBuiltIn &&
-               lhs.shouldResetSpeciesCount == rhs.shouldResetSpeciesCount
+        lhs.speciesCount == rhs.speciesCount &&
+        lhs.particleCount == rhs.particleCount &&
+        lhs.matrixType == rhs.matrixType &&
+        lhs.distributionType == rhs.distributionType &&
+        lhs.maxDistance == rhs.maxDistance &&
+        lhs.minDistance == rhs.minDistance &&
+        lhs.beta == rhs.beta &&
+        lhs.friction == rhs.friction &&
+        lhs.repulsion == rhs.repulsion &&
+        lhs.pointSize == rhs.pointSize &&
+        lhs.worldSize == rhs.worldSize &&
+        lhs.isBuiltIn == rhs.isBuiltIn &&
+        lhs.shouldResetSpeciesCount == rhs.shouldResetSpeciesCount
     }
+}
 
+extension SimulationPreset: Codable {
     /// Coding keys (needed for custom decoding)
     enum CodingKeys: String, CodingKey {
         case id, name, speciesCount, particleCount, matrixType, distributionType
@@ -89,11 +91,11 @@ extension SimulationPreset {
         case pointSize, worldSize, isBuiltIn
         case shouldResetSpeciesCount
     }
-
+    
     /// Custom decoding to handle missing fields
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-
+        
         // Generate a UUID if it's missing
         id = (try? container.decode(UUID.self, forKey: .id)) ?? UUID()
         name = try container.decode(String.self, forKey: .name)
@@ -115,7 +117,7 @@ extension SimulationPreset {
     /// Custom encoding (ensures all fields are saved)
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-
+        
         try container.encode(name, forKey: .name)
         try container.encode(speciesCount, forKey: .speciesCount)
         try container.encode(particleCount, forKey: .particleCount)
@@ -149,16 +151,16 @@ extension SimulationPreset {
             └─ Should Reset SpeciesCount: \(shouldResetSpeciesCount)
             """
     }
-
+    
     /// Extracts the matrix from `MatrixType` if it's `.custom`
     private var interactionMatrixString: String {
         guard case .custom(let matrix) = matrixType else { return "[]" }
-
+        
         return "[\n" + matrix
             .map { "        [" + $0.map { String(format: "%.2f", $0) }.joined(separator: ", ") + "]" }
             .joined(separator: ",\n") + "\n    ]"
     }
-
+    
     /// Returns a string representation of `MatrixType`, handling `.custom` separately
     private var matrixTypeString: String {
         if case .custom = matrixType {
@@ -166,7 +168,7 @@ extension SimulationPreset {
         }
         return ".\(matrixType)" // Converts the enum case to a string automatically
     }
-
+    
     /// Returns a string representation of the preset in Swift code format
     var asCode: String {
         return """
@@ -215,7 +217,7 @@ extension SimulationPreset {
         if case .custom(let matrix) = copiedMatrixType {
             copiedMatrixType = .custom(matrix.map { $0.map { $0 } })  // Deep copy
         }
-
+        
         return SimulationPreset(
             id: id ?? self.id,  // Preserve existing UUID unless explicitly changed
             name: newName ?? name,

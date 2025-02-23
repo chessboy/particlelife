@@ -26,5 +26,15 @@ struct Constants {
         static let panStep: Float = 0.01
     }
     
-    static let ASPECT_RATIO: Float = 1.7778
+    static let ASPECT_RATIO: CGFloat = 1.7778
+}
+
+struct AppInfo {
+    static var version: String {
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "Unknown"
+    }
+
+    static var build: String {
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "Unknown"
+    }
 }

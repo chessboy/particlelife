@@ -20,49 +20,85 @@ class ViewController: NSViewController {
     override func viewWillAppear() {
         super.viewWillAppear()
         self.view.window?.makeFirstResponder(self)
-        
-        if let window = view.window {
-            window.toggleFullScreen(nil)  // Make window fullscreen on launch
-        }
-        
+        centerWindowIfNeeded()
+
         actionTimer = Timer.scheduledTimer(timeInterval: 0.016, target: self, selector: #selector(updateCamera), userInfo: nil, repeats: true)
         self.view.window?.makeFirstResponder(self)
+    }
+    
+    func centerWindowIfNeeded() {
+        guard let window = view.window, let screen = window.screen else {
+            Logger.log("⚠️ Window not ready, delaying centering...")
+            DispatchQueue.main.async { self.centerWindowIfNeeded() }  // Try again on next cycle
+            return
+        }
 
+        let screenFrame = screen.visibleFrame
+        let windowSize = window.frame.size
+        let centeredOrigin = NSPoint(
+            x: screenFrame.midX - windowSize.width / 2,
+            y: screenFrame.midY - windowSize.height / 2
+        )
+
+        window.setFrameOrigin(centeredOrigin)
+        Logger.log("✅ Window centered on screen")
     }
 
     override func viewDidLoad() {
         super.viewDidLoad()
         
         if let screen = NSScreen.main {
-            let screenFrame = screen.frame  // Gets actual screen size
+            let screenFrame = screen.frame
             Logger.log("Screen Size: \(screenFrame.size)")
-            metalView = MTKView(frame: screenFrame, device: MTLCreateSystemDefaultDevice())
+
+            // Calculate initial size while keeping the aspect ratio
+            let initialWidth: CGFloat = min(screenFrame.width * 0.8, 1600)  // Example: Max 1600px width
+            let initialHeight: CGFloat = initialWidth / Constants.ASPECT_RATIO
+
+            metalView = MTKView(frame: CGRect(x: 0, y: 0, width: initialWidth, height: initialHeight),
+                                device: MTLCreateSystemDefaultDevice())
         } else {
             Logger.log("❌ Could not get screen size, falling back to view.bounds", level: .error)
             metalView = MTKView(frame: view.bounds, device: MTLCreateSystemDefaultDevice())
         }
         
         metalView.clearColor = MTLClearColor(red: 0, green: 0, blue: 0, alpha: 1)
-
-        // Allow Metal View to resize dynamically
         metalView.autoresizingMask = [.width, .height]
         metalView.translatesAutoresizingMaskIntoConstraints = false
-
         view.addSubview(metalView)
-        
         renderer = Renderer(mtkView: metalView)
 
         addSettingsPanel()
         
-        // Ensure Metal View Fills the Window Properly
         NSLayoutConstraint.activate([
             metalView.topAnchor.constraint(equalTo: view.topAnchor),
             metalView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             metalView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             metalView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
         ])
+
+        // Apply window constraints for aspect ratio
+        constrainWindowAspectRatio()
     }
     
+    func constrainWindowAspectRatio() {
+        guard let window = view.window else {
+            Logger.log("Window not available yet, delaying aspect ratio constraint...")
+            DispatchQueue.main.async { self.constrainWindowAspectRatio() } // Retry after layout
+            return
+        }
+
+        // Enforce the aspect ratio
+        window.aspectRatio = NSSize(width: Constants.ASPECT_RATIO, height: 1)
+
+        // Set minimum size
+        let minWidth: CGFloat = 1940
+        let minHeight: CGFloat = minWidth / CGFloat(Constants.ASPECT_RATIO)
+        window.setContentSize(NSSize(width: minWidth, height: minHeight))
+        window.minSize = NSSize(width: minWidth, height: minHeight)
+
+        Logger.log("Window aspect ratio locked")
+    }
     func addSettingsPanel() {
         let settingsView = SimulationSettingsView(renderer: renderer)
         let hostingView = NSHostingView(rootView: settingsView)
@@ -79,7 +115,7 @@ class ViewController: NSViewController {
             hostingView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 0)
         ])
     }
-    
+
     override var acceptsFirstResponder: Bool { true }
     
     override func mouseDown(with event: NSEvent) {

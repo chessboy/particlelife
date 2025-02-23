@@ -15,20 +15,21 @@ enum MatrixType: Codable, Hashable, CaseIterable {
     case chains2
     case chains3
     case snakes
+    case attractionRepulsionBands
     case custom([[Float]])
-
+    
     static var allCases: [MatrixType] {
-        return [.random, .symmetry, .chains, .chains2, .chains3, .snakes, .custom([[Float]]())]
+        return [.random, .symmetry, .chains, .chains2, .chains3, .snakes, .attractionRepulsionBands, .custom([[Float]]())]
     }
-
+    
     func hash(into hasher: inout Hasher) {
         hasher.combine(name)
     }
-
+    
     static func == (lhs: MatrixType, rhs: MatrixType) -> Bool {
         return lhs.name == rhs.name
     }
-
+    
     var name: String {
         switch self {
         case .random: return "Random"
@@ -37,6 +38,7 @@ enum MatrixType: Codable, Hashable, CaseIterable {
         case .chains2: return "Chains 2"
         case .chains3: return "Chains 3"
         case .snakes: return "Snakes"
+        case .attractionRepulsionBands: return "Bands"
         case .custom: return "Custom"
         }
     }
@@ -62,7 +64,7 @@ enum MatrixGenerator {
         var matrix = [[Float]](repeating: [Float](repeating: 0.0, count: speciesCount), count: speciesCount)
         
         switch type {
-
+            
         case .random:
             for i in 0..<speciesCount {
                 for j in 0..<speciesCount {
@@ -120,7 +122,22 @@ enum MatrixGenerator {
                 matrix[i][i] = 1.0 // Strong self-attraction
                 matrix[i][(i + 1) % speciesCount] = 0.2 // Weak attraction to the next species
             }
-                        
+            
+            // new ones
+        case .attractionRepulsionBands:
+            for i in 0..<speciesCount {
+                for j in 0..<speciesCount {
+                    if i == j {
+                        matrix[i][j] = 1.0  // Strong self-attraction
+                    } else if j == (i + 1) % speciesCount || j == (i + speciesCount - 1) % speciesCount {
+                        matrix[i][j] = 0.5  // Moderate attraction to nearest neighbors
+                    } else if j == (i + 2) % speciesCount || j == (i + speciesCount - 2) % speciesCount {
+                        matrix[i][j] = 0.2  // Weak attraction to next-nearest neighbors
+                    } else {
+                        matrix[i][j] = -0.8 // Strong repulsion to everything else
+                    }
+                }
+            }
         case .custom(let matrix):
             let currentSize = matrix.count
             if currentSize != speciesCount {
@@ -145,6 +162,7 @@ enum MatrixGenerator {
     }
 }
 
+
 extension MatrixType {
     
     func encode(to encoder: Encoder) throws {
@@ -163,17 +181,19 @@ extension MatrixType {
             try container.encode("chains3", forKey: .type)
         case .snakes:
             try container.encode("snakes", forKey: .type)
+        case .attractionRepulsionBands:
+            try container.encode("attractionRepulsionBands", forKey: .type)
         case .custom(let matrix):
             try container.encode("custom", forKey: .type)
             try container.encode(matrix, forKey: .data)
-
+            
         }
     }
-
+    
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let type = try container.decode(String.self, forKey: .type)
-
+        
         switch type {
         case "random":
             self = .random
@@ -187,6 +207,8 @@ extension MatrixType {
             self = .chains3
         case "snakes":
             self = .snakes
+        case "attractionRepulsionBands":
+            self = .attractionRepulsionBands
         case "custom":
             let matrix = try container.decode([[Float]].self, forKey: .data)
             self = .custom(matrix)

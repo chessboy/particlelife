@@ -58,7 +58,7 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         setupPipelines()
         
         // listeners
-        NotificationCenter.default.addObserver(self, selector: #selector(handleAppWillResignActive), name: NSApplication.willResignActiveNotification, object: nil)
+        // NotificationCenter.default.addObserver(self, selector: #selector(handleAppWillResignActive), name: NSApplication.willResignActiveNotification, object: nil)
         
         worldSizeObserver = SimulationSettings.shared.$worldSize.sink { [weak self] newWorldSize in
             self?.adjustZoomAndCameraForWorldSize(newWorldSize.value)

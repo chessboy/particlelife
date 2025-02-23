@@ -104,7 +104,8 @@ class UserPresetStorage {
     
     static func saveUserPreset(_ preset: SimulationPreset) -> SimulationPreset {
         var presets = loadUserPresets()
-        let uniqueName = ensureUniqueName(for: preset.name, existingPresets: presets)
+        let allPresets = presets + PresetDefinitions.getAllBuiltInPresets()
+        let uniqueName = ensureUniqueName(for: preset.name, existingPresets: allPresets)
         let newPreset = preset.copy(withName: uniqueName)
         presets.append(newPreset)
         persistUserPresets(presets)

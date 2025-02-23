@@ -23,8 +23,13 @@ struct SimulationSettingsView: View {
     
     var body: some View {
         VStack {
-            SimulationHeaderView(renderer: renderer)
             
+            Image("particle-life-logo")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 220)
+                .padding()
+                        
             MatrixView(interactionMatrix: $particleSystem.interactionMatrix, isVisible: $isVisible, renderer: renderer, speciesColors: particleSystem.speciesColors)
             
             VStack(spacing: 20) {
@@ -36,7 +41,7 @@ struct SimulationSettingsView: View {
             
             VStack(spacing: 20) {
                 PresetButtonsView(isShowingSaveSheet: $isShowingSaveSheet, isShowingDeleteSheet: $isShowingDeleteSheet, renderer: renderer)
-                Divider().background(Color.white.opacity(0.2))
+                CustomDivider()
                 SpeciesAndParticlesView(settings: settings, renderer: renderer)
                     .padding(.top, 6)
                 SimulationButtonsView(renderer: renderer)
@@ -48,9 +53,16 @@ struct SimulationSettingsView: View {
             SimulationSlidersView(settings: settings, renderer: renderer)
                 .padding(.top, 10)
             
+            CustomDivider()
+                .padding(.top, 20)
+            
+            FooterView(renderer: renderer)
+                .padding(.top, 6)
+                .padding(.bottom, 6)
+
             Spacer()
         }
-        .padding(20)
+        .padding(.horizontal, 20)
         .frame(width: 340) // Keep fixed width
         .background(renderer.isPaused ? Color(red: 0.5, green: 0, blue: 0).opacity(0.75) : Color.black.opacity(0.75))
         .cornerRadius(10)
@@ -82,17 +94,32 @@ struct SimulationSettingsView: View {
     }
 }
 
-struct SimulationHeaderView: View {
+struct CustomDivider: View {
+    var body: some View {
+        Divider()
+            .background(Color.white.opacity(0.4))
+            .padding(.vertical, 4)
+    }
+}
+
+struct FooterView: View {
     @ObservedObject var renderer: Renderer
     
     var body: some View {
         HStack {
             Text(renderer.isPaused ? "PAUSED" : "FPS: \(renderer.fps)")
-                .font(.headline)
+                .font(.system(size: 14, weight: .bold, design: .monospaced))
                 .foregroundColor(renderer.isPaused || renderer.fps < 30 ? .red : .green)
             
-            Text("\(renderer.zoomLevel, specifier: "%.2f")x")
+            Spacer()
+            
+            Text("v\(AppInfo.version)")
+                .font(.system(size: 14, weight: .medium, design: .monospaced))
+                .foregroundColor(.gray)
         }
+        .padding(.horizontal, 8) // Ensures better spacing on left/right
+        .padding(.bottom, 4) // Lowers the footer slightly
+        .frame(maxWidth: .infinity, alignment: .leading) // Ensures it spans correctly
     }
 }
 
@@ -303,7 +330,7 @@ struct SimulationSlidersView: View {
     
     var body: some View {
         VStack(spacing: 20) {
-            Divider().background(Color.white.opacity(0.2))
+            CustomDivider()
             settingSlider(title: "Max Dist", setting: $settings.maxDistance)
             settingSlider(title: "Min Dist", setting: $settings.minDistance)
             settingSlider(title: "Beta", setting: $settings.beta)
@@ -388,15 +415,15 @@ struct DeletePresetSheet: View {
                 Button("Cancel") {
                     isShowingDeleteSheet = false
                 }
-                .buttonStyle(SettingsButtonStyle())
-                
+                .buttonStyle(.bordered)
+
                 Button("Delete") {
                     PresetManager.shared.deleteUserPreset(named: presetToDelete.name)
                     SimulationSettings.shared.userPresets = PresetManager.shared.getUserPresets()
                     SimulationSettings.shared.selectPreset(PresetDefinitions.getDefaultPreset())
                     isShowingDeleteSheet = false
                 }
-                .buttonStyle(SettingsButtonStyle())
+                .buttonStyle(.borderedProminent)
                 .foregroundColor(.red)
             }
         }
