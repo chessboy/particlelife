@@ -16,30 +16,20 @@ struct MatrixView: View {
     @State private var tooltipText: String = ""
     
     @ObservedObject var renderer: Renderer
-
+        
     let speciesColors: [Color]
 
     var body: some View {
-        VStack {
-            SpeciesHeaderRow(speciesColors: speciesColors)
-            
-            VStack {
-                InteractionMatrixGrid(
-                    isVisible: $isVisible,
-                    speciesColors: speciesColors,
-                    interactionMatrix: $interactionMatrix,
-                    hoveredCell: $hoveredCell,
-                    tooltipText: $tooltipText,
-                    tooltipPosition: $tooltipPosition,
-                    renderer: renderer
-                )
-            }
-        }
-        .frame(width: 240, height: CGFloat(interactionMatrix.count + 1) * 22 - 4)
-        .padding(.top, 10)
-        .padding(.bottom, 10)
-        .background(renderer.isPaused ? Color(red: 0.5, green: 0, blue: 0).opacity(0.75) : Color.black)
-        .cornerRadius(8)
+        
+        InteractionMatrixGrid(
+            isVisible: $isVisible,
+            speciesColors: speciesColors,
+            interactionMatrix: $interactionMatrix,
+            hoveredCell: $hoveredCell,
+            tooltipText: $tooltipText,
+            tooltipPosition: $tooltipPosition,
+            renderer: renderer
+        )
         .overlay(tooltipView, alignment: .topLeading)
     }
     
@@ -53,25 +43,10 @@ struct MatrixView: View {
     }
 }
 
-struct SpeciesHeaderRow: View {
-    let speciesColors: [Color]
-
-    var body: some View {
-        HStack(spacing: 2) {
-            Color.clear.frame(width: 20, height: 20) // Placeholder for top-left corner
-            ForEach(speciesColors.indices, id: \.self) { index in
-                speciesColors[index]
-                    .frame(width: 20, height: 20)
-                    .clipShape(Circle())
-            }
-        }
-    }
-}
-
 struct InteractionMatrixGrid: View {
     @State private var lastMouseButton: Int = 0
     @Binding var isVisible: Bool
-
+    
     let speciesColors: [Color]
     @Binding var interactionMatrix: [[Float]] // Allows modification
     @Binding var hoveredCell: (row: Int, col: Int)?
@@ -79,43 +54,67 @@ struct InteractionMatrixGrid: View {
     @Binding var tooltipPosition: CGPoint
     
     @ObservedObject var renderer: Renderer
-
+    
+    private var spacing: CGFloat {
+        let count = max(1, speciesColors.count)
+        return max(3, 16 / CGFloat(count))
+    }
+    
     var body: some View {
-        LazyVStack(spacing: 2) {
-            ForEach(interactionMatrix.indices, id: \.self) { row in
-                rowView(row: row)
+        GeometryReader { geometry in
+            let speciesCount = speciesColors.count
+            let totalWidth: CGFloat = geometry.size.width - CGFloat(speciesCount + 1) * spacing
+            let cellSize = totalWidth / CGFloat(speciesCount + 1)
+            
+            VStack(spacing: spacing) {
+                // Header row with species colors
+                HStack(spacing: spacing) {
+                    Color.clear.frame(width: cellSize, height: cellSize) // Placeholder for alignment
+                    ForEach(speciesColors.indices, id: \.self) { index in
+                        speciesColors[index]
+                            .frame(width: cellSize, height: cellSize)
+                            .clipShape(Circle())
+                    }
+                }
+                .frame(height: cellSize)
+                
+                // Matrix rows with species color indicators
+                LazyVStack(spacing: spacing) {
+                    ForEach(interactionMatrix.indices, id: \.self) { row in
+                        rowView(row: row, totalWidth: totalWidth, cellSize: cellSize)
+                    }
+                }
             }
         }
     }
     
     @ViewBuilder
-    private func rowView(row: Int) -> some View {
-        LazyHStack(spacing: 2) {
-            // Ensure index is within range before accessing speciesColors
-            if row < speciesColors.count {
+    private func rowView(row: Int, totalWidth: CGFloat, cellSize: CGFloat) -> some View {
+        LazyHStack(spacing: spacing) {
+            // Species color indicator (aligned with header)
+            if speciesColors.indices.contains(row) {
                 speciesColors[row]
-                    .frame(width: 20, height: 20)
+                    .frame(width: cellSize, height: cellSize) // Adjust size to match header
                     .clipShape(Circle())
             } else {
-                Color.gray // Fallback for missing species colors
-                    .frame(width: 20, height: 20)
-                    .clipShape(Circle())
+                Color.clear.frame(width: cellSize, height: cellSize) // Placeholder for alignment
             }
             
             // Matrix cells for this row
             ForEach(interactionMatrix[row].indices, id: \.self) { col in
-                cellView(row: row, col: col)
+                cellView(row: row, col: col, totalWidth: totalWidth, cellSize: cellSize)
             }
         }
+        .frame(height: cellSize)
     }
-
+    
     @ViewBuilder
-    private func cellView(row: Int, col: Int) -> some View {
+    private func cellView(row: Int, col: Int, totalWidth: CGFloat, cellSize: CGFloat) -> some View {
         let value = interactionMatrix[row][col]
         
         Rectangle()
             .fill(colorForValue(value))
-            .frame(width: 20, height: 20)
+            .frame(width: cellSize, height: cellSize)
             .overlay(
                 hoveredCell.map { hovered in
                     hovered == (row, col) ? Rectangle().stroke(Color.white, lineWidth: 2) : nil
@@ -125,7 +124,7 @@ struct InteractionMatrixGrid: View {
                 if isHovering {
                     hoveredCell = (row, col)
                     tooltipText = String(format: "%.2f", value)
-                    tooltipPosition = computeTooltipPosition(row: row, col: col)
+                    tooltipPosition = computeTooltipPosition(row: row, col: col, totalWidth: totalWidth, cellSize: cellSize)
                 } else {
                     hoveredCell = nil
                 }
@@ -138,26 +137,28 @@ struct InteractionMatrixGrid: View {
             .onAppear {
                 NSEvent.addLocalMonitorForEvents(matching: [.scrollWheel]) { event in
                     guard isVisible else { return event }
-
+                    
                     let scrollSensitivity: Float = 0.001  // Adjust sensitivity (lower = slower)
                     let deltaY = Float(event.scrollingDeltaY) * scrollSensitivity
-
+                    
                     if let hovered = hoveredCell {
                         let adjustment = max(-0.1, min(0.1, deltaY)) // Prevent large jumps
                         adjustMatrixValue(row: hovered.row, col: hovered.col, amount: adjustment)
                     }
-
+                    
                     return event
                 }
             }
     }
-    
-    let cycleValues: [Float] = [-1.0, -0.75, -0.5, -0.25, 0.0, 0.25, 0.5, 0.75, 1.0]
-    
+}
+
+extension InteractionMatrixGrid {
     /// Cycles the matrix value to the next step in cycleValues
     private func cycleMatrixValue(row: Int, col: Int) {
-        guard row >= 0, col >= 0, row < interactionMatrix.count, col < interactionMatrix[row].count else { return }
+        let cycleValues: [Float] = [-1.0, -0.75, -0.5, -0.25, 0.0, 0.25, 0.5, 0.75, 1.0]
 
+        guard row >= 0, col >= 0, row < interactionMatrix.count, col < interactionMatrix[row].count else { return }
+        
         let currentValue = interactionMatrix[row][col]
         
         // Find the closest cycle value
@@ -168,20 +169,20 @@ struct InteractionMatrixGrid: View {
             setMatrixValue(row: row, col:  col, newValue: newValue)
         }
     }
-        
+    
     /// Adjusts the interaction matrix value
     private func adjustMatrixValue(row: Int, col: Int, amount: Float) {
         guard row >= 0, col >= 0, row < interactionMatrix.count, col < interactionMatrix[row].count else { return }
         
         let oldValue = interactionMatrix[row][col]
         var newValue = oldValue + amount
-
+        
         //newValue = round(newValue * 10) / 10 // round to nearest tenth
         newValue = max(-1, min(1, newValue))
-
+        
         setMatrixValue(row: row, col: col, newValue: newValue)
     }
-        
+    
     private func setMatrixValue(row: Int, col: Int, newValue: Float) {
         interactionMatrix[row][col] = newValue
         BufferManager.shared.updateInteractionBuffer(interactionMatrix: interactionMatrix)
@@ -191,18 +192,14 @@ struct InteractionMatrixGrid: View {
         SimulationSettings.shared.selectedPreset = SimulationSettings.shared.selectedPreset.copy(withName: nil, newMatrixType: .custom(interactionMatrix))
     }
     
-    private func computeTooltipPosition(row: Int, col: Int) -> CGPoint {
-        guard speciesColors.count > 0 else { return .zero }
-        
-        let cellSize: CGFloat = 22
-        let maxViewWidth: CGFloat = 240
-        let gridWidth: CGFloat = CGFloat(speciesColors.count) * cellSize
-        let padding = (maxViewWidth - gridWidth) / 2
-        let xOffset = padding + CGFloat(col - 1) * cellSize + (cellSize / 2) + 36
-        
-        let yOffset: CGFloat = CGFloat(row) * cellSize + 20
-        
-        return CGPoint(x: xOffset, y: yOffset)
+    private func computeTooltipPosition(row: Int, col: Int, totalWidth: CGFloat, cellSize: CGFloat) -> CGPoint {
+        let xPadding: CGFloat = cellSize / 2 // center horizontally
+        let yPadding: CGFloat = -16 // don't overlap the cell
+
+        let y = CGFloat(row + 1) * (cellSize + spacing) + yPadding
+        let x = CGFloat(col + 1) * (cellSize + spacing) + xPadding
+
+        return CGPoint(x: x, y: y)
     }
     
     /// Determines color based on interaction value
@@ -215,4 +212,34 @@ struct InteractionMatrixGrid: View {
             return .black // Neutral (0) is black
         }
     }
+}
+
+struct MatrixPreviewWrapper: View {
+    @State private var n: Int
+    @State private var matrix: [[Float]]
+    @State private var isVisible: Bool = true
+    let speciesColors: [Color]
+    
+    init(n: Int) {
+        self._n = State(initialValue: n)
+        self._matrix = State(initialValue: Array(repeating: Array(repeating: 0.0, count: n), count: n))
+        let predefinedColors = Constants.speciesColors
+        self.speciesColors = (0..<n).map { predefinedColors[$0 % predefinedColors.count] }
+    }
+    
+    var body: some View {
+        
+        MatrixView(
+            interactionMatrix: $matrix,
+            isVisible: $isVisible,
+            renderer: Renderer(),
+            speciesColors: speciesColors
+        )
+        .frame(width: 300, height: 300)
+        .background(Color.black)
+    }
+}
+
+#Preview {
+    MatrixPreviewWrapper(n: 3)
 }

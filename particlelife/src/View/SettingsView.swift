@@ -18,7 +18,8 @@ struct SimulationSettingsView: View {
     @State private var isShowingSaveSheet = false
     @State private var isShowingDeleteSheet = false
     @State private var presetName: String = "Untitled"
-    
+    @State private var isPinned: Bool = true
+
     var body: some View {
         VStack {
             
@@ -27,8 +28,10 @@ struct SimulationSettingsView: View {
                 .scaledToFit()
                 .frame(width: 220)
                 .padding()
+                .padding(.top, 10)
                         
             MatrixView(interactionMatrix: $particleSystem.interactionMatrix, isVisible: $isVisible, renderer: renderer, speciesColors: particleSystem.speciesColors)
+                .frame(width: 300, height: 300)
             
             VStack(spacing: 20) {
                 PresetPickerView(settings: settings, renderer: renderer)
@@ -54,16 +57,19 @@ struct SimulationSettingsView: View {
             CustomDivider()
                 .padding(.top, 20)
             
-            FooterView(renderer: renderer)
+            FooterView(renderer: renderer, isPinned: $isPinned)
                 .padding(.top, 6)
                 .padding(.bottom, 6)
+                .padding(.horizontal, 10)
 
             Spacer()
         }
-        .padding(.horizontal, 20)
-        .frame(width: 340) // Keep fixed width
-        .background(renderer.isPaused ? Color(red: 0.5, green: 0, blue: 0).opacity(0.75) : Color.black.opacity(0.75))
-        .cornerRadius(20)
+        .background(renderer.isPaused ? Color(red: 0.5, green: 0, blue: 0).opacity(0.9) : Color.black.opacity(0.9))
+        .clipShape(RoundedCornerShape(corners: [.topRight, .bottomRight], radius: 20))
+        .overlay(
+            RoundedCornerShape(corners: [.topRight, .bottomRight], radius: 20)
+                .stroke(Color(white: 0.33), lineWidth: 2)
+        )
         .shadow(radius: 5)
         .opacity(isVisible ? 1.0 : 0.0)
         .allowsHitTesting(isVisible)
@@ -83,7 +89,7 @@ struct SimulationSettingsView: View {
             }
         }
         .onHover { hovering in
-            if !isShowingSaveSheet && !isShowingDeleteSheet {
+            if !isPinned && !isShowingSaveSheet && !isShowingDeleteSheet {
                 withAnimation {
                     isVisible = hovering
                 }
@@ -95,25 +101,42 @@ struct SimulationSettingsView: View {
 struct CustomDivider: View {
     var body: some View {
         Divider()
-            .background(Color.white.opacity(0.4))
+            .background(Color(white: 0.33))
             .padding(.vertical, 4)
     }
 }
 
 struct FooterView: View {
     @ObservedObject var renderer: Renderer
-    
+    @Binding var isPinned: Bool // ✅ Accept binding for pin toggle
+
     var body: some View {
         HStack {
+
+            Text("v\(AppInfo.version)")
+                .font(.system(size: 14, weight: .medium, design: .monospaced))
+                .foregroundColor(.gray)
+
+            Spacer()
+
             Text(renderer.isPaused ? "PAUSED" : "FPS: \(renderer.fps)")
                 .font(.system(size: 14, weight: .bold, design: .monospaced))
                 .foregroundColor(renderer.isPaused || renderer.fps < 30 ? .red : .green)
             
             Spacer()
             
-            Text("v\(AppInfo.version)")
-                .font(.system(size: 14, weight: .medium, design: .monospaced))
-                .foregroundColor(.gray)
+            Button(action: {
+                isPinned.toggle() // Toggle the pinned state
+            }) {
+                Image(systemName: isPinned ? "pin.fill" : "pin") // Pin emoji alternative
+                    .foregroundColor(isPinned ? .yellow : .gray)
+                    .font(.system(size: 16))
+                    .padding(4)
+                    .background(Color.black.opacity(0.3))
+                    .clipShape(Circle())
+            }
+            .buttonStyle(PlainButtonStyle()) // Prevents default button styling
+
         }
         .padding(.horizontal, 8) // Ensures better spacing on left/right
         .padding(.bottom, 4) // Lowers the footer slightly
@@ -451,6 +474,7 @@ struct SettingsButtonStyle: ButtonStyle {
         .opacity(configuration.isPressed ? 0.7 : (isEnabled ? 1.0 : 0.6))
     }
 }
+
 
 #Preview {
     let mtkView = MTKView()

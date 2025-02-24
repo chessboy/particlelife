@@ -52,7 +52,7 @@ class ViewController: NSViewController {
             Logger.log("Screen Size: \(screenFrame.size)")
 
             // Calculate initial size while keeping the aspect ratio
-            let initialWidth: CGFloat = min(screenFrame.width * 0.8, 1600)  // Example: Max 1600px width
+            let initialWidth: CGFloat = min(screenFrame.width * 0.8, 2000)
             let initialHeight: CGFloat = initialWidth / Constants.ASPECT_RATIO
 
             metalView = MTKView(frame: CGRect(x: 0, y: 0, width: initialWidth, height: initialHeight),
@@ -103,13 +103,14 @@ class ViewController: NSViewController {
         window.aspectRatio = NSSize(width: Constants.ASPECT_RATIO, height: 1)
 
         // Set minimum size
-        let minWidth: CGFloat = 1940
+        let minWidth: CGFloat = 2080
         let minHeight: CGFloat = minWidth / CGFloat(Constants.ASPECT_RATIO)
         window.setContentSize(NSSize(width: minWidth, height: minHeight))
         window.minSize = NSSize(width: minWidth, height: minHeight)
 
         Logger.log("Window aspect ratio locked after \(retryCount) tr\(retryCount == 1 ? "y" : "ies")")
     }
+    
     func addSettingsPanel() {
         let settingsView = SimulationSettingsView(renderer: renderer)
         let hostingView = NSHostingView(rootView: settingsView)
@@ -121,9 +122,9 @@ class ViewController: NSViewController {
 
         // Constrain to desired width and let height be flexible
         NSLayoutConstraint.activate([
-            hostingView.widthAnchor.constraint(equalToConstant: 320),
+            hostingView.widthAnchor.constraint(equalToConstant: 340),
             hostingView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            hostingView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 0)
+            hostingView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: -2)
         ])
     }
 
