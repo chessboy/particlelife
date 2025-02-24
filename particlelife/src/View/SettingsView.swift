@@ -108,7 +108,7 @@ struct CustomDivider: View {
 
 struct FooterView: View {
     @ObservedObject var renderer: Renderer
-    @Binding var isPinned: Bool // ✅ Accept binding for pin toggle
+    @Binding var isPinned: Bool
 
     var body: some View {
         HStack {
@@ -128,7 +128,7 @@ struct FooterView: View {
             Button(action: {
                 isPinned.toggle() // Toggle the pinned state
             }) {
-                Image(systemName: isPinned ? "pin.fill" : "pin") // Pin emoji alternative
+                Image(systemName: isPinned ? "pin.fill" : "pin")
                     .foregroundColor(isPinned ? .yellow : .gray)
                     .font(.system(size: 16))
                     .padding(4)
@@ -138,9 +138,9 @@ struct FooterView: View {
             .buttonStyle(PlainButtonStyle()) // Prevents default button styling
 
         }
-        .padding(.horizontal, 8) // Ensures better spacing on left/right
-        .padding(.bottom, 4) // Lowers the footer slightly
-        .frame(maxWidth: .infinity, alignment: .leading) // Ensures it spans correctly
+        .padding(.horizontal, 8)
+        .padding(.bottom, 4)
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 

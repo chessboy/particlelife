@@ -108,16 +108,24 @@ struct InteractionMatrixGrid: View {
         .frame(height: cellSize)
     }
     
+    private func strokedRectangle(color: Color, lineWidth: CGFloat, cornerRadius: CGFloat) -> some View {
+        RoundedRectangle(cornerRadius: cornerRadius)
+            .strokeBorder(color, lineWidth: lineWidth)
+    }
+    
     @ViewBuilder
     private func cellView(row: Int, col: Int, totalWidth: CGFloat, cellSize: CGFloat) -> some View {
         let value = interactionMatrix[row][col]
         
-        Rectangle()
+        RoundedRectangle(cornerRadius: 4)
             .fill(colorForValue(value))
             .frame(width: cellSize, height: cellSize)
             .overlay(
+                abs(value) < 2 ? strokedRectangle(color: Color.white.opacity(0.2), lineWidth: 1, cornerRadius: 4) : nil
+            )
+            .overlay(
                 hoveredCell.map { hovered in
-                    hovered == (row, col) ? Rectangle().stroke(Color.white, lineWidth: 2) : nil
+                    hovered == (row, col) ? strokedRectangle(color: Color.white, lineWidth: 2, cornerRadius: 4) : nil
                 }
             )
             .onHover { isHovering in
