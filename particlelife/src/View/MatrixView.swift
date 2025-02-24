@@ -60,6 +60,11 @@ struct InteractionMatrixGrid: View {
         return max(3, 16 / CGFloat(count))
     }
     
+    private var cornerRadiusMatrix: CGFloat {
+        let count = max(1, speciesColors.count)
+        return max(2, 16 / CGFloat(count))
+    }
+
     var body: some View {
         GeometryReader { geometry in
             let speciesCount = speciesColors.count
@@ -107,7 +112,7 @@ struct InteractionMatrixGrid: View {
         }
         .frame(height: cellSize)
     }
-    
+        
     private func strokedRectangle(color: Color, lineWidth: CGFloat, cornerRadius: CGFloat) -> some View {
         RoundedRectangle(cornerRadius: cornerRadius)
             .strokeBorder(color, lineWidth: lineWidth)
@@ -117,15 +122,15 @@ struct InteractionMatrixGrid: View {
     private func cellView(row: Int, col: Int, totalWidth: CGFloat, cellSize: CGFloat) -> some View {
         let value = interactionMatrix[row][col]
         
-        RoundedRectangle(cornerRadius: 4)
+        RoundedRectangle(cornerRadius: cornerRadiusMatrix)
             .fill(colorForValue(value))
             .frame(width: cellSize, height: cellSize)
             .overlay(
-                abs(value) < 2 ? strokedRectangle(color: Color.white.opacity(0.2), lineWidth: 1, cornerRadius: 4) : nil
+                abs(value) < 2 ? strokedRectangle(color: Color.white.opacity(0.2), lineWidth: 1, cornerRadius: cornerRadiusMatrix) : nil
             )
             .overlay(
                 hoveredCell.map { hovered in
-                    hovered == (row, col) ? strokedRectangle(color: Color.white, lineWidth: 2, cornerRadius: 4) : nil
+                    hovered == (row, col) ? strokedRectangle(color: Color.white, lineWidth: 2, cornerRadius: cornerRadiusMatrix) : nil
                 }
             )
             .onHover { isHovering in
