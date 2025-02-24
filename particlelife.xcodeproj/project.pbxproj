@@ -30,7 +30,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		D4AED87B2D5FE06F00F2B0EC /* particlelife.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = particlelife.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D4AED87B2D5FE06F00F2B0EC /* Particle Life.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Particle Life.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D4AED88C2D5FE07100F2B0EC /* particlelifeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = particlelifeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D4AED8962D5FE07100F2B0EC /* particlelifeUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = particlelifeUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D4AED8AA2D5FE09100F2B0EC /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
@@ -98,7 +98,7 @@
 		D4AED87C2D5FE06F00F2B0EC /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				D4AED87B2D5FE06F00F2B0EC /* particlelife.app */,
+				D4AED87B2D5FE06F00F2B0EC /* Particle Life.app */,
 				D4AED88C2D5FE07100F2B0EC /* particlelifeTests.xctest */,
 				D4AED8962D5FE07100F2B0EC /* particlelifeUITests.xctest */,
 			);
@@ -136,7 +136,7 @@
 			packageProductDependencies = (
 			);
 			productName = particlelife;
-			productReference = D4AED87B2D5FE06F00F2B0EC /* particlelife.app */;
+			productReference = D4AED87B2D5FE06F00F2B0EC /* Particle Life.app */;
 			productType = "com.apple.product-type.application";
 		};
 		D4AED88B2D5FE07100F2B0EC /* particlelifeTests */ = {
@@ -423,7 +423,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Particle Life";
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "© 2025 Rob Silverman";
 				INFOPLIST_KEY_NSMainStoryboardFile = Main;
 				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -432,7 +432,7 @@
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.applepi.particlelife;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "Particle Life";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 			};
@@ -451,7 +451,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Particle Life";
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "© 2025 Rob Silverman";
 				INFOPLIST_KEY_NSMainStoryboardFile = Main;
 				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -460,7 +460,7 @@
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.applepi.particlelife;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "Particle Life";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 			};
