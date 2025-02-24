@@ -20,3 +20,4 @@ git clone https://github.com/chessboy/particle-life.git
 cd particle-life
 open ParticleLife.xcodeproj
 ```
+![Particle Life Simulation](screenshot.png)
