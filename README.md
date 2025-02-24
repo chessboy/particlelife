@@ -18,6 +18,6 @@ Clone the repo and open the project in Xcode:
 ```sh
 git clone https://github.com/chessboy/particlelife.git
 cd particlelife
-open ParticleLife.xcodeproj
+open particlelife.xcodeproj
 ```
 ![Particle Life Simulation](screenshot.png)
