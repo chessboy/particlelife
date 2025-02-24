@@ -17,7 +17,7 @@ Particle Life is a GPU-accelerated particle simulation written in **SwiftUI & Me
 Clone the repo and open the project in Xcode:
 ```sh
 git clone https://github.com/chessboy/particlelife.git
-cd particle-life
+cd particlelife
 open ParticleLife.xcodeproj
 ```
 ![Particle Life Simulation](screenshot.png)
