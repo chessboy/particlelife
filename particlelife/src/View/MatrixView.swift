@@ -65,6 +65,11 @@ struct InteractionMatrixGrid: View {
         return max(2, 16 / CGFloat(count))
     }
 
+    private var circleScale: CGFloat {
+        let count = max(1, min(9, speciesColors.count))
+        return 0.7 + (CGFloat(count - 1) / 8) * 0.15 // 0.7 to 0.85
+    }
+    
     var body: some View {
         GeometryReader { geometry in
             let speciesCount = speciesColors.count
@@ -77,14 +82,15 @@ struct InteractionMatrixGrid: View {
                     Color.clear.frame(width: cellSize, height: cellSize) // Placeholder for alignment
                     ForEach(speciesColors.indices, id: \.self) { index in
                         speciesColors[index]
-                            .frame(width: cellSize, height: cellSize)
+                            .frame(width: cellSize * circleScale, height: cellSize * circleScale)
                             .clipShape(Circle())
+                            .frame(width: cellSize, height: cellSize)
                     }
                 }
                 .frame(height: cellSize)
                 
                 // Matrix rows with species color indicators
-                LazyVStack(spacing: spacing) {
+                VStack(spacing: spacing) {
                     ForEach(interactionMatrix.indices, id: \.self) { row in
                         rowView(row: row, totalWidth: totalWidth, cellSize: cellSize)
                     }
@@ -95,12 +101,13 @@ struct InteractionMatrixGrid: View {
     
     @ViewBuilder
     private func rowView(row: Int, totalWidth: CGFloat, cellSize: CGFloat) -> some View {
-        LazyHStack(spacing: spacing) {
+        HStack(spacing: spacing) {
             // Species color indicator (aligned with header)
             if speciesColors.indices.contains(row) {
                 speciesColors[row]
-                    .frame(width: cellSize, height: cellSize) // Adjust size to match header
+                    .frame(width: cellSize * circleScale, height: cellSize * circleScale)
                     .clipShape(Circle())
+                    .frame(width: cellSize, height: cellSize)
             } else {
                 Color.clear.frame(width: cellSize, height: cellSize) // Placeholder for alignment
             }
@@ -149,7 +156,7 @@ struct InteractionMatrixGrid: View {
             }
             .onAppear {
                 NSEvent.addLocalMonitorForEvents(matching: [.scrollWheel]) { event in
-                    guard isVisible else { return event }
+                    guard isVisible && !renderer.isPaused else { return event }
                     
                     let scrollSensitivity: Float = 0.001  // Adjust sensitivity (lower = slower)
                     let deltaY = Float(event.scrollingDeltaY) * scrollSensitivity

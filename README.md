@@ -11,7 +11,7 @@ Particle Life is a GPU-accelerated particle simulation written in **SwiftUI & Me
 ## Controls
 - **Matrix Editor**: Click or scroll to modify interactions.
 - **Presets**: Save and load custom configurations.
-- **Simulation Parameters**: Adjust distance thresholds, friction, and particle size.
+- **Simulation Parameters**: Adjust distance thresholds, friction, and particle size, and more.
 
 ## Installation
 Clone the repo and open the project in Xcode:
