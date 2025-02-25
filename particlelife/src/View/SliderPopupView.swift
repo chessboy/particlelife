@@ -12,10 +12,12 @@ struct SliderPopupView: View {
     let onValueChange: (Float) -> Void
     let onDismiss: () -> Void
 
+    let quickValues: [Float] = [-1.0, -0.5, 0.0, 0.5, 1.0] // Quick select values
+
     var body: some View {
-        VStack(spacing: 6) {
+        VStack(spacing: 8) {
             Text(String(format: "%.2f", value))
-                .font(.headline)
+                .font(.title3)
                 .bold()
                 .foregroundColor(.white)
 
@@ -25,14 +27,29 @@ struct SliderPopupView: View {
                 .onChange(of: value) { oldValue, newValue in
                     onValueChange(value)
                 }
-            
-            HStack {
-                Text("-1").font(.headline).foregroundColor(.gray)
-                Spacer()
-                Text("0").font(.headline).foregroundColor(.gray)
-                    .offset(x: -2.5, y: 0)
-                Spacer()
-                Text("1").font(.headline).foregroundColor(.gray)
+
+            HStack(spacing: 15) {
+                ForEach(quickValues, id: \.self) { quickValue in
+                    Button(action: {
+                        value = quickValue
+                        onValueChange(quickValue)
+                        onDismiss() // Close after selection
+                    }) {
+                        Text(String(format: "%.1f", quickValue))
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .frame(width: 44, height: 28)
+                            .background(
+                                RoundedRectangle(cornerRadius: 6)
+                                    .fill(colorForValue(quickValue))
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 6)
+                                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                            )
+                    }
+                    .buttonStyle(PlainButtonStyle()) // Keeps it visually consistent
+                }
             }
             .frame(width: 280)
         }
@@ -51,6 +68,18 @@ struct SliderPopupView: View {
             }
         }
     }
+    
+    /// Determines color based on interaction value (consistent with matrix grid)
+    private func colorForValue(_ value: Float) -> Color {
+        if value > 0 {
+            return Color(hue: 1/3, saturation: 1.0, brightness: 0.2 + 0.8 * Double(value)) // ✅ Green for attraction
+        } else if value < 0 {
+            return Color(hue: 0, saturation: 1.0, brightness: 0.2 + 0.8 * Double(-value)) // ✅ Red for repulsion
+        } else {
+            return .black // ✅ Neutral (0) is black
+        }
+    }
+
 }
 
 #Preview {

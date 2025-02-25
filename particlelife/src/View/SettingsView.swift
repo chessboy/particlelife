@@ -74,12 +74,6 @@ struct SimulationSettingsView: View {
         .opacity(isVisible ? 1.0 : 0.0)
         .allowsHitTesting(isVisible)
         .animation(.easeInOut(duration: 0.3), value: isVisible)
-        .popover(isPresented: $isShowingSaveSheet) {
-            SavePresetSheet(isShowingSaveSheet: $isShowingSaveSheet, presetName: $presetName)
-        }
-        .popover(isPresented: $isShowingDeleteSheet) {
-            DeletePresetSheet(isShowingDeleteSheet: $isShowingDeleteSheet)
-        }
         .onAppear {
             NSEvent.addLocalMonitorForEvents(matching: [.keyDown]) { event in
                 if event.keyCode == 48 { // Tab key
@@ -243,7 +237,14 @@ struct PresetButtonsView: View {
             }
             .buttonStyle(SettingsButtonStyle())
             .disabled(renderer.isPaused)
-            
+            .popover(
+                isPresented: $isShowingSaveSheet,
+                attachmentAnchor: .rect(.bounds),
+                arrowEdge: .top
+            ) {
+                SavePresetSheet(isShowingSaveSheet: $isShowingSaveSheet, presetName: .constant("New Preset"))
+            }
+
             Button("❌  Delete") {
                 if !SimulationSettings.shared.selectedPreset.isBuiltIn {
                     isShowingDeleteSheet = true
@@ -251,6 +252,13 @@ struct PresetButtonsView: View {
             }
             .buttonStyle(SettingsButtonStyle())
             .disabled(renderer.isPaused || SimulationSettings.shared.selectedPreset.isBuiltIn)
+            .popover(
+                isPresented: $isShowingDeleteSheet,
+                attachmentAnchor: .rect(.bounds),
+                arrowEdge: .top
+            ) {
+                DeletePresetSheet(isShowingDeleteSheet: $isShowingDeleteSheet)
+            }
         }
     }
 }
@@ -371,10 +379,11 @@ struct SavePresetSheet: View {
     @Binding var presetName: String
     
     var body: some View {
-        VStack(spacing: 12) {  // Reduce spacing
+        VStack(spacing: 20) {
             Text("Enter Preset Name")
-                .font(.headline)
-            
+                .font(.title2)
+                .bold()
+
             TextField("Preset Name", text: $presetName)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .frame(width: 200)
@@ -418,19 +427,21 @@ struct DeletePresetSheet: View {
     
     var body: some View {
         VStack(spacing: 20) {
-            Text("Delete Preset?")
+            Text("Delete Preset")
                 .font(.title2)
                 .bold()
             
             Text("Are you sure you want to delete **\(presetToDelete.name)**?")
                 .multilineTextAlignment(.center)
-            
+                .font(.title3)
+
             HStack {
                 Button("Cancel") {
                     isShowingDeleteSheet = false
                 }
                 .buttonStyle(.bordered)
-                
+                .frame(width: 120)
+
                 Button("Delete") {
                     PresetManager.shared.deleteUserPreset(named: presetToDelete.name)
                     SimulationSettings.shared.userPresets = PresetManager.shared.getUserPresets()
@@ -438,6 +449,7 @@ struct DeletePresetSheet: View {
                     isShowingDeleteSheet = false
                 }
                 .buttonStyle(.borderedProminent)
+                .frame(width: 120)
                 .foregroundColor(.red)
             }
         }
