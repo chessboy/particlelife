@@ -7,7 +7,18 @@
 
 import SwiftUI
 
+struct SelectedCell: Identifiable, Equatable {
+    let id = UUID()
+    let row: Int
+    let col: Int
+
+    static func == (lhs: SelectedCell, rhs: SelectedCell) -> Bool {
+        return lhs.row == rhs.row && lhs.col == rhs.col
+    }
+}
+
 struct MatrixView: View {
+    
     @Binding var interactionMatrix: [[Float]]
     @Binding var isVisible: Bool
     
@@ -15,12 +26,15 @@ struct MatrixView: View {
     @State private var tooltipPosition: CGPoint = .zero
     @State private var tooltipText: String = ""
     
+    @State private var selectedCell: SelectedCell? = nil
+    @State private var sliderPosition: UnitPoint = .zero
+    @State private var sliderValue: Float = 0.0
+    
     @ObservedObject var renderer: Renderer
         
     let speciesColors: [Color]
-
+    
     var body: some View {
-        
         InteractionMatrixGrid(
             isVisible: $isVisible,
             speciesColors: speciesColors,
@@ -28,18 +42,64 @@ struct MatrixView: View {
             hoveredCell: $hoveredCell,
             tooltipText: $tooltipText,
             tooltipPosition: $tooltipPosition,
+            selectedCell: $selectedCell,
+            sliderPosition: $sliderPosition,
+            sliderValue: $sliderValue,
             renderer: renderer
         )
         .overlay(tooltipView, alignment: .topLeading)
+        .popover(
+            item: $selectedCell,
+            attachmentAnchor: .point(sliderPosition),
+            arrowEdge: .top
+        ) { selected in
+            SliderPopupView(
+                value: $sliderValue,
+                onValueChange: { newValue in
+                    if selectedCell == selected {
+                        setMatrixValue(row: selected.row, col: selected.col, newValue: newValue)
+                    }
+                },
+                onDismiss: {
+                    selectedCell = nil
+                    hoveredCell = nil
+                }
+            )
+        }
+        .onChange(of: selectedCell) { oldValue, newValue in
+            if newValue == nil {
+                hoveredCell = nil // Reset when popover is dismissed
+            }
+        }
+        .onAppear {
+            NSEvent.addLocalMonitorForEvents(matching: [.keyDown]) { event in
+                if event.keyCode == 53 || event.keyCode == 36 || event.keyCode == 76 {
+                    // 53 = ESC, 36 = Return, 76 = Enter
+                    selectedCell = nil
+                    hoveredCell = nil
+                    return nil
+                }
+                return event
+            }
+        }
     }
-    
+
     // Floating tooltip positioned dynamically
     @ViewBuilder
     private var tooltipView: some View {
-        if hoveredCell != nil {
+        if hoveredCell != nil, selectedCell == nil {
             TooltipView(text: tooltipText)
                 .position(tooltipPosition)
         }
+    }
+        
+    private func setMatrixValue(row: Int, col: Int, newValue: Float) {
+        interactionMatrix[row][col] = newValue
+        BufferManager.shared.updateInteractionBuffer(interactionMatrix: interactionMatrix)
+        tooltipText = String(format: "%.2f", newValue)
+        
+        // update the current preset's matrix
+        SimulationSettings.shared.selectedPreset = SimulationSettings.shared.selectedPreset.copy(withName: nil, newMatrixType: .custom(interactionMatrix))
     }
 }
 
@@ -48,13 +108,18 @@ struct InteractionMatrixGrid: View {
     @Binding var isVisible: Bool
     
     let speciesColors: [Color]
-    @Binding var interactionMatrix: [[Float]] // Allows modification
+    @Binding var interactionMatrix: [[Float]]
+    
     @Binding var hoveredCell: (row: Int, col: Int)?
     @Binding var tooltipText: String
     @Binding var tooltipPosition: CGPoint
     
+    @Binding var selectedCell: SelectedCell?
+    @Binding var sliderPosition: UnitPoint
+    @Binding var sliderValue: Float
+
     @ObservedObject var renderer: Renderer
-    
+        
     private var spacing: CGFloat {
         let count = max(1, speciesColors.count)
         return max(3, 16 / CGFloat(count))
@@ -72,10 +137,10 @@ struct InteractionMatrixGrid: View {
     
     var body: some View {
         GeometryReader { geometry in
-            let speciesCount = speciesColors.count
-            let totalWidth: CGFloat = geometry.size.width - CGFloat(speciesCount + 1) * spacing
-            let cellSize = totalWidth / CGFloat(speciesCount + 1)
-            
+            let speciesCount = max(1, interactionMatrix.count)
+            let totalWidth = max(10, geometry.size.width - CGFloat(speciesCount + 1) * spacing)
+            let cellSize = max(5, totalWidth / CGFloat(speciesCount + 1))
+
             VStack(spacing: spacing) {
                 // Header row with species colors
                 HStack(spacing: spacing) {
@@ -141,95 +206,61 @@ struct InteractionMatrixGrid: View {
                 }
             )
             .onHover { isHovering in
+                guard selectedCell == nil else { return } // Don't reset hover state if a cell is selected
+                
                 if isHovering {
                     hoveredCell = (row, col)
                     tooltipText = String(format: "%.2f", value)
                     tooltipPosition = computeTooltipPosition(row: row, col: col, totalWidth: totalWidth, cellSize: cellSize)
-                } else {
-                    hoveredCell = nil
+                } else if let hovered = hoveredCell, hovered == (row, col) {
+                    hoveredCell = nil // Only clear if it's the same hovered cell
                 }
             }
             .onTapGesture {
-                if let hovered = hoveredCell, !renderer.isPaused {
-                    cycleMatrixValue(row: hovered.row, col: hovered.col)
-                }
-            }
-            .onAppear {
-                NSEvent.addLocalMonitorForEvents(matching: [.scrollWheel]) { event in
-                    guard isVisible && !renderer.isPaused else { return event }
-                    
-                    let scrollSensitivity: Float = 0.001  // Adjust sensitivity (lower = slower)
-                    let deltaY = Float(event.scrollingDeltaY) * scrollSensitivity
-                    
-                    if let hovered = hoveredCell {
-                        let adjustment = max(-0.1, min(0.1, deltaY)) // Prevent large jumps
-                        adjustMatrixValue(row: hovered.row, col: hovered.col, amount: adjustment)
-                    }
-                    
-                    return event
-                }
+                guard selectedCell == nil else { return } // Ignore if a cell is already selected
+                
+                selectedCell = SelectedCell(row: row, col: col)
+                hoveredCell = (row, col)
+                sliderValue = value
+                sliderPosition = computeSliderPosition(row: row, col: col, totalWidth: totalWidth, cellSize: cellSize, speciesCount: max(1, speciesColors.count))
             }
     }
 }
 
 extension InteractionMatrixGrid {
-    /// Cycles the matrix value to the next step in cycleValues
-    private func cycleMatrixValue(row: Int, col: Int) {
-        let cycleValues: [Float] = [-1.0, -0.75, -0.5, -0.25, 0.0, 0.25, 0.5, 0.75, 1.0]
-
-        guard row >= 0, col >= 0, row < interactionMatrix.count, col < interactionMatrix[row].count else { return }
-        
-        let currentValue = interactionMatrix[row][col]
-        
-        // Find the closest cycle value
-        if let index = cycleValues.enumerated().min(by: { abs($0.1 - currentValue) < abs($1.1 - currentValue) })?.offset {
-            let nextIndex = (index + 1) % cycleValues.count
-            let newValue = cycleValues[nextIndex]
-            
-            setMatrixValue(row: row, col:  col, newValue: newValue)
-        }
-    }
-    
-    /// Adjusts the interaction matrix value
-    private func adjustMatrixValue(row: Int, col: Int, amount: Float) {
-        guard row >= 0, col >= 0, row < interactionMatrix.count, col < interactionMatrix[row].count else { return }
-        
-        let oldValue = interactionMatrix[row][col]
-        var newValue = oldValue + amount
-        
-        //newValue = round(newValue * 10) / 10 // round to nearest tenth
-        newValue = max(-1, min(1, newValue))
-        
-        setMatrixValue(row: row, col: col, newValue: newValue)
-    }
-    
-    private func setMatrixValue(row: Int, col: Int, newValue: Float) {
-        interactionMatrix[row][col] = newValue
-        BufferManager.shared.updateInteractionBuffer(interactionMatrix: interactionMatrix)
-        tooltipText = String(format: "%.2f", newValue)
-        
-        // update the current preset's matrix
-        SimulationSettings.shared.selectedPreset = SimulationSettings.shared.selectedPreset.copy(withName: nil, newMatrixType: .custom(interactionMatrix))
-    }
     
     private func computeTooltipPosition(row: Int, col: Int, totalWidth: CGFloat, cellSize: CGFloat) -> CGPoint {
         let xPadding: CGFloat = cellSize / 2 // center horizontally
         let yPadding: CGFloat = -16 // don't overlap the cell
-
-        let y = CGFloat(row + 1) * (cellSize + spacing) + yPadding
+        
         let x = CGFloat(col + 1) * (cellSize + spacing) + xPadding
-
+        let y = CGFloat(row + 1) * (cellSize + spacing) + yPadding
+        
         return CGPoint(x: x, y: y)
+    }
+    
+    private func computeSliderPosition(row: Int, col: Int, totalWidth: CGFloat, cellSize: CGFloat, speciesCount: Int) -> UnitPoint {
+        let totalCells = CGFloat(speciesCount + 1)
+        
+        let x = (CGFloat(col + 1) / totalCells) * totalWidth + cellSize / 2
+        let y = (CGFloat(row + 1) / totalCells) * totalWidth
+        
+        let unitX = x / totalWidth
+        let unitY = y / totalWidth
+        let unitPoint = UnitPoint(x: unitX, y: unitY)
+        
+        return unitPoint
     }
     
     /// Determines color based on interaction value
     func colorForValue(_ value: Float) -> Color {
-        if value > 0 {
-            return Color(hue: 1/3, saturation: 1.0, brightness: 0.2 + 0.8 * Double(value)) // 🟢 Green for attraction
-        } else if value < 0 {
-            return Color(hue: 0, saturation: 1.0, brightness: 0.2 + 0.8 * Double(-value)) // 🔴 Red for repulsion
-        } else {
-            return .black // Neutral (0) is black
+        switch value {
+        case let v where v > 0:
+            return Color(hue: 1/3, saturation: 1.0, brightness: 0.2 + 0.8 * Double(v)) // Green (Attraction)
+        case let v where v < 0:
+            return Color(hue: 0, saturation: 1.0, brightness: 0.2 + 0.8 * Double(-v)) // Red (Repulsion)
+        default:
+            return .black // Neutral
         }
     }
 }

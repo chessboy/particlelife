@@ -153,7 +153,7 @@ class ViewController: NSViewController {
         switch event.keyCode {
         case 49: // space bar
             renderer.isPaused.toggle()
-        case 53: // esc
+        case 29: // zero
             renderer.resetPanAndZoom()
         case 24: // `+` key (Start Zooming In)
             zoomingIn = true
