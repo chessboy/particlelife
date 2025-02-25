@@ -18,8 +18,9 @@ struct SimulationSettingsView: View {
     @State private var isShowingSaveSheet = false
     @State private var isShowingDeleteSheet = false
     @State private var presetName: String = "Untitled"
-    @State private var isPinned: Bool = true
     
+    @State private var isPinned: Bool = false
+
     var body: some View {
         
         VStack {
@@ -30,7 +31,7 @@ struct SimulationSettingsView: View {
                 .padding()
                 .padding(.top, 10)
             
-            MatrixView(interactionMatrix: $particleSystem.interactionMatrix, isVisible: $isVisible, renderer: renderer, speciesColors: particleSystem.speciesColors)
+            MatrixView(interactionMatrix: $particleSystem.interactionMatrix, isVisible: $isVisible, isPinned: $isPinned, renderer: renderer, speciesColors: particleSystem.speciesColors)
                 .frame(width: 300, height: 300)
             
             VStack(spacing: 20) {
@@ -74,14 +75,6 @@ struct SimulationSettingsView: View {
         .opacity(isVisible ? 1.0 : 0.0)
         .allowsHitTesting(isVisible)
         .animation(.easeInOut(duration: 0.3), value: isVisible)
-        .onAppear {
-            NSEvent.addLocalMonitorForEvents(matching: [.keyDown]) { event in
-                if event.keyCode == 48 { // Tab key
-                    withAnimation { isVisible.toggle() }
-                }
-                return event
-            }
-        }
         .onHover { hovering in
             if !isPinned && !isShowingSaveSheet && !isShowingDeleteSheet {
                 withAnimation {
@@ -491,5 +484,10 @@ struct CustomDivider: View {
 #Preview {
     let mtkView = MTKView()
     let renderer = Renderer(mtkView: mtkView)
-    return NSHostingView(rootView: SimulationSettingsView(renderer: renderer))
+
+    NSHostingView(
+        rootView: SimulationSettingsView(
+            renderer: renderer
+        )
+    )
 }

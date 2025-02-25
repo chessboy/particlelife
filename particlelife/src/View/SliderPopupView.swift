@@ -27,13 +27,12 @@ struct SliderPopupView: View {
                 .onChange(of: value) { oldValue, newValue in
                     onValueChange(value)
                 }
-
             HStack(spacing: 15) {
                 ForEach(quickValues, id: \.self) { quickValue in
                     Button(action: {
                         value = quickValue
                         onValueChange(quickValue)
-                        onDismiss() // Close after selection
+                        onDismiss()
                     }) {
                         Text(String(format: "%.1f", quickValue))
                             .font(.headline)
@@ -64,7 +63,7 @@ struct SliderPopupView: View {
         .shadow(color: Color.black.opacity(0.8), radius: 8, y: 2)
         .onHover { isHovering in
             if !isHovering {
-                onDismiss() // Close when hovering away
+                onDismiss()
             }
         }
     }
@@ -72,11 +71,11 @@ struct SliderPopupView: View {
     /// Determines color based on interaction value (consistent with matrix grid)
     private func colorForValue(_ value: Float) -> Color {
         if value > 0 {
-            return Color(hue: 1/3, saturation: 1.0, brightness: 0.2 + 0.8 * Double(value)) // ✅ Green for attraction
+            return Color(hue: 1/3, saturation: 1.0, brightness: 0.2 + 0.8 * Double(value)) // Green for attraction
         } else if value < 0 {
-            return Color(hue: 0, saturation: 1.0, brightness: 0.2 + 0.8 * Double(-value)) // ✅ Red for repulsion
+            return Color(hue: 0, saturation: 1.0, brightness: 0.2 + 0.8 * Double(-value)) // Red for repulsion
         } else {
-            return .black // ✅ Neutral (0) is black
+            return .black // Neutral (0) is black
         }
     }
 

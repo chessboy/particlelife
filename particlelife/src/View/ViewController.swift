@@ -16,7 +16,7 @@ class ViewController: NSViewController {
     private var actionTimer: Timer?
 
     var hostingView: NSHostingView<SimulationSettingsView>!
-
+    
     override func viewWillAppear() {
         super.viewWillAppear()
         self.view.window?.makeFirstResponder(self)
@@ -110,14 +110,11 @@ class ViewController: NSViewController {
 
         Logger.log("Window aspect ratio locked after \(retryCount) tr\(retryCount == 1 ? "y" : "ies")")
     }
-    
+        
     func addSettingsPanel() {
         let settingsView = SimulationSettingsView(renderer: renderer)
         let hostingView = NSHostingView(rootView: settingsView)
-
-        // Let SwiftUI determine height
         hostingView.translatesAutoresizingMaskIntoConstraints = false
-
         view.addSubview(hostingView)
 
         // Constrain to desired width and let height be flexible

@@ -22,6 +22,9 @@ struct MatrixView: View {
     @Binding var interactionMatrix: [[Float]]
     @Binding var isVisible: Bool
     
+    @Binding var isPinned: Bool
+    @State private var wasPinnedBeforeSelection: Bool = false
+
     @State private var hoveredCell: (row: Int, col: Int)? = nil
     @State private var tooltipPosition: CGPoint = .zero
     @State private var tooltipText: String = ""
@@ -37,6 +40,8 @@ struct MatrixView: View {
     var body: some View {
         InteractionMatrixGrid(
             isVisible: $isVisible,
+            isPinned: $isPinned,
+            wasPinnedBeforeSelection: $wasPinnedBeforeSelection,
             speciesColors: speciesColors,
             interactionMatrix: $interactionMatrix,
             hoveredCell: $hoveredCell,
@@ -61,27 +66,35 @@ struct MatrixView: View {
                     }
                 },
                 onDismiss: {
-                    selectedCell = nil
-                    hoveredCell = nil
+                    clearSelection()
                 }
             )
         }
         .onChange(of: selectedCell) { oldValue, newValue in
-            if newValue == nil {
-                hoveredCell = nil // Reset when popover is dismissed
+            if let newValue = newValue {
+                hoveredCell = (newValue.row, newValue.col) // Ensure the outline is applied immediately
+            } else {
+                hoveredCell = nil
+                isPinned = wasPinnedBeforeSelection
             }
         }
         .onAppear {
             NSEvent.addLocalMonitorForEvents(matching: [.keyDown]) { event in
                 if event.keyCode == 53 || event.keyCode == 36 || event.keyCode == 76 {
                     // 53 = ESC, 36 = Return, 76 = Enter
-                    selectedCell = nil
-                    hoveredCell = nil
+                    clearSelection()
                     return nil
                 }
                 return event
             }
         }
+    }
+    
+    func clearSelection() {
+        guard selectedCell != nil else { return }
+        selectedCell = nil
+        hoveredCell = nil
+        isPinned = wasPinnedBeforeSelection
     }
 
     // Floating tooltip positioned dynamically
@@ -105,8 +118,11 @@ struct MatrixView: View {
 
 struct InteractionMatrixGrid: View {
     @State private var lastMouseButton: Int = 0
-    @Binding var isVisible: Bool
     
+    @Binding var isVisible: Bool
+    @Binding var isPinned: Bool
+    @Binding var wasPinnedBeforeSelection: Bool
+
     let speciesColors: [Color]
     @Binding var interactionMatrix: [[Float]]
     
@@ -217,12 +233,20 @@ struct InteractionMatrixGrid: View {
                 }
             }
             .onTapGesture {
-                guard selectedCell == nil else { return } // Ignore if a cell is already selected
-                
-                selectedCell = SelectedCell(row: row, col: col)
-                hoveredCell = (row, col)
-                sliderValue = value
-                sliderPosition = computeSliderPosition(row: row, col: col, cellSize: cellSize, speciesCount: max(1, speciesColors.count))
+                if selectedCell == nil {
+                    wasPinnedBeforeSelection = isPinned
+                    isPinned = true // Temporarily pin while slider is open
+
+                    DispatchQueue.main.async {
+                        selectedCell = SelectedCell(row: row, col: col)
+                        sliderValue = value
+                        sliderPosition = computeSliderPosition(
+                            row: row, col: col,
+                            cellSize: cellSize,
+                            speciesCount: max(1, speciesColors.count)
+                        )
+                    }
+                }
             }
     }
 }
@@ -265,6 +289,8 @@ struct MatrixPreviewWrapper: View {
     @State private var n: Int
     @State private var matrix: [[Float]]
     @State private var isVisible: Bool = true
+    @State var isPinned = false
+
     let speciesColors: [Color]
     
     init(n: Int) {
@@ -279,6 +305,7 @@ struct MatrixPreviewWrapper: View {
         MatrixView(
             interactionMatrix: $matrix,
             isVisible: $isVisible,
+            isPinned: $isPinned,
             renderer: Renderer(),
             speciesColors: speciesColors
         )
