@@ -211,7 +211,7 @@ struct InteractionMatrixGrid: View {
                 if isHovering {
                     hoveredCell = (row, col)
                     tooltipText = String(format: "%.2f", value)
-                    tooltipPosition = computeTooltipPosition(row: row, col: col, totalWidth: totalWidth, cellSize: cellSize)
+                    tooltipPosition = computeTooltipPosition(row: row, col: col, cellSize: cellSize)
                 } else if let hovered = hoveredCell, hovered == (row, col) {
                     hoveredCell = nil // Only clear if it's the same hovered cell
                 }
@@ -222,14 +222,14 @@ struct InteractionMatrixGrid: View {
                 selectedCell = SelectedCell(row: row, col: col)
                 hoveredCell = (row, col)
                 sliderValue = value
-                sliderPosition = computeSliderPosition(row: row, col: col, totalWidth: totalWidth, cellSize: cellSize, speciesCount: max(1, speciesColors.count))
+                sliderPosition = computeSliderPosition(row: row, col: col, cellSize: cellSize, speciesCount: max(1, speciesColors.count))
             }
     }
 }
 
 extension InteractionMatrixGrid {
     
-    private func computeTooltipPosition(row: Int, col: Int, totalWidth: CGFloat, cellSize: CGFloat) -> CGPoint {
+    private func computeTooltipPosition(row: Int, col: Int, cellSize: CGFloat) -> CGPoint {
         let xPadding: CGFloat = cellSize / 2 // center horizontally
         let yPadding: CGFloat = -16 // don't overlap the cell
         
@@ -239,19 +239,15 @@ extension InteractionMatrixGrid {
         return CGPoint(x: x, y: y)
     }
     
-    private func computeSliderPosition(row: Int, col: Int, totalWidth: CGFloat, cellSize: CGFloat, speciesCount: Int) -> UnitPoint {
+    private func computeSliderPosition(row: Int, col: Int, cellSize: CGFloat, speciesCount: Int) -> UnitPoint {
         let totalCells = CGFloat(speciesCount + 1)
-        
-        let x = (CGFloat(col + 1) / totalCells) * totalWidth + cellSize / 2
-        let y = (CGFloat(row + 1) / totalCells) * totalWidth
-        
-        let unitX = x / totalWidth
-        let unitY = y / totalWidth
-        let unitPoint = UnitPoint(x: unitX, y: unitY)
-        
-        return unitPoint
+
+        let unitX = (CGFloat(col + 1) / totalCells) + (0.5 / (totalCells + 0.5))
+        let unitY = (CGFloat(row + 1) / totalCells)
+
+        return UnitPoint(x: unitX, y: unitY)
     }
-    
+
     /// Determines color based on interaction value
     func colorForValue(_ value: Float) -> Color {
         switch value {
