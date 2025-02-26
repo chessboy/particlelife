@@ -20,7 +20,7 @@ struct SimulationSettingsView: View {
     @State private var isVisible: Bool = true
     @State private var isShowingSaveSheet = false
     @State private var isShowingDeleteSheet = false
-    @State private var presetName: String = "Untitled"
+    @State private var presetName: String = "New Preset"
     
     @State private var isPinned: Bool = true
     @State private var isExpanded = true
@@ -55,22 +55,18 @@ struct SimulationSettingsView: View {
             }
                         
             // Preset, Matrix, Distribution: Grouped neatly
-            VStack(spacing: 10) {
+            VStack(spacing: 12) {
                 PresetPickerView(settings: settings, renderer: renderer)
-                SpeciesPickerView(settings: settings)
-                ParticleCountPickerView(settings: settings)
+                SpeciesPickerView(settings: settings, renderer: renderer)
+                ParticleCountPickerView(settings: settings, renderer: renderer)
                 MarixPickerView(settings: settings, renderer: renderer)
                 DistributionPickerView(settings: settings, renderer: renderer)
             }
             .padding(.top, 15)
             
             // Controls: A little more room for clarity
-            VStack(spacing: 6) {
-                PresetButtonsView(isShowingSaveSheet: $isShowingSaveSheet, isShowingDeleteSheet: $isShowingDeleteSheet, renderer: renderer)
-
-                SimulationButtonsView(renderer: renderer)
-                    .padding(.top, 8)
-            }
+            SimulationButtonsView(renderer: renderer)
+            
             .padding(.top, 20)
             .padding(.bottom, 8)
             
@@ -97,6 +93,240 @@ struct SimulationSettingsView: View {
                 }
             }
         }
+    }
+}
+
+struct PresetPickerView: View {
+    @ObservedObject var settings: SimulationSettings
+    @ObservedObject var renderer: Renderer
+    
+    @State private var isShowingSaveSheet = false
+    @State private var isShowingDeleteSheet = false
+
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Text("File:")
+                .frame(width: pickerLabelWidth, alignment: .trailing)
+
+            Menu {
+                // 📁 File Actions
+                Button("⬜️ New") { settings.selectPreset(PresetDefinitions.emptyPreset) }
+                Button("🔀 Random") { settings.selectPreset(PresetDefinitions.randomPreset) }
+                Divider()
+                Button("💾 Save", action: { isShowingSaveSheet = true })
+                Button("🗑 Delete", action: {
+                    if !settings.selectedPreset.isBuiltIn {
+                        isShowingDeleteSheet = true
+                    }
+                })
+                .disabled(settings.selectedPreset.isBuiltIn)
+                
+                // ⭐ Built-in Presets
+                if !PresetDefinitions.specialPresets.isEmpty {
+                    Divider()
+                    Menu("⭐ Presets") {
+                        ForEach(PresetDefinitions.specialPresets, id: \.id) { preset in
+                            Button(preset.name) { settings.selectPreset(preset) }
+                        }
+                    }
+                }
+
+                // 📂 User Presets
+                if !settings.userPresets.isEmpty {
+                    Divider()
+                    Menu("📂 Mine") {
+                        ForEach(settings.userPresets, id: \.id) { preset in
+                            Button(preset.name) { settings.selectPreset(preset) }
+                        }
+                    }
+                }
+            } label: {
+                Text(settings.selectedPreset.name)
+            }
+            .pickerStyle(MenuPickerStyle())
+            .disabled(renderer.isPaused)
+            .popover(
+                isPresented: $isShowingSaveSheet,
+                attachmentAnchor: .rect(.bounds),
+                arrowEdge: .top
+            ) {
+                SavePresetSheet(isShowingSaveSheet: $isShowingSaveSheet, presetName: .constant(settings.selectedPreset.name))
+            }
+            .popover(
+                isPresented: $isShowingDeleteSheet,
+                attachmentAnchor: .rect(.bounds),
+                arrowEdge: .top
+            ) {
+                DeletePresetSheet(isShowingDeleteSheet: $isShowingDeleteSheet)
+            }
+        }
+        .frame(width: pickerViewWidth)
+    }
+}
+
+struct MarixPickerView: View {
+    @ObservedObject var settings: SimulationSettings
+    @ObservedObject var renderer: Renderer
+    
+    var body: some View {
+        HStack(spacing: 0) {
+            Text("Matrix:")
+                .frame(width: pickerLabelWidth, alignment: .trailing)
+            Picker("", selection: Binding(
+                get: { settings.selectedPreset.matrixType },
+                set: { newType in
+                    if newType != settings.selectedPreset.matrixType {
+                        settings.updateMatrixType(newType)
+                    }
+                }
+            )) {
+                ForEach(MatrixType.allCases, id: \.self) { type in
+                    Text(type.name).tag(type)
+                }
+            }
+            .pickerStyle(MenuPickerStyle())
+            .disabled(renderer.isPaused)
+        }
+        .frame(width: pickerViewWidth)
+    }
+}
+
+struct DistributionPickerView: View {
+    @ObservedObject var settings: SimulationSettings
+    @ObservedObject var renderer: Renderer
+    
+    var body: some View {
+        HStack(spacing: 0) {
+            Text("Distribute:")
+                .frame(width: pickerLabelWidth, alignment: .trailing)
+            Picker("", selection: Binding(
+                get: { settings.selectedPreset.distributionType },
+                set: { newType in
+                    if newType != settings.selectedPreset.distributionType {
+                        settings.updateDistributionType(newType)
+                    }
+                }
+            )) {
+                ForEach(DistributionType.allCases, id: \.self) { type in
+                    Text(type.displayName).tag(type)
+                }
+            }
+            .pickerStyle(MenuPickerStyle())
+            .disabled(renderer.isPaused)
+        }
+        .frame(width: pickerViewWidth)
+    }
+}
+
+struct SimulationButtonsView: View {
+    @ObservedObject var renderer: Renderer
+    
+    var body: some View {
+        HStack(spacing: 20) {
+            Button("↩️  Reset") {
+                let commandDown = NSEvent.modifierFlags.contains(.command)
+                if commandDown {
+                    ParticleSystem.shared.dumpPresetAsCode()
+                }
+                else {
+                    SimulationSettings.shared.selectPreset(SimulationSettings.shared.selectedPreset)
+                }
+            }
+            .buttonStyle(SettingsButtonStyle())
+            .disabled(renderer.isPaused)
+            
+            Button("♻️  Respawn") {
+                renderer.respawnParticles()
+            }
+            .buttonStyle(SettingsButtonStyle())
+            .disabled(renderer.isPaused)
+        }
+    }
+}
+
+struct SpeciesPickerView: View {
+    @ObservedObject var settings: SimulationSettings
+    @ObservedObject var renderer: Renderer
+
+    var body: some View {
+        HStack(spacing: 0) {
+            Text("Species:")
+                .frame(width: pickerLabelWidth, alignment: .trailing)
+            
+            Picker("", selection: Binding(
+                get: { settings.selectedPreset.speciesCount },
+                set: { newCount in
+                    ParticleSystem.shared.speciesCountWillChange(newCount: newCount)
+                }
+            )) {
+                ForEach(1...9, id: \.self) { count in
+                    Text("\(count)").tag(count)
+                }
+            }
+            .pickerStyle(MenuPickerStyle())
+            .disabled(renderer.isPaused)
+
+        }
+        .frame(width: pickerViewWidth)
+    }
+}
+
+struct ParticleCountPickerView: View {
+    @ObservedObject var settings: SimulationSettings
+    @ObservedObject var renderer: Renderer
+
+    var body: some View {
+        HStack(spacing: 0) {
+            Text("Particles:")
+                .frame(width: pickerLabelWidth, alignment: .trailing)
+            
+            Picker("", selection: Binding(
+                get: { settings.selectedPreset.particleCount },
+                set: { newCount in
+                    ParticleSystem.shared.particleCountWillChange(newCount: newCount)
+                }
+            )) {
+                ForEach(ParticleCount.allCases, id: \.self) { count in
+                    Text(count.displayString).tag(count)
+                }
+            }
+            .pickerStyle(MenuPickerStyle())
+            .disabled(renderer.isPaused)
+        }
+        .frame(width: pickerViewWidth)
+    }
+}
+
+struct SimulationSlidersView: View {
+    @ObservedObject var settings: SimulationSettings
+    @ObservedObject var renderer: Renderer
+    
+    var body: some View {
+        VStack(spacing: 10) {
+            settingSlider(title: "Max Dist", setting: $settings.maxDistance)
+            settingSlider(title: "Min Dist", setting: $settings.minDistance)
+            settingSlider(title: "Beta", setting: $settings.beta)
+            settingSlider(title: "Friction", setting: $settings.friction)
+            settingSlider(title: "Repulsion", setting: $settings.repulsion)
+            settingSlider(title: "World Size", setting: $settings.worldSize)
+            settingSlider(title: "Point Size", setting: $settings.pointSize)
+        }
+    }
+    
+    private func settingSlider(title: String, setting: Binding<ConfigurableSetting>) -> some View {
+        HStack {
+            Text("\(title):").frame(width: 70, alignment: .trailing)
+            Text("\(setting.wrappedValue.value, specifier: setting.wrappedValue.format)")
+                .font(.custom("Menlo", size: 14).bold())
+                .frame(width: 35, alignment: .trailing)
+                .padding(.trailing, 3)
+            Slider(value: setting.value, in: setting.wrappedValue.min...setting.wrappedValue.max, step: setting.wrappedValue.step)
+                .frame(width: 161)
+        }
+        
+        .padding(.horizontal, 16)
+        .disabled(renderer.isPaused)
     }
 }
 
@@ -165,250 +395,6 @@ struct FooterView: View {
         .padding(.bottom, 4)
         .padding(.horizontal, 8)
         .frame(width: 300)
-    }
-}
-
-struct PresetPickerView: View {
-    @ObservedObject var settings: SimulationSettings
-    @ObservedObject var renderer: Renderer
-    
-    var body: some View {
-        HStack(spacing: 0) {
-            Text("Preset:")
-                .frame(width: pickerLabelWidth, alignment: .trailing)
-            Picker("", selection: Binding(
-                get: { settings.selectedPreset.id },
-                set: { newPresetID in
-                    if newPresetID != settings.selectedPreset.id {
-                        if let newPreset = ([
-                            PresetDefinitions.randomPreset,
-                            PresetDefinitions.emptyPreset
-                        ] + PresetDefinitions.specialPresets + settings.userPresets)
-                            .first(where: { $0.id == newPresetID }) {
-                            settings.selectPreset(newPreset)
-                        }
-                    }
-                }
-            )) {
-                Text("🌱 \(PresetDefinitions.emptyPreset.name)").tag(PresetDefinitions.emptyPreset.id)
-                Text("🔀 \(PresetDefinitions.randomPreset.name)").tag(PresetDefinitions.randomPreset.id)
-                Text("").disabled(true)
-                ForEach(PresetDefinitions.specialPresets, id: \.id) { preset in
-                    Text("⭐ \(preset.name)").tag(preset.id)
-                }
-                
-                if !settings.userPresets.isEmpty {
-                    Text("").disabled(true)
-                    ForEach(settings.userPresets, id: \.id) { preset in
-                        Text("📁 \(preset.name)").tag(preset.id)
-                    }
-                }
-            }
-            .pickerStyle(MenuPickerStyle())
-            .disabled(renderer.isPaused)
-        }
-        .frame(width: pickerViewWidth)
-    }
-}
-
-struct MarixPickerView: View {
-    @ObservedObject var settings: SimulationSettings
-    @ObservedObject var renderer: Renderer
-    
-    var body: some View {
-        HStack(spacing: 0) {
-            Text("Matrix:")
-                .frame(width: pickerLabelWidth, alignment: .trailing)
-            Picker("", selection: Binding(
-                get: { settings.selectedPreset.matrixType },
-                set: { newType in
-                    if newType != settings.selectedPreset.matrixType {
-                        settings.updateMatrixType(newType)
-                    }
-                }
-            )) {
-                ForEach(MatrixType.allCases, id: \.self) { type in
-                    Text(type.name).tag(type)
-                }
-            }
-            .pickerStyle(MenuPickerStyle())
-            .disabled(renderer.isPaused)
-        }
-        .frame(width: pickerViewWidth)
-    }
-}
-
-struct DistributionPickerView: View {
-    @ObservedObject var settings: SimulationSettings
-    @ObservedObject var renderer: Renderer
-    
-    var body: some View {
-        HStack(spacing: 0) {
-            Text("Distribute:")
-                .frame(width: pickerLabelWidth, alignment: .trailing)
-            Picker("", selection: Binding(
-                get: { settings.selectedPreset.distributionType },
-                set: { newType in
-                    if newType != settings.selectedPreset.distributionType {
-                        settings.updateDistributionType(newType)
-                    }
-                }
-            )) {
-                ForEach(DistributionType.allCases, id: \.self) { type in
-                    Text(type.displayName).tag(type)
-                }
-            }
-            .pickerStyle(MenuPickerStyle())
-            .disabled(renderer.isPaused)
-        }
-        .frame(width: pickerViewWidth)
-    }
-}
-
-struct PresetButtonsView: View {
-    @Binding var isShowingSaveSheet: Bool
-    @Binding var isShowingDeleteSheet: Bool
-    @ObservedObject var renderer: Renderer
-    
-    var body: some View {
-        HStack(spacing: 20) {
-            Button("📁  Save") {
-                isShowingSaveSheet = true
-            }
-            .buttonStyle(SettingsButtonStyle())
-            .disabled(renderer.isPaused)
-            .popover(
-                isPresented: $isShowingSaveSheet,
-                attachmentAnchor: .rect(.bounds),
-                arrowEdge: .top
-            ) {
-                SavePresetSheet(isShowingSaveSheet: $isShowingSaveSheet, presetName: .constant("New Preset"))
-            }
-            
-            Button("❌  Delete") {
-                if !SimulationSettings.shared.selectedPreset.isBuiltIn {
-                    isShowingDeleteSheet = true
-                }
-            }
-            .buttonStyle(SettingsButtonStyle())
-            .disabled(renderer.isPaused || SimulationSettings.shared.selectedPreset.isBuiltIn)
-            .popover(
-                isPresented: $isShowingDeleteSheet,
-                attachmentAnchor: .rect(.bounds),
-                arrowEdge: .top
-            ) {
-                DeletePresetSheet(isShowingDeleteSheet: $isShowingDeleteSheet)
-            }
-        }
-    }
-}
-
-struct SimulationButtonsView: View {
-    @ObservedObject var renderer: Renderer
-    
-    var body: some View {
-        HStack(spacing: 20) {
-            Button("↩️  Reset") {
-                let commandDown = NSEvent.modifierFlags.contains(.command)
-                if commandDown {
-                    ParticleSystem.shared.dumpPresetAsCode()
-                }
-                else {
-                    SimulationSettings.shared.selectPreset(SimulationSettings.shared.selectedPreset)
-                }
-            }
-            .buttonStyle(SettingsButtonStyle())
-            .disabled(renderer.isPaused)
-            
-            Button("♻️  Respawn") {
-                renderer.respawnParticles()
-            }
-            .buttonStyle(SettingsButtonStyle())
-            .disabled(renderer.isPaused)
-        }
-    }
-}
-
-struct SpeciesPickerView: View {
-    @ObservedObject var settings: SimulationSettings
-    
-    var body: some View {
-        HStack(spacing: 0) {
-            Text("Species:")
-                .frame(width: pickerLabelWidth, alignment: .trailing)
-            
-            Picker("", selection: Binding(
-                get: { settings.selectedPreset.speciesCount },
-                set: { newCount in
-                    ParticleSystem.shared.speciesCountWillChange(newCount: newCount)
-                }
-            )) {
-                ForEach(1...9, id: \.self) { count in
-                    Text("\(count)").tag(count)
-                }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .pickerStyle(MenuPickerStyle())
-        }
-        .frame(width: 289)
-        .padding(.horizontal)
-    }
-}
-
-struct ParticleCountPickerView: View {
-    @ObservedObject var settings: SimulationSettings
-    
-    var body: some View {
-        HStack(spacing: 0) {
-            Text("Particles:")
-                .frame(width: pickerLabelWidth, alignment: .trailing)
-            
-            Picker("", selection: Binding(
-                get: { settings.selectedPreset.particleCount },
-                set: { newCount in
-                    ParticleSystem.shared.particleCountWillChange(newCount: newCount)
-                }
-            )) {
-                ForEach(ParticleCount.allCases, id: \.self) { count in
-                    Text(count.displayString).tag(count)
-                }
-            }
-            .pickerStyle(MenuPickerStyle())
-        }
-        .frame(width: pickerViewWidth)
-        .padding(.horizontal)
-    }
-}
-
-struct SimulationSlidersView: View {
-    @ObservedObject var settings: SimulationSettings
-    @ObservedObject var renderer: Renderer
-    
-    var body: some View {
-        VStack(spacing: 10) {
-            settingSlider(title: "Max Dist", setting: $settings.maxDistance)
-            settingSlider(title: "Min Dist", setting: $settings.minDistance)
-            settingSlider(title: "Beta", setting: $settings.beta)
-            settingSlider(title: "Friction", setting: $settings.friction)
-            settingSlider(title: "Repulsion", setting: $settings.repulsion)
-            settingSlider(title: "World Size", setting: $settings.worldSize)
-            settingSlider(title: "Point Size", setting: $settings.pointSize)
-        }
-    }
-    
-    private func settingSlider(title: String, setting: Binding<ConfigurableSetting>) -> some View {
-        HStack {
-            Text("\(title):").frame(width: 70, alignment: .trailing)
-            Text("\(setting.wrappedValue.value, specifier: setting.wrappedValue.format)")
-                .font(.custom("Menlo", size: 14).bold())
-                .frame(width: 35, alignment: .trailing)
-                .padding(.trailing, 3)
-            Slider(value: setting.value, in: setting.wrappedValue.min...setting.wrappedValue.max, step: setting.wrappedValue.step)
-                .frame(width: 161)
-        }
-        
-        .padding(.horizontal, 16)
-        .disabled(renderer.isPaused)
     }
 }
 
