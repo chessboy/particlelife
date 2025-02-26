@@ -10,6 +10,7 @@ import MetalKit
 import SceneKit
 
 private let pickerViewWidth: CGFloat = 289
+private let pickerLabelWidth: CGFloat = 72
 
 struct SimulationSettingsView: View {
     @ObservedObject var particleSystem = ParticleSystem.shared
@@ -174,7 +175,7 @@ struct PresetPickerView: View {
     var body: some View {
         HStack(spacing: 0) {
             Text("Preset:")
-                .frame(width: 90, alignment: .trailing)
+                .frame(width: pickerLabelWidth, alignment: .trailing)
             Picker("", selection: Binding(
                 get: { settings.selectedPreset.id },
                 set: { newPresetID in
@@ -217,7 +218,7 @@ struct MarixPickerView: View {
     var body: some View {
         HStack(spacing: 0) {
             Text("Matrix:")
-                .frame(width: 90, alignment: .trailing)
+                .frame(width: pickerLabelWidth, alignment: .trailing)
             Picker("", selection: Binding(
                 get: { settings.selectedPreset.matrixType },
                 set: { newType in
@@ -243,8 +244,8 @@ struct DistributionPickerView: View {
     
     var body: some View {
         HStack(spacing: 0) {
-            Text("Distribution:")
-                .frame(width: 90, alignment: .trailing)
+            Text("Distribute:")
+                .frame(width: pickerLabelWidth, alignment: .trailing)
             Picker("", selection: Binding(
                 get: { settings.selectedPreset.distributionType },
                 set: { newType in
@@ -334,7 +335,7 @@ struct SpeciesPickerView: View {
     var body: some View {
         HStack(spacing: 0) {
             Text("Species:")
-                .frame(width: 90, alignment: .trailing)
+                .frame(width: pickerLabelWidth, alignment: .trailing)
             
             Picker("", selection: Binding(
                 get: { settings.selectedPreset.speciesCount },
@@ -360,7 +361,7 @@ struct ParticleCountPickerView: View {
     var body: some View {
         HStack(spacing: 0) {
             Text("Particles:")
-                .frame(width: 90, alignment: .trailing)
+                .frame(width: pickerLabelWidth, alignment: .trailing)
             
             Picker("", selection: Binding(
                 get: { settings.selectedPreset.particleCount },
@@ -399,11 +400,11 @@ struct SimulationSlidersView: View {
         HStack {
             Text("\(title):").frame(width: 70, alignment: .trailing)
             Text("\(setting.wrappedValue.value, specifier: setting.wrappedValue.format)")
-                .bold()
-                .frame(width: 30, alignment: .trailing)
+                .font(.custom("Menlo", size: 14).bold())
+                .frame(width: 35, alignment: .trailing)
                 .padding(.trailing, 3)
             Slider(value: setting.value, in: setting.wrappedValue.min...setting.wrappedValue.max, step: setting.wrappedValue.step)
-                .frame(width: 166)
+                .frame(width: 161)
         }
         
         .padding(.horizontal, 16)
