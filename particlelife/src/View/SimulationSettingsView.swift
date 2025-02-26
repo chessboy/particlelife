@@ -11,6 +11,7 @@ import SceneKit
 
 private let pickerViewWidth: CGFloat = 289
 private let pickerLabelWidth: CGFloat = 72
+private let labelColor = Color(white: 0.8)
 
 struct SimulationSettingsView: View {
     @ObservedObject var particleSystem = ParticleSystem.shared
@@ -107,6 +108,7 @@ struct PresetPickerView: View {
     var body: some View {
         HStack(spacing: 8) {
             Text("File:")
+                .foregroundColor(labelColor)
                 .frame(width: pickerLabelWidth, alignment: .trailing)
 
             Menu {
@@ -172,6 +174,7 @@ struct MarixPickerView: View {
     var body: some View {
         HStack(spacing: 0) {
             Text("Matrix:")
+                .foregroundColor(labelColor)
                 .frame(width: pickerLabelWidth, alignment: .trailing)
             Picker("", selection: Binding(
                 get: { settings.selectedPreset.matrixType },
@@ -199,6 +202,7 @@ struct DistributionPickerView: View {
     var body: some View {
         HStack(spacing: 0) {
             Text("Distribute:")
+                .foregroundColor(labelColor)
                 .frame(width: pickerLabelWidth, alignment: .trailing)
             Picker("", selection: Binding(
                 get: { settings.selectedPreset.distributionType },
@@ -252,6 +256,7 @@ struct SpeciesPickerView: View {
     var body: some View {
         HStack(spacing: 0) {
             Text("Species:")
+                .foregroundColor(labelColor)
                 .frame(width: pickerLabelWidth, alignment: .trailing)
             
             Picker("", selection: Binding(
@@ -279,6 +284,7 @@ struct ParticleCountPickerView: View {
     var body: some View {
         HStack(spacing: 0) {
             Text("Particles:")
+                .foregroundColor(labelColor)
                 .frame(width: pickerLabelWidth, alignment: .trailing)
             
             Picker("", selection: Binding(
@@ -317,12 +323,13 @@ struct SimulationSlidersView: View {
     private func settingSlider(title: String, setting: Binding<ConfigurableSetting>) -> some View {
         HStack {
             Text("\(title):").frame(width: 70, alignment: .trailing)
+                .foregroundColor(labelColor)
             Text("\(setting.wrappedValue.value, specifier: setting.wrappedValue.format)")
-                .font(.custom("Menlo", size: 14).bold())
-                .frame(width: 35, alignment: .trailing)
+                .font(.system(size: 14, weight: .bold, design: .monospaced))
+                .frame(width: 35, alignment: .leading)
                 .padding(.trailing, 3)
             Slider(value: setting.value, in: setting.wrappedValue.min...setting.wrappedValue.max, step: setting.wrappedValue.step)
-                .frame(width: 161)
+                .frame(width: 166)
         }
         
         .padding(.horizontal, 16)

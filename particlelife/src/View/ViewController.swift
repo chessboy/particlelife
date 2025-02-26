@@ -77,6 +77,10 @@ class ViewController: NSViewController {
             metalView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
         ])
 
+        // Disable autosave and auto-sizing constraints before applying aspect ratio
+        view.window?.setFrameAutosaveName("") // Prevents macOS from restoring an old size
+        view.window?.isMovableByWindowBackground = false
+
         // Apply window constraints for aspect ratio
         constrainWindowAspectRatio()
     }
@@ -85,7 +89,6 @@ class ViewController: NSViewController {
     private let maxRetries = 10 // Prevent infinite loops
 
     func constrainWindowAspectRatio() {
-
         guard let window = view.window else {
             if retryCount < maxRetries {
                 retryCount += 1
@@ -99,18 +102,31 @@ class ViewController: NSViewController {
             return
         }
 
-        // Enforce the aspect ratio
-        window.aspectRatio = NSSize(width: Constants.ASPECT_RATIO, height: 1)
+        // Get title bar height dynamically
+        let titleBarHeight = window.frame.height - window.contentLayoutRect.height
 
-        // Set minimum size
+        // Define desired content size
         let minWidth: CGFloat = 1600
         let minHeight: CGFloat = minWidth / CGFloat(Constants.ASPECT_RATIO)
-        window.setContentSize(NSSize(width: minWidth, height: minHeight))
-        window.minSize = NSSize(width: minWidth, height: minHeight)
+
+        // Compute full window frame size including the title bar
+        let fullHeight = minHeight + titleBarHeight
+
+        // Apply aspect ratio constraint
+        window.aspectRatio = NSSize(width: Constants.ASPECT_RATIO, height: 1)
+
+        // Set window frame directly (prevent macOS adjustments causing jerks)
+        window.setFrame(NSRect(x: window.frame.origin.x,
+                               y: window.frame.origin.y,
+                               width: minWidth,
+                               height: fullHeight),
+                        display: true)
+
+        window.minSize = NSSize(width: minWidth, height: fullHeight)
 
         Logger.log("Window aspect ratio locked after \(retryCount) tr\(retryCount == 1 ? "y" : "ies")")
     }
-        
+    
     func addSettingsPanel() {
         let settingsView = SimulationSettingsView(renderer: renderer)
         let hostingView = NSHostingView(rootView: settingsView)

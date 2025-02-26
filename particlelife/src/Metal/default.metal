@@ -28,8 +28,9 @@ float rand(int x, int y, int z) {
 }
 
 
-float3 speciesColor(int species) {
-    switch (species) {
+float3 speciesColor(int species, int offset) {
+    int adjustedSpecies = (species + offset) % 9; // Wrap around at 9
+    switch (adjustedSpecies) {
         case 0: return float3(1.0, 0.2, 0.2);  // 🔴 Soft Red
         case 1: return float3(1.0, 0.6, 0.0);  // 🟠 Orange
         case 2: return float3(0.95, 0.95, 0.0); // 🟡 Warm Yellow
@@ -37,8 +38,8 @@ float3 speciesColor(int species) {
         case 4: return float3(0.0, 0.4, 1.0);  // 🔵 Bright Blue
         case 5: return float3(0.6, 0.2, 1.0);  // 🟣 Purple
         case 6: return float3(0.0, 1.0, 1.0);  // 🔵 Cyan
-        case 7: return float3(1.0, 0.0, 0.6);  // 💖 Hot Pink (Instead of Magenta)
-        case 8: return float3(0.2, 0.8, 0.6);  // 🌊 Teal (Replaces White)
+        case 7: return float3(1.0, 0.0, 0.6);  // 💖 Hot Pink
+        case 8: return float3(0.2, 0.8, 0.6);  // 🌊 Teal
         default: return float3(0.7, 0.7, 0.7); // ⚫ Light Gray (Fallback)
     }
 }
@@ -63,7 +64,7 @@ vertex VertexOut vertex_main(const device Particle* particles [[buffer(0)]],
 
     out.position = float4(worldPosition, 0.0, 1.0);
     out.pointSize = scaledPointSize;
-    out.color = float4(speciesColor(particles[id].species), 1.0);
+    out.color = float4(speciesColor(particles[id].species, 0), 1.0);
 
     return out;
 }

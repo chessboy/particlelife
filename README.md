@@ -20,4 +20,11 @@ git clone https://github.com/chessboy/particlelife.git
 cd particlelife
 open particlelife.xcodeproj
 ```
+
+## Notes
+While we are in development it's possible the structure of stored presets may change. If there are any issues, just blow away your presets. A migration at startup is in the works.
+```sh
+defaults delete com.applepi.particlelife userPresets
+```
+
 ![Particle Life Simulation](screenshot.png)

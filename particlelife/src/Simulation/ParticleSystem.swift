@@ -147,7 +147,7 @@ class ParticleSystem: ObservableObject {
 
     /// Generates colors for each species
     private func generateSpeciesColors(speciesCount: Int) {
-        let predefinedColors = Constants.speciesColors
+        let predefinedColors = SpeciesColor.speciesColors
             
         DispatchQueue.main.async {
             self.speciesColors = (0..<speciesCount).map { species in

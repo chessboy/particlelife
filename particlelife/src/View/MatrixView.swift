@@ -298,8 +298,10 @@ struct MatrixPreviewWrapper: View {
     init(n: Int) {
         self._n = State(initialValue: n)
         self._matrix = State(initialValue: Array(repeating: Array(repeating: 0.0, count: n), count: n))
-        let predefinedColors = Constants.speciesColors
-        self.speciesColors = (0..<n).map { predefinedColors[$0 % predefinedColors.count] }
+        
+        let offset = 0
+        let predefinedColors = SpeciesColor.speciesColors
+        self.speciesColors = (0..<n).map { predefinedColors[($0 + offset) % predefinedColors.count] }
     }
     
     var body: some View {
