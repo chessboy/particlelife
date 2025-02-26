@@ -20,7 +20,8 @@ struct SimulationSettingsView: View {
     @State private var presetName: String = "Untitled"
     
     @State private var isPinned: Bool = false
-    
+    @State private var isExpanded = false
+
     var body: some View {
         
         VStack {
@@ -51,20 +52,38 @@ struct SimulationSettingsView: View {
             }
             .padding(.top, 20)
             .padding(.bottom, 4)
+
             
-            SimulationSlidersView(settings: settings, renderer: renderer)
-                .padding(.top, 10)
-            
-            CustomDivider()
-                .padding(.top, 20)
+            VStack {
+                Button(action: { isExpanded.toggle() }) {
+                    HStack {
+                        Text("Physics Settings")
+                            .font(.headline)
+                        Spacer()
+                        Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
+                            .font(.title)
+                            //.animation(.easeInOut, value: isExpanded)
+                    }
+                    .padding(8)
+                    .contentShape(Rectangle()) // Makes the whole row tappable
+                }
+
+                if isExpanded {
+                    SimulationSlidersView(settings: settings, renderer: renderer)
+                        .padding(.top, 10)
+                        .transition(.opacity.combined(with: .move(edge: .top)))
+                }
+            }
+            .padding(.vertical, 10)
+            .padding(.horizontal, 20)
             
             FooterView(renderer: renderer, isPinned: $isPinned)
-                .padding(.top, 6)
                 .padding(.bottom, 6)
                 .padding(.horizontal, 10)
             
             Spacer()
         }
+        
         .background(renderer.isPaused ? Color(red: 0.2, green: 0, blue: 0).opacity(0.9) : Color(white: 0.07).opacity(0.9))
         .clipShape(RoundedCornerShape(corners: [.topRight, .bottomRight], radius: 20))
         .overlay(
@@ -347,7 +366,6 @@ struct SimulationSlidersView: View {
     
     var body: some View {
         VStack(spacing: 20) {
-            CustomDivider()
             settingSlider(title: "Max Dist", setting: $settings.maxDistance)
             settingSlider(title: "Min Dist", setting: $settings.minDistance)
             settingSlider(title: "Beta", setting: $settings.beta)
@@ -372,44 +390,78 @@ struct SimulationSlidersView: View {
 struct SavePresetSheet: View {
     @Binding var isShowingSaveSheet: Bool
     @Binding var presetName: String
-    
+    @State private var showOverwriteAlert = false
+    @State private var tempPresetName: String = ""
+
     var body: some View {
         VStack(spacing: 20) {
             Text("Enter Preset Name")
                 .font(.title2)
                 .bold()
-            
-            TextField("Preset Name", text: $presetName)
+
+            TextField("Preset Name", text: $tempPresetName)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .frame(width: 200)
                 .padding(.horizontal, 10)
                 .onSubmit {
-                    savePreset()
+                    handleSaveAttempt()
                 }
-            
+
             HStack {
                 Button("Cancel") {
                     isShowingSaveSheet = false
                 }
                 .buttonStyle(.bordered)
                 .frame(width: 120)
-                
+
                 Button("Save") {
-                    savePreset()
+                    handleSaveAttempt()
                 }
                 .buttonStyle(.borderedProminent)
                 .frame(width: 120)
-                .disabled(presetName.isEmpty)
+                .disabled(tempPresetName.isEmpty)
             }
             .padding(.top, 5)
         }
         .padding(15)
         .frame(width: 250)
+        .alert("Preset Exists", isPresented: $showOverwriteAlert) {
+            Button("Cancel", role: .cancel) {
+                isShowingSaveSheet = true
+            }
+            Button("Replace") {
+                savePreset(overwrite: true)
+            }
+        } message: {
+            Text("A preset with this name already exists. Do you want to replace it?")
+        }
+        .onAppear {
+            tempPresetName = presetName
+        }
     }
-    
-    private func savePreset() {
-        if !presetName.isEmpty {
-            SimulationSettings.shared.saveCurrentPreset(named: presetName, interactionMatrix: ParticleSystem.shared.interactionMatrix)
+
+    private func handleSaveAttempt() {
+        let allPresets = SimulationSettings.shared.userPresets
+        let builtInPresets = PresetDefinitions.getAllBuiltInPresets().map { $0.name }
+
+        if builtInPresets.contains(tempPresetName) {
+            Logger.log("Attempted to overwrite a built-in preset", level: .error)
+            return
+        }
+
+        if allPresets.contains(where: { $0.name == tempPresetName }) {
+            showOverwriteAlert = true
+        } else {
+            savePreset(overwrite: false)
+        }
+    }
+
+    private func savePreset(overwrite: Bool) {
+        if !tempPresetName.isEmpty {
+            SimulationSettings.shared.saveCurrentPreset(named: tempPresetName,
+                interactionMatrix: ParticleSystem.shared.interactionMatrix,
+                replaceExisting: overwrite)
+            
             presetName = "Untitled"
             isShowingSaveSheet = false
         }

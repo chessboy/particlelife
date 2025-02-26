@@ -58,7 +58,7 @@ class ViewController: NSViewController {
             metalView = MTKView(frame: CGRect(x: 0, y: 0, width: initialWidth, height: initialHeight),
                                 device: MTLCreateSystemDefaultDevice())
         } else {
-            Logger.log("❌ Could not get screen size, falling back to view.bounds", level: .error)
+            Logger.log("ERROR: Could not get screen size, falling back to view.bounds", level: .error)
             metalView = MTKView(frame: view.bounds, device: MTLCreateSystemDefaultDevice())
         }
         

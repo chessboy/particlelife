@@ -27,7 +27,7 @@ class SimulationSettings: ObservableObject {
     static let shared = SimulationSettings()
     @Published var userPresets: [SimulationPreset] = PresetManager.shared.getUserPresets()
     @Published var selectedPreset: SimulationPreset = PresetDefinitions.getDefaultPreset()
-
+    
     @Published var maxDistance = ConfigurableSetting(
         value: 0.65, defaultValue: 0.65, min: 0.5, max: 1.5, step: 0.05, format: "%.2f",
         onChange: { _ in BufferManager.shared.updatePhysicsBuffers() }
@@ -75,12 +75,12 @@ class SimulationSettings: ObservableObject {
         selectedPreset = selectedPreset.copy(newMatrixType: newType)
         NotificationCenter.default.post(name: .presetSelected, object: nil)
     }
-
+    
     func updateDistributionType(_ newType: DistributionType) {
         selectedPreset = selectedPreset.copy(newDistributionType: newType)
         NotificationCenter.default.post(name: .presetSelected, object: nil)
     }
-
+    
     private static func handleWorldSizeChange(_ newValue: Float) {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { // 50ms debounce
             if shared.worldSize.value == newValue { // Ensure consistency
@@ -90,20 +90,29 @@ class SimulationSettings: ObservableObject {
     }
     
     func selectPreset(_ preset: SimulationPreset, skipRespawn: Bool = false) {
-        guard let storedPreset = PresetManager.shared.getPreset(named: preset.name) else {
-            Logger.log("Preset '\(preset.name)' not found in storage.", level: .error)
+        
+        Logger.log("Attempting to select preset '\(preset.name)' (ID: \(preset.id))", level: .debug)
+        
+        let allPresets = PresetDefinitions.getAllBuiltInPresets() + userPresets
+        //let availablePresets = allPresets.map { "\($0.name) (ID: \($0.id))" }
+        //Logger.log("Available presets: \n\(availablePresets.joined(separator: "\n"))", level: .debug)
+
+        guard let storedPreset = allPresets.first(where: { $0.id == preset.id }) else {
+            Logger.log("ERROR: Preset '\(preset.name)' (ID: \(preset.id)) not found in storage!", level: .error)
             return
         }
 
-        var presetToApply = storedPreset
+        Logger.log("Preset '\(preset.name)' found. Selecting it now.", level: .debug)
 
+        var presetToApply = storedPreset
+        
         if !storedPreset.shouldResetSpeciesCount {
-            Logger.log("Preserving speciesCount (\(selectedPreset.speciesCount)) while selecting preset '\(preset.name)'")
+            Logger.log("Preserving speciesCount (\(selectedPreset.speciesCount)) while selecting preset '\(preset.name)'", level: .debug)
             presetToApply = storedPreset.copy(newSpeciesCount: selectedPreset.speciesCount)  // Carry over species count
         } else {
-            Logger.log("Ignoring previous speciesCount (\(selectedPreset.speciesCount)), using preset value: \(storedPreset.speciesCount)")
+            Logger.log("Ignoring previous speciesCount (\(selectedPreset.speciesCount)), using preset value: \(storedPreset.speciesCount)", level: .debug)
         }
-
+        
         selectedPreset = presetToApply
         applyPreset(selectedPreset)
         
@@ -123,8 +132,10 @@ class SimulationSettings: ObservableObject {
         pointSize.value = preset.pointSize
         worldSize.value = preset.worldSize
     }
-        
-    func saveCurrentPreset(named presetName: String, interactionMatrix: [[Float]]) {
+}
+
+extension SimulationSettings {
+    func saveCurrentPreset(named presetName: String, interactionMatrix: [[Float]], replaceExisting: Bool = false) {
         let newPreset = SimulationPreset(
             name: presetName,
             speciesCount: selectedPreset.speciesCount,
@@ -142,8 +153,29 @@ class SimulationSettings: ObservableObject {
             shouldResetSpeciesCount: true
         )
         
-        let persistedPreset = PresetManager.shared.addUserPreset(newPreset)
-        userPresets = PresetManager.shared.getUserPresets()
-        selectedPreset = persistedPreset
+        // Save preset
+        let persistedPreset = UserPresetStorage.saveUserPreset(newPreset, replaceExisting: replaceExisting)
+
+        // Ensure `userPresets` updates before selecting
+        userPresets = UserPresetStorage.loadUserPresets()
+
+        // Poll every 50ms for up to 1 second to ensure the preset is loaded
+        var retryCount = 0
+        let maxRetries = 20
+
+        func attemptSelection() {
+            if let updatedPreset = self.userPresets.first(where: { $0.id == persistedPreset.id }) {
+                self.selectedPreset = updatedPreset
+                Logger.log("selected preset found after \(retryCount) tr\(retryCount == 1 ? "y" : "ies")")
+            } else if retryCount < maxRetries {
+                retryCount += 1
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { attemptSelection() }
+                
+            } else {
+                Logger.log("ERROR: Preset '\(persistedPreset.name)' (ID: \(persistedPreset.id)) not found after multiple attempts!", level: .error)
+            }
+        }
+
+        attemptSelection()
     }
 }

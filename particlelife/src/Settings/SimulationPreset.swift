@@ -88,15 +88,14 @@ extension SimulationPreset: Codable {
     enum CodingKeys: String, CodingKey {
         case id, name, speciesCount, particleCount, matrixType, distributionType
         case maxDistance, minDistance, beta, friction, repulsion
-        case pointSize, worldSize, isBuiltIn
-        case shouldResetSpeciesCount
+        case pointSize, worldSize, isBuiltIn, shouldResetSpeciesCount
     }
-    
+
     /// Custom decoding to handle missing fields
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         
-        // Generate a UUID if it's missing
+        // **Ensure UUID is decoded properly, otherwise generate one**
         id = (try? container.decode(UUID.self, forKey: .id)) ?? UUID()
         name = try container.decode(String.self, forKey: .name)
         speciesCount = try container.decode(Int.self, forKey: .speciesCount)
@@ -113,11 +112,11 @@ extension SimulationPreset: Codable {
         isBuiltIn = try container.decode(Bool.self, forKey: .isBuiltIn)
         shouldResetSpeciesCount = try container.decode(Bool.self, forKey: .shouldResetSpeciesCount)
     }
-    
+
     /// Custom encoding (ensures all fields are saved)
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        
+        try container.encode(id, forKey: .id)  // **Ensure UUID is saved**
         try container.encode(name, forKey: .name)
         try container.encode(speciesCount, forKey: .speciesCount)
         try container.encode(particleCount, forKey: .particleCount)

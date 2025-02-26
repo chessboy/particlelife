@@ -100,11 +100,11 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         
         do {
             guard let computeFunction = library.makeFunction(name: "compute_particle_movement") else {
-                fatalError("❌ Failed to load compute function")
+                fatalError("ERROR: Failed to load compute function")
             }
             computePipeline = try device?.makeComputePipelineState(function: computeFunction)
         } catch {
-            fatalError("❌ Failed to create compute pipeline state: \(error)")
+            fatalError("ERROR: Failed to create compute pipeline state: \(error)")
         }
         
         let vertexFunction = library.makeFunction(name: "vertex_main") // For particles
@@ -124,7 +124,7 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         do {
             pipelineState = try device?.makeRenderPipelineState(descriptor: pipelineDescriptor)
         } catch {
-            fatalError("❌ Failed to create render pipeline state: \(error)")
+            fatalError("ERROR: Failed to create render pipeline state: \(error)")
         }
     }
     

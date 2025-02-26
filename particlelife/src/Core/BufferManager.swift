@@ -60,7 +60,7 @@ class BufferManager {
     private init() {
         guard let metalDevice = MTLCreateSystemDefaultDevice(),
               let queue = metalDevice.makeCommandQueue() else {
-            fatalError("❌ Failed to initialize Metal device or command queue.")
+            fatalError("ERROR: Failed to initialize Metal device or command queue.")
         }
         self.device = metalDevice
         self.commandQueue = queue
