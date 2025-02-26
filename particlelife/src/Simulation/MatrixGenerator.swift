@@ -10,6 +10,7 @@ import Foundation
 
 enum MatrixType: Codable, Hashable, CaseIterable {
     case random
+    case randomWeak
     case symmetry
     case chains
     case chains2
@@ -19,7 +20,7 @@ enum MatrixType: Codable, Hashable, CaseIterable {
     case custom([[Float]])
     
     static var allCases: [MatrixType] {
-        return [.random, .symmetry, .chains, .chains2, .chains3, .snakes, .attractionRepulsionBands, .custom([[Float]]())]
+        return [.random, .randomWeak, .symmetry, .chains, .chains2, .chains3, .snakes, .attractionRepulsionBands, .custom([[Float]]())]
     }
     
     func hash(into hasher: inout Hasher) {
@@ -33,6 +34,7 @@ enum MatrixType: Codable, Hashable, CaseIterable {
     var name: String {
         switch self {
         case .random: return "Random"
+        case .randomWeak: return "Random Weak"
         case .symmetry: return "Symmetry"
         case .chains: return "Chains"
         case .chains2: return "Chains 2"
@@ -71,6 +73,18 @@ enum MatrixGenerator {
                     matrix[i][j] = Float.random(in: -1.0...1.0)
                 }
             }
+            
+        case .randomWeak:
+            for i in 0..<speciesCount {
+                for j in 0..<speciesCount {
+                    if .oneIn(6) {
+                        matrix[i][j] = Float.random(in: -0.2...0.2)
+                    } else {
+                        matrix[i][j] = 0.0
+                    }
+                }
+            }
+
             
         case .symmetry:
             for i in 0..<speciesCount {
@@ -171,6 +185,8 @@ extension MatrixType {
         switch self {
         case .random:
             try container.encode("random", forKey: .type)
+        case .randomWeak:
+            try container.encode("randomWeak", forKey: .type)
         case .symmetry:
             try container.encode("symmetry", forKey: .type)
         case .chains:
@@ -197,6 +213,8 @@ extension MatrixType {
         switch type {
         case "random":
             self = .random
+        case "randomWeak":
+            self = .randomWeak
         case "symmetry":
             self = .symmetry
         case "chains":

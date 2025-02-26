@@ -17,3 +17,10 @@ extension String {
         return ([first] + rest).joined()
     }
 }
+
+extension Bool {
+    static func oneIn(_ n: Int) -> Bool {
+        guard n > 0 else { return false } // Prevent invalid cases
+        return Int.random(in: 1...n) == 1
+    }
+}
