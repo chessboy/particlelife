@@ -233,6 +233,8 @@ struct InteractionMatrixGrid: View {
                 }
             }
             .onTapGesture {
+                guard !renderer.isPaused else { return }
+                
                 if selectedCell == nil {
                     wasPinnedBeforeSelection = isPinned
                     isPinned = true // Temporarily pin while slider is open

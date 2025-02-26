@@ -20,7 +20,7 @@ struct SimulationSettingsView: View {
     @State private var presetName: String = "Untitled"
     
     @State private var isPinned: Bool = false
-
+    
     var body: some View {
         
         VStack {
@@ -133,12 +133,14 @@ struct PresetPickerView: View {
             Picker("", selection: Binding(
                 get: { settings.selectedPreset.id },
                 set: { newPresetID in
-                    if let newPreset = ([
-                        PresetDefinitions.randomPreset,
-                        PresetDefinitions.emptyPreset
-                    ] + PresetDefinitions.specialPresets + settings.userPresets)
-                        .first(where: { $0.id == newPresetID }) {
-                        settings.selectPreset(newPreset)
+                    if newPresetID != settings.selectedPreset.id {
+                        if let newPreset = ([
+                            PresetDefinitions.randomPreset,
+                            PresetDefinitions.emptyPreset
+                        ] + PresetDefinitions.specialPresets + settings.userPresets)
+                            .first(where: { $0.id == newPresetID }) {
+                            settings.selectPreset(newPreset)
+                        }
                     }
                 }
             )) {
@@ -237,7 +239,7 @@ struct PresetButtonsView: View {
             ) {
                 SavePresetSheet(isShowingSaveSheet: $isShowingSaveSheet, presetName: .constant("New Preset"))
             }
-
+            
             Button("❌  Delete") {
                 if !SimulationSettings.shared.selectedPreset.isBuiltIn {
                     isShowingDeleteSheet = true
@@ -376,7 +378,7 @@ struct SavePresetSheet: View {
             Text("Enter Preset Name")
                 .font(.title2)
                 .bold()
-
+            
             TextField("Preset Name", text: $presetName)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .frame(width: 200)
@@ -427,14 +429,14 @@ struct DeletePresetSheet: View {
             Text("Are you sure you want to delete **\(presetToDelete.name)**?")
                 .multilineTextAlignment(.center)
                 .font(.title3)
-
+            
             HStack {
                 Button("Cancel") {
                     isShowingDeleteSheet = false
                 }
                 .buttonStyle(.bordered)
                 .frame(width: 120)
-
+                
                 Button("Delete") {
                     PresetManager.shared.deleteUserPreset(named: presetToDelete.name)
                     SimulationSettings.shared.userPresets = PresetManager.shared.getUserPresets()
@@ -484,7 +486,7 @@ struct CustomDivider: View {
 #Preview {
     let mtkView = MTKView()
     let renderer = Renderer(mtkView: mtkView)
-
+    
     NSHostingView(
         rootView: SimulationSettingsView(
             renderer: renderer
