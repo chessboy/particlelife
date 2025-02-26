@@ -52,7 +52,7 @@ class ViewController: NSViewController {
             Logger.log("Screen Size: \(screenFrame.size)")
 
             // Calculate initial size while keeping the aspect ratio
-            let initialWidth: CGFloat = min(screenFrame.width * 0.8, 2000)
+            let initialWidth: CGFloat = min(screenFrame.width * 0.8, 1600)
             let initialHeight: CGFloat = initialWidth / Constants.ASPECT_RATIO
 
             metalView = MTKView(frame: CGRect(x: 0, y: 0, width: initialWidth, height: initialHeight),
@@ -103,7 +103,7 @@ class ViewController: NSViewController {
         window.aspectRatio = NSSize(width: Constants.ASPECT_RATIO, height: 1)
 
         // Set minimum size
-        let minWidth: CGFloat = 2080
+        let minWidth: CGFloat = 1600
         let minHeight: CGFloat = minWidth / CGFloat(Constants.ASPECT_RATIO)
         window.setContentSize(NSSize(width: minWidth, height: minHeight))
         window.minSize = NSSize(width: minWidth, height: minHeight)

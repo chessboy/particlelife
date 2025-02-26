@@ -9,6 +9,8 @@ import SwiftUI
 import MetalKit
 import SceneKit
 
+private let pickerViewWidth: CGFloat = 289
+
 struct SimulationSettingsView: View {
     @ObservedObject var particleSystem = ParticleSystem.shared
     @ObservedObject var settings = SimulationSettings.shared
@@ -19,71 +21,64 @@ struct SimulationSettingsView: View {
     @State private var isShowingDeleteSheet = false
     @State private var presetName: String = "Untitled"
     
-    @State private var isPinned: Bool = false
-    @State private var isExpanded = false
-
+    @State private var isPinned: Bool = true
+    @State private var isExpanded = true
+    
     var body: some View {
-        
-        VStack {
-            Image("particle-life-logo")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 220)
-                .padding()
-                .padding(.top, 10)
+        VStack(spacing: 0) {
             
-            MatrixView(interactionMatrix: $particleSystem.interactionMatrix, isVisible: $isVisible, isPinned: $isPinned, renderer: renderer, speciesColors: particleSystem.speciesColors)
+            ZStack(alignment: .topLeading) {
+                MatrixView(
+                    interactionMatrix: $particleSystem.interactionMatrix,
+                    isVisible: $isVisible,
+                    isPinned: $isPinned,
+                    renderer: renderer,
+                    speciesColors: particleSystem.speciesColors
+                )
                 .frame(width: 300, height: 300)
-            
-            VStack(spacing: 20) {
+                .padding(.top, 10)
+
+                // Pin Button in the Empty Top-Left Space
+                Button(action: {
+                    isPinned.toggle() // Toggle the pinned state
+                }) {
+                    Image(systemName: isPinned ? "pin.fill" : "pin")
+                        .foregroundColor(isPinned ? .yellow : .gray)
+                        .font(.system(size: 16))
+                        .padding(6)
+                        .background(Color.black)
+                        .clipShape(Circle())
+                }
+                .offset(x: -3, y: 7)
+                .buttonStyle(PlainButtonStyle())
+            }
+                        
+            // Preset, Matrix, Distribution: Grouped neatly
+            VStack(spacing: 10) {
                 PresetPickerView(settings: settings, renderer: renderer)
+                SpeciesPickerView(settings: settings)
+                ParticleCountPickerView(settings: settings)
                 MarixPickerView(settings: settings, renderer: renderer)
                 DistributionPickerView(settings: settings, renderer: renderer)
             }
             .padding(.top, 15)
             
-            VStack(spacing: 20) {
+            // Controls: A little more room for clarity
+            VStack(spacing: 6) {
                 PresetButtonsView(isShowingSaveSheet: $isShowingSaveSheet, isShowingDeleteSheet: $isShowingDeleteSheet, renderer: renderer)
-                CustomDivider()
-                SpeciesAndParticlesView(settings: settings, renderer: renderer)
-                    .padding(.top, 6)
+
                 SimulationButtonsView(renderer: renderer)
-                    .padding(.top, 6)
+                    .padding(.top, 8)
             }
             .padding(.top, 20)
-            .padding(.bottom, 4)
-
+            .padding(.bottom, 8)
             
-            VStack {
-                Button(action: { isExpanded.toggle() }) {
-                    HStack {
-                        Text("Physics Settings")
-                            .font(.headline)
-                        Spacer()
-                        Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
-                            .font(.title)
-                            //.animation(.easeInOut, value: isExpanded)
-                    }
-                    .padding(8)
-                    .contentShape(Rectangle()) // Makes the whole row tappable
-                }
-
-                if isExpanded {
-                    SimulationSlidersView(settings: settings, renderer: renderer)
-                        .padding(.top, 10)
-                        .transition(.opacity.combined(with: .move(edge: .top)))
-                }
-            }
-            .padding(.vertical, 10)
-            .padding(.horizontal, 20)
-            
+            PhysicsSettingsView(settings: settings, renderer: renderer)
             FooterView(renderer: renderer, isPinned: $isPinned)
-                .padding(.bottom, 6)
-                .padding(.horizontal, 10)
             
             Spacer()
         }
-        
+        .frame(width: 340)
         .background(renderer.isPaused ? Color(red: 0.2, green: 0, blue: 0).opacity(0.9) : Color(white: 0.07).opacity(0.9))
         .clipShape(RoundedCornerShape(corners: [.topRight, .bottomRight], radius: 20))
         .overlay(
@@ -104,6 +99,48 @@ struct SimulationSettingsView: View {
     }
 }
 
+struct LogoView: View {
+    var body: some View {
+        Image("particle-life-logo")
+            .resizable()
+            .scaledToFit()
+            .opacity(0.7)
+            .frame(width: 120)
+    }
+}
+
+struct PhysicsSettingsView: View {
+    @ObservedObject var settings: SimulationSettings
+    @ObservedObject var renderer: Renderer
+    @State private var isExpanded = true
+
+    var body: some View {
+        VStack {
+            Button(action: { isExpanded.toggle() }) {
+                HStack {
+                    Text("Physics Settings")
+                        .font(.headline)
+                    Spacer()
+                    Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
+                        .font(.title2)
+                }
+                .padding(6)
+                .cornerRadius(8)
+                .contentShape(Rectangle())
+            }
+            .frame(width: pickerViewWidth)
+
+            if isExpanded {
+                SimulationSlidersView(settings: settings, renderer: renderer)
+                    .padding(.top, 8)
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+            }
+        }
+        .padding(.vertical, 10)
+        .padding(.horizontal, 20)
+    }
+}
+
 struct FooterView: View {
     @ObservedObject var renderer: Renderer
     @Binding var isPinned: Bool
@@ -111,33 +148,22 @@ struct FooterView: View {
     var body: some View {
         HStack {
             
-            Text("v\(AppInfo.version)")
-                .font(.system(size: 14, weight: .medium, design: .monospaced))
-                .foregroundColor(.gray)
-            
-            Spacer()
-            
             Text(renderer.isPaused ? "PAUSED" : "FPS: \(renderer.fps)")
                 .font(.system(size: 14, weight: .bold, design: .monospaced))
                 .foregroundColor(renderer.isPaused || renderer.fps < 30 ? .red : .green)
-            
+
             Spacer()
-            
-            Button(action: {
-                isPinned.toggle() // Toggle the pinned state
-            }) {
-                Image(systemName: isPinned ? "pin.fill" : "pin")
-                    .foregroundColor(isPinned ? .yellow : .gray)
-                    .font(.system(size: 16))
-                    .padding(6)
-                    .background(Color.black)
-                    .clipShape(Circle())
-            }
-            .buttonStyle(PlainButtonStyle()) // Prevents default button styling
+            LogoView()
+            Spacer()
+
+            Text("v\(AppInfo.version)")
+                .font(.system(size: 14, weight: .medium, design: .monospaced))
+                .foregroundColor(.gray)
         }
+        .padding(.top, 8)
+        .padding(.bottom, 4)
         .padding(.horizontal, 8)
-        .padding(.bottom, 2)
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(width: 300)
     }
 }
 
@@ -163,7 +189,7 @@ struct PresetPickerView: View {
                     }
                 }
             )) {
-                Text("⬜ \(PresetDefinitions.emptyPreset.name)").tag(PresetDefinitions.emptyPreset.id)
+                Text("🌱 \(PresetDefinitions.emptyPreset.name)").tag(PresetDefinitions.emptyPreset.id)
                 Text("🔀 \(PresetDefinitions.randomPreset.name)").tag(PresetDefinitions.randomPreset.id)
                 Text("").disabled(true)
                 ForEach(PresetDefinitions.specialPresets, id: \.id) { preset in
@@ -180,7 +206,7 @@ struct PresetPickerView: View {
             .pickerStyle(MenuPickerStyle())
             .disabled(renderer.isPaused)
         }
-        .frame(width: 248)
+        .frame(width: pickerViewWidth)
     }
 }
 
@@ -207,9 +233,8 @@ struct MarixPickerView: View {
             .pickerStyle(MenuPickerStyle())
             .disabled(renderer.isPaused)
         }
-        .frame(width: 248)
+        .frame(width: pickerViewWidth)
     }
-    
 }
 
 struct DistributionPickerView: View {
@@ -235,7 +260,7 @@ struct DistributionPickerView: View {
             .pickerStyle(MenuPickerStyle())
             .disabled(renderer.isPaused)
         }
-        .frame(width: 248)
+        .frame(width: pickerViewWidth)
     }
 }
 
@@ -303,18 +328,10 @@ struct SimulationButtonsView: View {
     }
 }
 
-struct SpeciesAndParticlesView: View {
+struct SpeciesPickerView: View {
     @ObservedObject var settings: SimulationSettings
-    @ObservedObject var renderer: Renderer
     
     var body: some View {
-        VStack(spacing: 20) {
-            speciesCountPicker()
-            particleCountPicker()
-        }
-    }
-    
-    private func speciesCountPicker() -> some View {
         HStack(spacing: 0) {
             Text("Species:")
                 .frame(width: 90, alignment: .trailing)
@@ -332,12 +349,15 @@ struct SpeciesAndParticlesView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .pickerStyle(MenuPickerStyle())
         }
-        .frame(width: 248)
+        .frame(width: 289)
         .padding(.horizontal)
-        .disabled(renderer.isPaused)
     }
+}
+
+struct ParticleCountPickerView: View {
+    @ObservedObject var settings: SimulationSettings
     
-    private func particleCountPicker() -> some View {
+    var body: some View {
         HStack(spacing: 0) {
             Text("Particles:")
                 .frame(width: 90, alignment: .trailing)
@@ -354,8 +374,7 @@ struct SpeciesAndParticlesView: View {
             }
             .pickerStyle(MenuPickerStyle())
         }
-        .disabled(renderer.isPaused)
-        .frame(width: 248)
+        .frame(width: pickerViewWidth)
         .padding(.horizontal)
     }
 }
@@ -365,24 +384,29 @@ struct SimulationSlidersView: View {
     @ObservedObject var renderer: Renderer
     
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 10) {
             settingSlider(title: "Max Dist", setting: $settings.maxDistance)
             settingSlider(title: "Min Dist", setting: $settings.minDistance)
             settingSlider(title: "Beta", setting: $settings.beta)
             settingSlider(title: "Friction", setting: $settings.friction)
             settingSlider(title: "Repulsion", setting: $settings.repulsion)
-            settingSlider(title: "Point Size", setting: $settings.pointSize)
             settingSlider(title: "World Size", setting: $settings.worldSize)
+            settingSlider(title: "Point Size", setting: $settings.pointSize)
         }
     }
     
     private func settingSlider(title: String, setting: Binding<ConfigurableSetting>) -> some View {
         HStack {
-            Text("\(title):").frame(width: 75, alignment: .trailing)
-            Text("\(setting.wrappedValue.value, specifier: setting.wrappedValue.format)").bold()
+            Text("\(title):").frame(width: 70, alignment: .trailing)
+            Text("\(setting.wrappedValue.value, specifier: setting.wrappedValue.format)")
+                .bold()
+                .frame(width: 30, alignment: .trailing)
+                .padding(.trailing, 3)
             Slider(value: setting.value, in: setting.wrappedValue.min...setting.wrappedValue.max, step: setting.wrappedValue.step)
+                .frame(width: 166)
         }
-        .padding(.horizontal)
+        
+        .padding(.horizontal, 16)
         .disabled(renderer.isPaused)
     }
 }
@@ -518,7 +542,7 @@ struct SettingsButtonStyle: ButtonStyle {
             Spacer() // Push text/icons to the left
         }
         .padding(.horizontal, 10) // More breathing room
-        .frame(width: 120, height: 30)
+        .frame(width: 135, height: 30)
         .background(Color(red: 0.3, green: 0.3, blue: 0.3).opacity(0.85)) // Darker background
         .clipShape(RoundedRectangle(cornerRadius: 6))
         .compositingGroup()
