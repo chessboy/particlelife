@@ -11,7 +11,7 @@ class PresetDefinitions {
     
     static let randomPreset = makeRandomPreset(speciesCount: 3)
     static let emptyPreset = makeEmptyPreset(speciesCount: 3)
-    static let specialPresets = [snake, cells, sandArt, spaceWars]
+    static let specialPresets = [snake, cells, sandArt, spaceWars, breathing, comet, comet2, moreCells, lava]
     
     static func getAllBuiltInPresets() -> [SimulationPreset] {
         return [randomPreset] + [emptyPreset] + specialPresets
@@ -36,7 +36,8 @@ class PresetDefinitions {
             pointSize: 11,
             worldSize: 1.0,
             isBuiltIn: true,
-            shouldResetSpeciesCount: false
+            shouldResetSpeciesCount: false,
+            speciesColorOffset: 0
         )
     }
     
@@ -58,7 +59,8 @@ class PresetDefinitions {
             pointSize: 5,
             worldSize: 0.5,
             isBuiltIn: true,
-            shouldResetSpeciesCount: false
+            shouldResetSpeciesCount: false,
+            speciesColorOffset: 0
         )
     }
 }
@@ -89,7 +91,8 @@ extension PresetDefinitions {
         pointSize: 5,
         worldSize: 0.75,
         isBuiltIn: true,
-        shouldResetSpeciesCount: true
+        shouldResetSpeciesCount: true,
+        speciesColorOffset: 0
     )
     
     static let cells = SimulationPreset(
@@ -110,7 +113,8 @@ extension PresetDefinitions {
         pointSize: 15,
         worldSize: 1.25,
         isBuiltIn: true,
-        shouldResetSpeciesCount: true
+        shouldResetSpeciesCount: true,
+        speciesColorOffset: 0
     )
     
     static let comet = SimulationPreset(
@@ -131,7 +135,8 @@ extension PresetDefinitions {
         pointSize: 17,
         worldSize: 2.00,
         isBuiltIn: true,
-        shouldResetSpeciesCount: true
+        shouldResetSpeciesCount: true,
+        speciesColorOffset: 0
     )
     
     static let spaceWars = SimulationPreset(
@@ -158,7 +163,8 @@ extension PresetDefinitions {
         pointSize: 19,
         worldSize: 4.00,
         isBuiltIn: true,
-        shouldResetSpeciesCount: true
+        shouldResetSpeciesCount: true,
+        speciesColorOffset: 0
     )
     
     static let sandArt = SimulationPreset(
@@ -181,7 +187,99 @@ extension PresetDefinitions {
         repulsion: 0.14,
         pointSize: 7,
         worldSize: 0.50,
-        isBuiltIn: false,
-        shouldResetSpeciesCount: true
+        isBuiltIn: true,
+        shouldResetSpeciesCount: true,
+        speciesColorOffset: 0
+    )
+    
+    static let breathing = SimulationPreset(
+        name: "Breathing",
+        speciesCount: 3,
+        particleCount: .k20,
+        matrixType: .custom([
+            [0.00, 0.00, 1.00],
+            [0.00, -1.00, 0.00],
+            [0.00, 0.00, 0.00]
+        ]),
+        distributionType: .uniform,
+        maxDistance: 0.65,
+        minDistance: 0.04,
+        beta: 0.30,
+        friction: 0.15,
+        repulsion: 0.03,
+        pointSize: 5,
+        worldSize: 0.50,
+        isBuiltIn: true,
+        shouldResetSpeciesCount: true,
+        speciesColorOffset: 3
+    )
+
+    static let comet2 = SimulationPreset(
+        name: "Comet 2",
+        speciesCount: 3,
+        particleCount: .k40,
+        matrixType: .custom([
+            [-0.78, 0.11, 0.38],
+            [0.66, 0.11, -0.49],
+            [-0.71, 0.91, 0.74]
+        ]),
+        distributionType: .uniform,
+        maxDistance: 0.65,
+        minDistance: 0.04,
+        beta: 0.30,
+        friction: 0.20,
+        repulsion: 0.03,
+        pointSize: 11,
+        worldSize: 1.25,
+        isBuiltIn: true,
+        shouldResetSpeciesCount: true,
+        speciesColorOffset: 0
+    )
+
+    static let moreCells = SimulationPreset(
+        name: "Chloroplast",
+        speciesCount: 6,
+        particleCount: .k20,
+        matrixType: .custom([
+            [-1.00, 0.00, 0.00, 0.00, 0.00, 0.00],
+            [0.00, 0.00, 0.00, 0.25, 0.00, 0.00],
+            [0.00, 0.00, 0.00, 0.00, 0.00, 0.25],
+            [0.00, 0.00, 0.25, 0.00, 0.00, 0.00],
+            [0.00, 0.00, 0.00, 0.00, -1.00, 0.00],
+            [0.00, 0.69, 0.00, 0.34, 0.00, -0.75]
+        ]),
+        distributionType: .uniform,
+        maxDistance: 0.65,
+        minDistance: 0.04,
+        beta: 0.30,
+        friction: 0.20,
+        repulsion: 0.03,
+        pointSize: 5,
+        worldSize: 0.50,
+        isBuiltIn: true,
+        shouldResetSpeciesCount: true,
+        speciesColorOffset: 1
+    )
+
+    static let lava = SimulationPreset(
+        name: "Lava",
+        speciesCount: 3,
+        particleCount: .k40,
+        matrixType: .custom([
+            [0.00, 0.00, 0.65],
+            [0.00, -0.70, 0.70],
+            [-0.65, 0.00, 0.00]
+        ]),
+        distributionType: .uniformCircle,
+        maxDistance: 0.65,
+        minDistance: 0.04,
+        beta: 0.30,
+        friction: 0.20,
+        repulsion: 0.03,
+        pointSize: 19,
+        worldSize: 1.00,
+        isBuiltIn: true,
+        shouldResetSpeciesCount: true,
+        speciesColorOffset: 0
     )
 }

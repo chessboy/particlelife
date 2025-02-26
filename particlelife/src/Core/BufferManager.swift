@@ -39,7 +39,7 @@ class BufferManager {
     private(set) var particleCountBuffer: MTLBuffer?
     private(set) var interactionBuffer: MTLBuffer?
     private(set) var speciesCountBuffer: MTLBuffer?
-    private var strongRefBuffer: MTLBuffer?  // Prevents premature deallocation
+    private(set) var speciesColorOffsetBuffer: MTLBuffer?
     
     var areBuffersInitialized: Bool {
         return particleCountBuffer != nil &&
@@ -54,7 +54,9 @@ class BufferManager {
         pointSizeBuffer != nil &&
         worldSizeBuffer != nil &&
         cameraBuffer != nil &&
-        zoomBuffer != nil
+        zoomBuffer != nil &&
+        clickBuffer != nil &&
+        speciesColorOffsetBuffer != nil
     }
     
     private init() {
@@ -79,6 +81,7 @@ class BufferManager {
         cameraBuffer = createBuffer(type: SIMD2<Float>.self)
         zoomBuffer = createBuffer(type: Float.self)
         pointSizeBuffer = createBuffer(type: Float.self)
+        speciesColorOffsetBuffer = createBuffer(type: Int.self)
         worldSizeBuffer = createBuffer(type: Float.self)
         initializeBoundaryBuffer()
         updateClickBuffer(clickPosition: SIMD2<Float>(0, 0), force: 0.0)
@@ -111,11 +114,11 @@ class BufferManager {
         }
         interactionBuffer?.contents().copyMemory(from: flatMatrix, byteCount: matrixSize)
         
-        // Ensure speciesCount buffer exists
+        // Ensure species count buffer exists
         if speciesCountBuffer == nil {
             speciesCountBuffer = createBuffer(type: Int.self)
         }
-        updateNumSpeciesBuffer(speciesCount: speciesCount)
+        updateSpeciesCountBuffer(speciesCount: speciesCount)
     }
     
     private func flattenInteractionMatrix(_ matrix: [[Float]]) -> [Float] {
@@ -169,6 +172,7 @@ extension BufferManager {
         updateBuffer(repulsionBuffer, with: settings.repulsion)
         updateBuffer(pointSizeBuffer, with: settings.pointSize)
         updateBuffer(worldSizeBuffer, with: settings.worldSize)
+        updateBuffer(speciesColorOffsetBuffer, with: settings.speciesColorOffset)
     }
     
     func updateParticleBuffer(particles: [Particle]) {
@@ -188,10 +192,14 @@ extension BufferManager {
         interactionBuffer.contents().copyMemory(from: flatMatrix, byteCount: flatMatrix.count * MemoryLayout<Float>.stride)
     }
     
-    func updateNumSpeciesBuffer(speciesCount: Int) {
+    func updateSpeciesCountBuffer(speciesCount: Int) {
         updateBuffer(speciesCountBuffer, with: speciesCount)
     }
     
+    func updateSpeciesColorOffsetBuffer(speciesColorOffset: Int) {
+        updateBuffer(speciesColorOffsetBuffer, with: speciesColorOffset)
+    }
+
     func updateDeltaTimeBuffer(dt: inout Float) {
         updateBuffer(deltaTimeBuffer, with: dt)
     }
@@ -205,7 +213,7 @@ extension BufferManager {
         }
         interactionBuffer?.contents().copyMemory(from: flatMatrix, byteCount: matrixSize)
         
-        updateNumSpeciesBuffer(speciesCount: speciesCount)
+        updateSpeciesCountBuffer(speciesCount: speciesCount)
     }
     
     private func updateBuffer<T>(_ buffer: MTLBuffer?, with value: T) {

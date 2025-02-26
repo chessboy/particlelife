@@ -16,8 +16,8 @@ class ParticleSystem: ObservableObject {
     private var particles: [Particle] = []
 
     @Published var interactionMatrix: [[Float]] = []
-    @Published var speciesColors: [Color] = []
-    
+    @Published private(set) var speciesColors: [Color] = []
+
     private var cancellables = Set<AnyCancellable>()
     private var lastUpdateTime: TimeInterval = Date().timeIntervalSince1970
     private var lastDT: Float = 0.001
@@ -142,17 +142,18 @@ class ParticleSystem: ObservableObject {
     /// Generates a new interaction matrix and updates colors
     private func generateNewMatrix(preset: SimulationPreset) {
         interactionMatrix = MatrixGenerator.generateInteractionMatrix(speciesCount: preset.speciesCount, type: preset.matrixType)
-        generateSpeciesColors(speciesCount: preset.speciesCount)
+        generateSpeciesColors(speciesCount: preset.speciesCount, speciesColorOffset: preset.speciesColorOffset)
+    }
+    
+    func updateSpeciesColors(speciesCount: Int, speciesColorOffset: Int) {
+        generateSpeciesColors(speciesCount: speciesCount, speciesColorOffset: speciesColorOffset)
     }
 
     /// Generates colors for each species
-    private func generateSpeciesColors(speciesCount: Int) {
-        let predefinedColors = SpeciesColor.speciesColors
-            
+    private func generateSpeciesColors(speciesCount: Int, speciesColorOffset: Int) {
         DispatchQueue.main.async {
-            self.speciesColors = (0..<speciesCount).map { species in
-                predefinedColors[species % predefinedColors.count]
-            }
+            let predefinedColors = SpeciesColor.speciesColors
+            self.speciesColors = (0..<speciesCount).map { predefinedColors[($0 + speciesColorOffset) % predefinedColors.count] }
             self.objectWillChange.send()
         }
     }

@@ -118,6 +118,7 @@ struct MatrixView: View {
 
 struct InteractionMatrixGrid: View {
     @State private var lastMouseButton: Int = 0
+    @State private var hoverIndex: Int? = nil
     
     @Binding var isVisible: Bool
     @Binding var isPinned: Bool
@@ -166,6 +167,27 @@ struct InteractionMatrixGrid: View {
                             .frame(width: cellSize * circleScale, height: cellSize * circleScale)
                             .clipShape(Circle())
                             .frame(width: cellSize, height: cellSize)
+                            .overlay(
+                                Circle()
+                                    .stroke((index == 0 || index == speciesColors.count - 1) && hoverIndex == index ? Color.white.opacity(1.0) : Color.clear, lineWidth: 2) // White border on hover
+                                    .frame(width: cellSize * circleScale, height: cellSize * circleScale)
+                            )
+                            .scaleEffect((index == 0 || index == speciesColors.count - 1) && hoverIndex == index ? 1.15 : 1.0) // Slight pop effect
+                            .animation(.easeInOut(duration: 0.2), value: hoverIndex)
+                            .onHover { hovering in
+                                if hovering && (index == 0 || index == speciesColors.count - 1) {
+                                    hoverIndex = index
+                                } else if hoverIndex == index {
+                                    hoverIndex = nil
+                                }
+                            }
+                            .onTapGesture {
+                                if index == 0 {
+                                    incrementSpeciesColorOffset()
+                                } else if index == speciesColors.count - 1 {
+                                    decrementSpeciesColorOffset()
+                                }
+                            }
                     }
                 }
                 .frame(height: cellSize)
@@ -178,6 +200,27 @@ struct InteractionMatrixGrid: View {
                 }
             }
         }
+    }
+    
+    private func incrementSpeciesColorOffset() {
+        SimulationSettings.shared.speciesColorOffset =
+            (SimulationSettings.shared.speciesColorOffset + 1) % SpeciesColor.speciesColors.count
+        
+        updateSpeciesColors()
+    }
+
+    private func decrementSpeciesColorOffset() {
+        SimulationSettings.shared.speciesColorOffset =
+            (SimulationSettings.shared.speciesColorOffset - 1 + SpeciesColor.speciesColors.count) % SpeciesColor.speciesColors.count
+        
+        updateSpeciesColors()
+    }
+
+    private func updateSpeciesColors() {
+        ParticleSystem.shared.updateSpeciesColors(
+            speciesCount: speciesColors.count,
+            speciesColorOffset: SimulationSettings.shared.speciesColorOffset
+        )
     }
     
     @ViewBuilder
@@ -319,5 +362,5 @@ struct MatrixPreviewWrapper: View {
 }
 
 #Preview {
-    MatrixPreviewWrapper(n: 3)
+    MatrixPreviewWrapper(n: 6)
 }

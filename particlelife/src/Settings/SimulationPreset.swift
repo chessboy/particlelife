@@ -23,7 +23,8 @@ struct SimulationPreset: Identifiable {
     let worldSize: Float
     let isBuiltIn: Bool
     let shouldResetSpeciesCount: Bool
-    
+    let speciesColorOffset: Int
+
     init(
         id: UUID = UUID(),
         name: String,
@@ -39,7 +40,8 @@ struct SimulationPreset: Identifiable {
         pointSize: Float,
         worldSize: Float,
         isBuiltIn: Bool,
-        shouldResetSpeciesCount: Bool
+        shouldResetSpeciesCount: Bool,
+        speciesColorOffset: Int
     ) {
         self.id = id
         self.name = name
@@ -56,6 +58,7 @@ struct SimulationPreset: Identifiable {
         self.worldSize = worldSize
         self.isBuiltIn = isBuiltIn
         self.shouldResetSpeciesCount = shouldResetSpeciesCount
+        self.speciesColorOffset = speciesColorOffset
     }
 }
 
@@ -79,7 +82,8 @@ extension SimulationPreset: Hashable {
         lhs.pointSize == rhs.pointSize &&
         lhs.worldSize == rhs.worldSize &&
         lhs.isBuiltIn == rhs.isBuiltIn &&
-        lhs.shouldResetSpeciesCount == rhs.shouldResetSpeciesCount
+        lhs.shouldResetSpeciesCount == rhs.shouldResetSpeciesCount &&
+        lhs.speciesColorOffset == rhs.speciesColorOffset
     }
 }
 
@@ -88,7 +92,7 @@ extension SimulationPreset: Codable {
     enum CodingKeys: String, CodingKey {
         case id, name, speciesCount, particleCount, matrixType, distributionType
         case maxDistance, minDistance, beta, friction, repulsion
-        case pointSize, worldSize, isBuiltIn, shouldResetSpeciesCount
+        case pointSize, worldSize, isBuiltIn, shouldResetSpeciesCount, speciesColorOffset
     }
 
     /// Custom decoding to handle missing fields
@@ -111,6 +115,7 @@ extension SimulationPreset: Codable {
         worldSize = try container.decode(Float.self, forKey: .worldSize)
         isBuiltIn = try container.decode(Bool.self, forKey: .isBuiltIn)
         shouldResetSpeciesCount = try container.decode(Bool.self, forKey: .shouldResetSpeciesCount)
+        speciesColorOffset = try container.decode(Int.self, forKey: .speciesColorOffset)
     }
 
     /// Custom encoding (ensures all fields are saved)
@@ -131,6 +136,7 @@ extension SimulationPreset: Codable {
         try container.encode(worldSize, forKey: .worldSize)
         try container.encode(isBuiltIn, forKey: .isBuiltIn)
         try container.encode(shouldResetSpeciesCount, forKey: .shouldResetSpeciesCount)
+        try container.encode(speciesColorOffset, forKey: .speciesColorOffset)
     }
 }
 
@@ -148,6 +154,7 @@ extension SimulationPreset {
             ├─ Point Size: \(pointSize), World Size: \(worldSize)
             └─ Built-in: \(isBuiltIn)
             └─ Should Reset SpeciesCount: \(shouldResetSpeciesCount)
+            └─ Species Color Offset: \(speciesColorOffset)
             """
     }
     
@@ -184,8 +191,9 @@ extension SimulationPreset {
             repulsion: \(String(format: "%.2f", repulsion)),
             pointSize: \(Int(pointSize)),
             worldSize: \(String(format: "%.2f", worldSize)),
-            isBuiltIn: \(isBuiltIn)
-            shouldResetSpeciesCount: \(shouldResetSpeciesCount)
+            isBuiltIn: \(isBuiltIn),
+            shouldResetSpeciesCount: \(shouldResetSpeciesCount),
+            speciesColorOffset: \(speciesColorOffset)
         )
         """
     }
@@ -208,7 +216,8 @@ extension SimulationPreset {
         newPointSize: Float? = nil,
         newWorldSize: Float? = nil,
         newIsBuiltIn: Bool? = nil,
-        newShouldResetSpeciesCount: Bool? = nil
+        newShouldResetSpeciesCount: Bool? = nil,
+        newSpeciesColorOffset: Int? = nil
     ) -> SimulationPreset {
         var copiedMatrixType = newMatrixType ?? matrixType  // Use new matrix if provided
         
@@ -232,7 +241,8 @@ extension SimulationPreset {
             pointSize: newPointSize ?? pointSize,
             worldSize: newWorldSize ?? worldSize,
             isBuiltIn: newIsBuiltIn ?? isBuiltIn,
-            shouldResetSpeciesCount: newShouldResetSpeciesCount ?? shouldResetSpeciesCount
+            shouldResetSpeciesCount: newShouldResetSpeciesCount ?? shouldResetSpeciesCount,
+            speciesColorOffset: newSpeciesColorOffset ?? speciesColorOffset
         )
     }
 }

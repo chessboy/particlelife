@@ -63,6 +63,15 @@ class SimulationSettings: ObservableObject {
         onChange: { newValue in handleWorldSizeChange(newValue) }
     )
     
+    @Published var speciesColorOffset: Int = 0 {
+        didSet {
+            BufferManager.shared.updatePhysicsBuffers()
+        }
+    }
+}
+
+extension SimulationSettings {
+    
     private static func handlePointSizeChange(_ newValue: Float) {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { // 50ms debounce
             if shared.pointSize.value == newValue { // Ensure consistency
@@ -89,6 +98,17 @@ class SimulationSettings: ObservableObject {
         }
     }
     
+    func applyPreset(_ preset: SimulationPreset) {
+        maxDistance.value = preset.maxDistance
+        minDistance.value = preset.minDistance
+        beta.value = preset.beta
+        friction.value = preset.friction
+        repulsion.value = preset.repulsion
+        pointSize.value = preset.pointSize
+        worldSize.value = preset.worldSize
+        speciesColorOffset = preset.speciesColorOffset
+    }
+    
     func selectPreset(_ preset: SimulationPreset, skipRespawn: Bool = false) {
         
         Logger.log("Attempting to select preset '\(preset.name)' (ID: \(preset.id))", level: .debug)
@@ -96,14 +116,14 @@ class SimulationSettings: ObservableObject {
         let allPresets = PresetDefinitions.getAllBuiltInPresets() + userPresets
         //let availablePresets = allPresets.map { "\($0.name) (ID: \($0.id))" }
         //Logger.log("Available presets: \n\(availablePresets.joined(separator: "\n"))", level: .debug)
-
+        
         guard let storedPreset = allPresets.first(where: { $0.id == preset.id }) else {
             Logger.log("ERROR: Preset '\(preset.name)' (ID: \(preset.id)) not found in storage!", level: .error)
             return
         }
-
+        
         Logger.log("Preset '\(preset.name)' found. Selecting it now.", level: .debug)
-
+        
         var presetToApply = storedPreset
         
         if !storedPreset.shouldResetSpeciesCount {
@@ -121,16 +141,6 @@ class SimulationSettings: ObservableObject {
         } else {
             NotificationCenter.default.post(name: .presetSelected, object: nil)
         }
-    }
-    
-    func applyPreset(_ preset: SimulationPreset) {
-        maxDistance.value = preset.maxDistance
-        minDistance.value = preset.minDistance
-        beta.value = preset.beta
-        friction.value = preset.friction
-        repulsion.value = preset.repulsion
-        pointSize.value = preset.pointSize
-        worldSize.value = preset.worldSize
     }
 }
 
@@ -150,19 +160,20 @@ extension SimulationSettings {
             pointSize: pointSize.value,
             worldSize: worldSize.value,
             isBuiltIn: false,
-            shouldResetSpeciesCount: true
+            shouldResetSpeciesCount: true,
+            speciesColorOffset: speciesColorOffset
         )
         
         // Save preset
         let persistedPreset = UserPresetStorage.saveUserPreset(newPreset, replaceExisting: replaceExisting)
-
+        
         // Ensure `userPresets` updates before selecting
         userPresets = UserPresetStorage.loadUserPresets()
-
+        
         // Poll every 50ms for up to 1 second to ensure the preset is loaded
         var retryCount = 0
         let maxRetries = 20
-
+        
         func attemptSelection() {
             if let updatedPreset = self.userPresets.first(where: { $0.id == persistedPreset.id }) {
                 self.selectedPreset = updatedPreset
@@ -175,7 +186,7 @@ extension SimulationSettings {
                 Logger.log("ERROR: Preset '\(persistedPreset.name)' (ID: \(persistedPreset.id)) not found after multiple attempts!", level: .error)
             }
         }
-
+        
         attemptSelection()
     }
 }

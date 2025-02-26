@@ -48,6 +48,7 @@ vertex VertexOut vertex_main(const device Particle* particles [[buffer(0)]],
                              const device float2* cameraPosition [[buffer(1)]],
                              const device float* zoomLevel [[buffer(2)]],
                              constant float* pointSize [[buffer(3)]],
+                             constant int* speciesColorOffset [[buffer(4)]],
                              uint id [[vertex_id]]) {
     VertexOut out;
 
@@ -64,7 +65,7 @@ vertex VertexOut vertex_main(const device Particle* particles [[buffer(0)]],
 
     out.position = float4(worldPosition, 0.0, 1.0);
     out.pointSize = scaledPointSize;
-    out.color = float4(speciesColor(particles[id].species, 0), 1.0);
+    out.color = float4(speciesColor(particles[id].species, *speciesColorOffset), 1.0);
 
     return out;
 }
