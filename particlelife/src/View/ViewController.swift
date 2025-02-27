@@ -58,8 +58,9 @@ class ViewController: NSViewController, NSWindowDelegate {
         )
 
         window.setFrameOrigin(centeredOrigin)
+        Logger.log("Window centered on screen")
     }
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -80,8 +81,15 @@ class ViewController: NSViewController, NSWindowDelegate {
         ])
 
         DispatchQueue.main.async {
-            if let window = self.view.window, window.delegate == nil {
+            if let window = self.view.window {
                 self.constrainWindowAspectRatio()
+
+                // Force the window size to be within constraints **before** manual resize
+                let minHeight: CGFloat = 900
+                let minWidth: CGFloat = minHeight * Constants.ASPECT_RATIO
+                let correctedFrame = NSRect(x: window.frame.origin.x, y: window.frame.origin.y, width: max(window.frame.width, minWidth), height: max(window.frame.height, minHeight))
+                
+                window.setFrame(correctedFrame, display: true, animate: false)
             }
         }
         
@@ -89,7 +97,10 @@ class ViewController: NSViewController, NSWindowDelegate {
     }
     
     func windowWillResize(_ sender: NSWindow, to frameSize: NSSize) -> NSSize {
-        return isResizing ? frameSize : enforceAspectRatio(for: frameSize)
+        if isResizing {
+            return frameSize // Let macOS complete its own resizing
+        }
+        return enforceAspectRatio(for: frameSize)
     }
     
     func windowWillStartLiveResize(_ notification: Notification) {
@@ -98,7 +109,7 @@ class ViewController: NSViewController, NSWindowDelegate {
 
     func windowDidEndLiveResize(_ notification: Notification) {
         isResizing = false
-        Logger.log("Resize finished, enforcing strict aspect ratio.", level: .debug)
+        //Logger.log("Resize finished, enforcing strict aspect ratio.", level: .debug)
         
         DispatchQueue.main.async {
             self.constrainWindowAspectRatio()
@@ -119,18 +130,25 @@ class ViewController: NSViewController, NSWindowDelegate {
     func constrainWindowAspectRatio() {
         guard let window = view.window else { return }
 
-        let titleBarHeight = window.frame.height - window.contentLayoutRect.height
         let aspectRatio: CGFloat = Constants.ASPECT_RATIO
+        let titleBarHeight = window.frame.height - window.contentLayoutRect.height
 
-        // Define the minimum size based on 16:9
         let minAllowedHeight: CGFloat = 900
         let minAllowedWidth: CGFloat = minAllowedHeight * aspectRatio
 
-        // Apply constraints *before* user resizes
         window.aspectRatio = NSSize(width: aspectRatio, height: 1)
         window.minSize = NSSize(width: minAllowedWidth, height: minAllowedHeight + titleBarHeight)
 
-        //Logger.log("Aspect ratio locked with min size \(minAllowedWidth)x\(minAllowedHeight)", level: .debug)
+        // Force constraints to take effect immediately
+        if window.frame.width < minAllowedWidth || window.frame.height < minAllowedHeight {
+            let correctedFrame = NSRect(
+                x: window.frame.origin.x,
+                y: window.frame.origin.y,
+                width: max(window.frame.width, minAllowedWidth),
+                height: max(window.frame.height, minAllowedHeight)
+            )
+            window.setFrame(correctedFrame, display: true, animate: false)
+        }
     }
     
     func addSettingsPanel() {
@@ -158,9 +176,11 @@ class ViewController: NSViewController, NSWindowDelegate {
     }
 
     private func handleMouseEvent(_ event: NSEvent, isRightClick: Bool) {
-        renderer.handleMouseClick(at: metalView.convert(event.locationInWindow, from: nil), in: metalView, isRightClick: isRightClick)
+        let location = event.locationInWindow
+        let convertedLocation = metalView.convert(location, from: nil)
+        renderer.handleMouseClick(at: convertedLocation, in: metalView, isRightClick: isRightClick)
     }
-    
+
     override func keyDown(with event: NSEvent) {
         if event.modifierFlags.contains(.command) && event.characters == "r" {
             renderer.respawnParticles()
@@ -172,10 +192,10 @@ class ViewController: NSViewController, NSWindowDelegate {
             renderer.isPaused.toggle()
         case 29: // zero
             renderer.resetPanAndZoom()
-        case 24: // `+` key (Start Zooming In)
+        case 24: // + key (Start Zooming In)
             zoomingIn = true
             return
-        case 27: // `-` key (Start Zooming Out)
+        case 27: // - key (Start Zooming Out)
             zoomingOut = true
             return
         case 123: // Left arrow (Start Panning Left)
@@ -197,9 +217,9 @@ class ViewController: NSViewController, NSWindowDelegate {
     
     override func keyUp(with event: NSEvent) {
         switch event.keyCode {
-        case 24: // `+` key (Stop Zooming In)
+        case 24: // + key (Stop Zooming In)
             zoomingIn = false
-        case 27: // `-` key (Stop Zooming Out)
+        case 27: // - key (Stop Zooming Out)
             zoomingOut = false
         case 123: // Left arrow (Stop Panning Left)
             panningLeft = false
@@ -216,10 +236,10 @@ class ViewController: NSViewController, NSWindowDelegate {
 
     private func handleZoomKeys(_ event: NSEvent, isKeyDown: Bool) -> Bool {
         switch event.keyCode {
-        case 24: // `+` key
+        case 24: // + key
             zoomingIn = isKeyDown
             return true
-        case 27: // `-` key
+        case 27: // - key
             zoomingOut = isKeyDown
             return true
         default:
