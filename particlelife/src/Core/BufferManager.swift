@@ -32,6 +32,7 @@ class BufferManager {
     private(set) var repulsionBuffer: MTLBuffer?
     private(set) var pointSizeBuffer: MTLBuffer?
     private(set) var worldSizeBuffer: MTLBuffer?
+    private(set) var windowSizeBuffer: MTLBuffer?
     private(set) var boundaryVertexBuffer: MTLBuffer?
     private(set) var clickBuffer: MTLBuffer?
 
@@ -53,6 +54,7 @@ class BufferManager {
         repulsionBuffer != nil &&
         pointSizeBuffer != nil &&
         worldSizeBuffer != nil &&
+        windowSizeBuffer != nil &&
         cameraBuffer != nil &&
         zoomBuffer != nil &&
         clickBuffer != nil &&
@@ -83,6 +85,7 @@ class BufferManager {
         pointSizeBuffer = createBuffer(type: Float.self)
         speciesColorOffsetBuffer = createBuffer(type: Int.self)
         worldSizeBuffer = createBuffer(type: Float.self)
+        windowSizeBuffer = createBuffer(type: Float.self, count: 2)
         initializeBoundaryBuffer()
         updateClickBuffer(clickPosition: SIMD2<Float>(0, 0), force: 0.0)
 
@@ -202,6 +205,11 @@ extension BufferManager {
 
     func updateDeltaTimeBuffer(dt: inout Float) {
         updateBuffer(deltaTimeBuffer, with: dt)
+    }
+    
+    func updateWindowSizeBuffer(width: Float, height: Float) {
+        let windowSize = SIMD2<Float>(width, height)
+        updateBuffer(windowSizeBuffer, with: windowSize)
     }
     
     func updateInteractionMatrix(matrix: [[Float]], speciesCount: Int) {

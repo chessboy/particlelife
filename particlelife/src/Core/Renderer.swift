@@ -205,7 +205,7 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         computeEncoder.setBuffer(bufferManager.zoomBuffer, offset: 0, index: 10)
         computeEncoder.setBuffer(bufferManager.worldSizeBuffer, offset: 0, index: 11)
         computeEncoder.setBuffer(bufferManager.clickBuffer, offset: 0, index: 12)
-
+        
         let threadGroupSize = 512
         let particleCount = SimulationSettings.shared.selectedPreset.particleCount.rawValue
         let threadGroups = (particleCount + threadGroupSize - 1) / threadGroupSize
@@ -224,7 +224,7 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         
         guard let renderEncoder = commandBuffer?.makeRenderCommandEncoder(descriptor: passDescriptor) else { return }
         let bufferManager: BufferManager = BufferManager.shared
-
+        
         // Draw World Boundary (Only if enabled)
         if drawWorldBoundary {
             if boundaryPipelineState == nil {
@@ -246,6 +246,8 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         renderEncoder.setVertexBuffer(bufferManager.zoomBuffer, offset: 0, index: 2)
         renderEncoder.setVertexBuffer(bufferManager.pointSizeBuffer, offset: 0, index: 3)
         renderEncoder.setVertexBuffer(bufferManager.speciesColorOffsetBuffer, offset: 0, index: 4)
+        renderEncoder.setVertexBuffer(bufferManager.windowSizeBuffer, offset: 0, index: 5)
+        
         let particleCount = SimulationSettings.shared.selectedPreset.particleCount.rawValue
         renderEncoder.drawPrimitives(type: .point, vertexStart: 0, vertexCount: particleCount)
         
@@ -311,10 +313,30 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
             isPaused.toggle()
         }
         particleSystem.respawn(shouldGenerateNewMatrix: false)
-        //NotificationCenter.default.post(name: .respawn, object: nil)
     }
     
-    func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {}
+    func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {
+        let expectedAspectRatio: CGFloat = Constants.ASPECT_RATIO
+        var correctedSize = size
+        
+        let actualAspectRatio = size.width / size.height
+        
+        if abs(actualAspectRatio - expectedAspectRatio) > 0.01 { // If aspect ratio is off
+            if actualAspectRatio > expectedAspectRatio {
+                correctedSize.width = size.height * expectedAspectRatio
+            } else {
+                correctedSize.height = size.width / expectedAspectRatio
+            }
+            //Logger.log("Corrected drawable size = \(correctedSize.width) x \(correctedSize.height), ratio: \(correctedSize.width / correctedSize.height)", level: .debug)
+        }
+        
+        BufferManager.shared.updateWindowSizeBuffer(width: Float(correctedSize.width), height: Float(correctedSize.height))
+        
+        // Force redraw after correcting the drawable size
+        DispatchQueue.main.async {
+            view.draw()
+        }
+    }
 }
 
 extension Renderer {

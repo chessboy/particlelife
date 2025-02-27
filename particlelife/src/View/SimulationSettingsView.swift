@@ -85,7 +85,7 @@ struct SimulationSettingsView: View {
         )
         .shadow(radius: 10)
         .opacity(isVisible ? 1.0 : 0.0)
-        .allowsHitTesting(isVisible)
+        .disabled(!isVisible)
         .animation(.easeInOut(duration: 0.3), value: isVisible)
         .onHover { hovering in
             if !isPinned && !isShowingSaveSheet && !isShowingDeleteSheet {
@@ -354,12 +354,18 @@ struct PhysicsSettingsView: View {
 
     var body: some View {
         VStack {
-            Button(action: { isExpanded.toggle() }) {
+            Button(action: {
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    isExpanded.toggle()
+                }
+            }) {
                 HStack {
                     Text("Physics Settings")
                         .font(.headline)
                     Spacer()
-                    Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
+                    Image(systemName: "chevron.right")
+                        .rotationEffect(.degrees(isExpanded ? 90 : 0))
+                        .animation(.easeInOut(duration: 0.3), value: isExpanded)
                         .font(.title2)
                 }
                 .padding(6)

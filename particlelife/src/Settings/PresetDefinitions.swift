@@ -11,7 +11,7 @@ class PresetDefinitions {
     
     static let randomPreset = makeRandomPreset(speciesCount: 3)
     static let emptyPreset = makeEmptyPreset(speciesCount: 3)
-    static let specialPresets = [snake, cells, sandArt, spaceWars, breathing, comet, comet2, moreCells, lava]
+    static let specialPresets = [snake, cells, sandArt, spaceWars, breathing, comet, comet2, moreCells, lava].sorted() { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
     
     static func getAllBuiltInPresets() -> [SimulationPreset] {
         return [randomPreset] + [emptyPreset] + specialPresets
@@ -33,7 +33,7 @@ class PresetDefinitions {
             beta: 0.3,
             friction: 0.2,
             repulsion: 0.03,
-            pointSize: 11,
+            pointSize: 7,
             worldSize: 1.0,
             isBuiltIn: true,
             shouldResetSpeciesCount: false,
@@ -88,7 +88,7 @@ extension PresetDefinitions {
         beta: 0.15,
         friction: 0.20,
         repulsion: 0.03,
-        pointSize: 5,
+        pointSize: 4,
         worldSize: 0.75,
         isBuiltIn: true,
         shouldResetSpeciesCount: true,
@@ -110,7 +110,7 @@ extension PresetDefinitions {
         beta: 0.30,
         friction: 0.20,
         repulsion: 0.03,
-        pointSize: 15,
+        pointSize: 12,
         worldSize: 1.25,
         isBuiltIn: true,
         shouldResetSpeciesCount: true,
@@ -132,7 +132,7 @@ extension PresetDefinitions {
         beta: 0.30,
         friction: 0.20,
         repulsion: 0.03,
-        pointSize: 17,
+        pointSize: 10,
         worldSize: 2.00,
         isBuiltIn: true,
         shouldResetSpeciesCount: true,
@@ -160,8 +160,8 @@ extension PresetDefinitions {
         beta: 0.30,
         friction: 0.10,
         repulsion: 0.03,
-        pointSize: 19,
-        worldSize: 4.00,
+        pointSize: 10,
+        worldSize: 3.00,
         isBuiltIn: true,
         shouldResetSpeciesCount: true,
         speciesColorOffset: 0
@@ -185,7 +185,7 @@ extension PresetDefinitions {
         beta: 0.30,
         friction: 0.15,
         repulsion: 0.14,
-        pointSize: 7,
+        pointSize: 5,
         worldSize: 0.50,
         isBuiltIn: true,
         shouldResetSpeciesCount: true,
@@ -207,7 +207,7 @@ extension PresetDefinitions {
         beta: 0.30,
         friction: 0.15,
         repulsion: 0.03,
-        pointSize: 5,
+        pointSize: 6,
         worldSize: 0.50,
         isBuiltIn: true,
         shouldResetSpeciesCount: true,
@@ -229,7 +229,7 @@ extension PresetDefinitions {
         beta: 0.30,
         friction: 0.20,
         repulsion: 0.03,
-        pointSize: 11,
+        pointSize: 10,
         worldSize: 1.25,
         isBuiltIn: true,
         shouldResetSpeciesCount: true,
@@ -254,7 +254,7 @@ extension PresetDefinitions {
         beta: 0.30,
         friction: 0.20,
         repulsion: 0.03,
-        pointSize: 5,
+        pointSize: 3,
         worldSize: 0.50,
         isBuiltIn: true,
         shouldResetSpeciesCount: true,
@@ -276,7 +276,7 @@ extension PresetDefinitions {
         beta: 0.30,
         friction: 0.20,
         repulsion: 0.03,
-        pointSize: 19,
+        pointSize: 11,
         worldSize: 1.00,
         isBuiltIn: true,
         shouldResetSpeciesCount: true,

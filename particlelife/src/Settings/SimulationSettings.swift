@@ -54,7 +54,7 @@ class SimulationSettings: ObservableObject {
     )
     
     @Published var pointSize = ConfigurableSetting(
-        value: 11.0, defaultValue: 11.0, min: 3.0, max: 25.0, step: 2.0, format: "%.0f",
+        value: 11.0, defaultValue: 5, min: 1.0, max: 15.0, step: 1.0, format: "%.0f",
         onChange:{ newValue in handlePointSizeChange(newValue) }
     )
     

@@ -117,7 +117,7 @@ class UserPresetStorage {
         if replaceExisting {
             if let index = presets.firstIndex(where: { $0.name == preset.name }) {
                 let existingPreset = presets[index]
-                finalPreset = preset.copy(id: existingPreset.id) // ✅ Preserve the UUID
+                finalPreset = preset.copy(id: existingPreset.id) // Preserve the UUID
                 presets[index] = finalPreset
                 Logger.log("Replacing existing preset '\(preset.name)' with ID \(existingPreset.id)", level: .debug)
             } else {

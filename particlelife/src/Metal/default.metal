@@ -1,6 +1,7 @@
 #include <metal_stdlib>
 using namespace metal;
 
+// todo: pass window size buffer to compute shader and remove this
 constant float ASPECT_RATIO = 1.7778;
 
 struct Particle {
@@ -31,24 +32,26 @@ float rand(int x, int y, int z) {
 float3 speciesColor(int species, int offset) {
     int adjustedSpecies = (species + offset) % 9; // Wrap around at 9
     switch (adjustedSpecies) {
-        case 0: return float3(1.0, 0.2, 0.2);  // 🔴 Soft Red
-        case 1: return float3(1.0, 0.6, 0.0);  // 🟠 Orange
+        case 0: return float3(1.0, 0.2, 0.2);   // 🔴 Soft Red
+        case 1: return float3(1.0, 0.6, 0.0);   // 🟠 Orange
         case 2: return float3(0.95, 0.95, 0.0); // 🟡 Warm Yellow
-        case 3: return float3(0.0, 0.8, 0.2);  // 🟢 Green (Deeper)
-        case 4: return float3(0.0, 0.4, 1.0);  // 🔵 Bright Blue
-        case 5: return float3(0.6, 0.2, 1.0);  // 🟣 Purple
-        case 6: return float3(0.0, 1.0, 1.0);  // 🔵 Cyan
-        case 7: return float3(1.0, 0.0, 0.6);  // 💖 Hot Pink
-        case 8: return float3(0.2, 0.8, 0.6);  // 🌊 Teal
-        default: return float3(0.7, 0.7, 0.7); // ⚫ Light Gray (Fallback)
+        case 3: return float3(0.0, 0.8, 0.2);   // 🟢 Green (Deeper)
+        case 4: return float3(0.0, 0.4, 1.0);   // 🔵 Bright Blue
+        case 5: return float3(0.6, 0.2, 1.0);   // 🟣 Purple
+        case 6: return float3(0.0, 1.0, 1.0);   // 🔵 Cyan
+        case 7: return float3(1.0, 0.0, 0.6);   // 💖 Hot Pink
+        case 8: return float3(0.2, 0.8, 0.6);   // 🌊 Teal
+        default: return float3(0.7, 0.7, 0.7);  // ⚫ Light Gray (Fallback)
     }
 }
 
+// draw particles
 vertex VertexOut vertex_main(const device Particle* particles [[buffer(0)]],
                              const device float2* cameraPosition [[buffer(1)]],
                              const device float* zoomLevel [[buffer(2)]],
                              constant float* pointSize [[buffer(3)]],
                              constant int* speciesColorOffset [[buffer(4)]],
+                             constant float2* windowSize [[buffer(5)]],
                              uint id [[vertex_id]]) {
     VertexOut out;
 
@@ -56,20 +59,43 @@ vertex VertexOut vertex_main(const device Particle* particles [[buffer(0)]],
     float2 worldPosition = particles[id].position - *cameraPosition;
     worldPosition *= *zoomLevel;
 
-    // Hardcoded aspect ratio correction (assuming 16:9 screen)
-    worldPosition.x /= ASPECT_RATIO;
+    // Dynamically compute aspect ratio
+    float aspectRatio = windowSize->x / windowSize->y;
 
-    // Scale point size inversely with zoom (but keep it visible)
-    float scaledPointSize = *pointSize * *zoomLevel;
-    scaledPointSize = clamp(scaledPointSize, 1.0, 60.0);
+    float2 adjustedScale = float2(1.0, 1.0); // Default scaling
+
+    // Instead of blindly dividing/multiplying, normalize within the fixed aspect ratio
+    if (aspectRatio > 1.0) {
+        adjustedScale.x = 1.0 / aspectRatio;
+    } else {
+        adjustedScale.y = aspectRatio;
+    }
+
+    worldPosition *= adjustedScale;
+    
+    // Scale point size dynamically with window size (and keep zoom & user size adjustments)
+    float scaleFactor = min(windowSize->x, windowSize->y) / 3000.0;
+    float scaledPointSize = *pointSize * *zoomLevel * scaleFactor;
+    scaledPointSize = clamp(scaledPointSize, 2.0, 200.0);
 
     out.position = float4(worldPosition, 0.0, 1.0);
     out.pointSize = scaledPointSize;
     out.color = float4(speciesColor(particles[id].species, *speciesColorOffset), 1.0);
-
+        
     return out;
 }
 
+// draw a point
+fragment float4 fragment_main(VertexOut in [[stage_in]], float2 pointCoord [[point_coord]]) {
+    float2 coord = pointCoord - 0.5;
+    float distSquared = dot(coord, coord);
+
+    // Use smoothstep for soft edges instead of discard
+    float alpha = 1.0 - smoothstep(0.2, 0.25, distSquared);  // Smooth transition at the edge
+    return float4(in.color.rgb, alpha);
+}
+
+// draw boundary
 vertex VertexOut vertex_boundary(
     uint id [[vertex_id]],
     const device float2* cameraPosition [[buffer(1)]],
@@ -94,15 +120,6 @@ vertex VertexOut vertex_boundary(
     out.color = float4(0.0, 0.33, 0.5, 1.0);
 
     return out;
-}
-
-fragment float4 fragment_main(VertexOut in [[stage_in]], float2 pointCoord [[point_coord]]) {
-    float2 coord = pointCoord - 0.5;
-    float distSquared = dot(coord, coord);
-
-    // Use smoothstep for soft edges instead of discard
-    float alpha = 1.0 - smoothstep(0.2, 0.25, distSquared);  // Smooth transition at the edge
-    return float4(in.color.rgb, alpha);
 }
 
 float2 handleBoundary(float2 pos, float worldSize) {

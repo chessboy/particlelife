@@ -3,7 +3,7 @@ import SwiftUI
 import Metal
 import MetalKit
 
-class ViewController: NSViewController {
+class ViewController: NSViewController, NSWindowDelegate {
     var metalView: MTKView!
     var renderer: Renderer!
     
@@ -15,21 +15,38 @@ class ViewController: NSViewController {
     private var panningDown = false
     private var actionTimer: Timer?
 
+    private var isResizing = false
+
     var hostingView: NSHostingView<SimulationSettingsView>!
     
     override func viewWillAppear() {
         super.viewWillAppear()
+        
+        if let window = view.window {
+            window.delegate = self
+        }
+
         self.view.window?.makeFirstResponder(self)
         centerWindowIfNeeded()
 
         actionTimer = Timer.scheduledTimer(timeInterval: 0.016, target: self, selector: #selector(updateCamera), userInfo: nil, repeats: true)
-        self.view.window?.makeFirstResponder(self)
     }
+    
+    override func viewWillDisappear() {
+        super.viewWillDisappear()
+        actionTimer?.invalidate()
+        actionTimer = nil
+    }
+    
+    private var retryCount = 0
+    private let maxRetries = 10
     
     func centerWindowIfNeeded() {
         guard let window = view.window, let screen = window.screen else {
-            Logger.log("⚠️ Window not ready, delaying centering...")
-            DispatchQueue.main.async { self.centerWindowIfNeeded() }  // Try again on next cycle
+            if retryCount < maxRetries {
+                retryCount += 1
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { self.centerWindowIfNeeded() }
+            }
             return
         }
 
@@ -41,35 +58,20 @@ class ViewController: NSViewController {
         )
 
         window.setFrameOrigin(centeredOrigin)
-        Logger.log("Window centered on screen")
     }
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        if let screen = NSScreen.main {
-            let screenFrame = screen.frame
-            Logger.log("Screen Size: \(screenFrame.size)")
-
-            // Calculate initial size while keeping the aspect ratio
-            let initialWidth: CGFloat = min(screenFrame.width * 0.8, 1600)
-            let initialHeight: CGFloat = initialWidth / Constants.ASPECT_RATIO
-
-            metalView = MTKView(frame: CGRect(x: 0, y: 0, width: initialWidth, height: initialHeight),
-                                device: MTLCreateSystemDefaultDevice())
-        } else {
-            Logger.log("ERROR: Could not get screen size, falling back to view.bounds", level: .error)
-            metalView = MTKView(frame: view.bounds, device: MTLCreateSystemDefaultDevice())
-        }
-        
+        metalView = MTKView(frame: .zero, device: MTLCreateSystemDefaultDevice())
         metalView.clearColor = MTLClearColor(red: 0, green: 0, blue: 0, alpha: 1)
         metalView.autoresizingMask = [.width, .height]
         metalView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(metalView)
-        renderer = Renderer(mtkView: metalView)
-
-        addSettingsPanel()
         
+        renderer = Renderer(mtkView: metalView)
+        addSettingsPanel()
+
         NSLayoutConstraint.activate([
             metalView.topAnchor.constraint(equalTo: view.topAnchor),
             metalView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
@@ -77,54 +79,58 @@ class ViewController: NSViewController {
             metalView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
         ])
 
-        // Disable autosave and auto-sizing constraints before applying aspect ratio
-        view.window?.setFrameAutosaveName("") // Prevents macOS from restoring an old size
+        DispatchQueue.main.async {
+            if let window = self.view.window, window.delegate == nil {
+                self.constrainWindowAspectRatio()
+            }
+        }
+        
         view.window?.isMovableByWindowBackground = false
-
-        // Apply window constraints for aspect ratio
-        constrainWindowAspectRatio()
     }
     
-    private var retryCount = 0
-    private let maxRetries = 10 // Prevent infinite loops
+    func windowWillResize(_ sender: NSWindow, to frameSize: NSSize) -> NSSize {
+        return isResizing ? frameSize : enforceAspectRatio(for: frameSize)
+    }
+    
+    func windowWillStartLiveResize(_ notification: Notification) {
+        isResizing = true
+    }
 
-    func constrainWindowAspectRatio() {
-        guard let window = view.window else {
-            if retryCount < maxRetries {
-                retryCount += 1
-                Logger.log("Window not available yet, retrying (\(retryCount)/\(maxRetries))...")
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    self.constrainWindowAspectRatio()
-                }
-            } else {
-                Logger.log("Max retries reached. Window still not available.", level: .error)
-            }
-            return
+    func windowDidEndLiveResize(_ notification: Notification) {
+        isResizing = false
+        Logger.log("Resize finished, enforcing strict aspect ratio.", level: .debug)
+        
+        DispatchQueue.main.async {
+            self.constrainWindowAspectRatio()
         }
+    }
+        
+    func enforceAspectRatio(for frameSize: NSSize) -> NSSize {
+        let aspectRatio: CGFloat = Constants.ASPECT_RATIO
+        let minAllowedHeight: CGFloat = 900
+        let minAllowedWidth: CGFloat = minAllowedHeight * aspectRatio
 
-        // Get title bar height dynamically
+        let newWidth = max(frameSize.height * aspectRatio, minAllowedWidth)
+        let newHeight = max(frameSize.width / aspectRatio, minAllowedHeight)
+
+        return NSSize(width: newWidth, height: newHeight)
+    }
+    
+    func constrainWindowAspectRatio() {
+        guard let window = view.window else { return }
+
         let titleBarHeight = window.frame.height - window.contentLayoutRect.height
+        let aspectRatio: CGFloat = Constants.ASPECT_RATIO
 
-        // Define desired content size
-        let minWidth: CGFloat = 1600
-        let minHeight: CGFloat = minWidth / CGFloat(Constants.ASPECT_RATIO)
+        // Define the minimum size based on 16:9
+        let minAllowedHeight: CGFloat = 900
+        let minAllowedWidth: CGFloat = minAllowedHeight * aspectRatio
 
-        // Compute full window frame size including the title bar
-        let fullHeight = minHeight + titleBarHeight
+        // Apply constraints *before* user resizes
+        window.aspectRatio = NSSize(width: aspectRatio, height: 1)
+        window.minSize = NSSize(width: minAllowedWidth, height: minAllowedHeight + titleBarHeight)
 
-        // Apply aspect ratio constraint
-        window.aspectRatio = NSSize(width: Constants.ASPECT_RATIO, height: 1)
-
-        // Set window frame directly (prevent macOS adjustments causing jerks)
-        window.setFrame(NSRect(x: window.frame.origin.x,
-                               y: window.frame.origin.y,
-                               width: minWidth,
-                               height: fullHeight),
-                        display: true)
-
-        window.minSize = NSSize(width: minWidth, height: fullHeight)
-
-        Logger.log("Window aspect ratio locked after \(retryCount) tr\(retryCount == 1 ? "y" : "ies")")
+        //Logger.log("Aspect ratio locked with min size \(minAllowedWidth)x\(minAllowedHeight)", level: .debug)
     }
     
     func addSettingsPanel() {
@@ -152,11 +158,9 @@ class ViewController: NSViewController {
     }
 
     private func handleMouseEvent(_ event: NSEvent, isRightClick: Bool) {
-        let location = event.locationInWindow
-        let convertedLocation = metalView.convert(location, from: nil)        
-        renderer.handleMouseClick(at: convertedLocation, in: metalView, isRightClick: isRightClick)
+        renderer.handleMouseClick(at: metalView.convert(event.locationInWindow, from: nil), in: metalView, isRightClick: isRightClick)
     }
-
+    
     override func keyDown(with event: NSEvent) {
         if event.modifierFlags.contains(.command) && event.characters == "r" {
             renderer.respawnParticles()
@@ -242,10 +246,5 @@ class ViewController: NSViewController {
         if panningDown {
             renderer.panDown()  // Smooth panning down
         }
-    }
-    
-    override func viewDidLayout() {
-        super.viewDidLayout()
-        metalView.frame = view.bounds  // Resize Metal view with the window
     }
 }

@@ -43,7 +43,7 @@ class ParticleSystem: ObservableObject {
     
     /// Called when a preset is applied but we don't want to respawn (eg. reset button)
     @objc private func presetAppliedNoRespawn() {
-        Logger.log("Preset applied - updating Particle System - NO RESPAWN")
+        Logger.log("Preset apprlied - updating Particle System - NO RESPAWN")
         generateNewMatrix(preset: SimulationSettings.shared.selectedPreset)
         BufferManager.shared.updateInteractionBuffer(interactionMatrix: interactionMatrix)
     }
