@@ -32,7 +32,6 @@ class ParticleSystem: ObservableObject {
         
         // listen for changes when a preset is applied
         NotificationCenter.default.addObserver(self, selector: #selector(presetApplied), name: Notification.Name.presetSelected, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(presetAppliedNoRespawn), name: Notification.Name.presetSelectedNoRespawn, object: nil)
     }
     
     /// Called when a preset is applied

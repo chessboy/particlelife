@@ -109,7 +109,7 @@ extension SimulationSettings {
         speciesColorOffset = preset.speciesColorOffset
     }
     
-    func selectPreset(_ preset: SimulationPreset, skipRespawn: Bool = false) {
+    func selectPreset(_ preset: SimulationPreset) {
         
         Logger.log("Attempting to select preset '\(preset.name)' (ID: \(preset.id))", level: .debug)
         
@@ -136,11 +136,7 @@ extension SimulationSettings {
         selectedPreset = presetToApply
         applyPreset(selectedPreset)
         
-        if skipRespawn {
-            NotificationCenter.default.post(name: .presetSelectedNoRespawn, object: nil)
-        } else {
-            NotificationCenter.default.post(name: .presetSelected, object: nil)
-        }
+        NotificationCenter.default.post(name: .presetSelected, object: nil)
     }
 }
 

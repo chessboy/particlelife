@@ -65,7 +65,6 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         }
         
         NotificationCenter.default.addObserver(self, selector: #selector(presetApplied), name: Notification.Name.presetSelected, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(presetApplied), name: Notification.Name.presetSelectedNoRespawn, object: nil)
     }
     
     /// Called when a preset is applied
