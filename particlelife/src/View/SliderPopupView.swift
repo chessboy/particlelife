@@ -37,6 +37,7 @@ struct SliderPopupView: View {
                         Text(String(format: "%.1f", quickValue))
                             .font(.headline)
                             .foregroundColor(.white)
+                            .shadow(color: .black.opacity(0.6), radius: 2, x: 0, y: 1)
                             .frame(width: 44, height: 28)
                             .background(
                                 RoundedRectangle(cornerRadius: 6)

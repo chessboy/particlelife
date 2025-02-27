@@ -152,6 +152,25 @@ struct InteractionMatrixGrid: View {
         return 0.7 + (CGFloat(count - 1) / 8) * 0.15 // 0.7 to 0.85
     }
     
+    // Helper function for overlaying arrows
+    @ViewBuilder
+    private func arrowOverlay(for index: Int, cellSize: CGFloat) -> some View {
+        if hoverIndex == index {
+            let arrowName = (index == 0) ? "arrow.right" : "arrow.left"
+            Image(systemName: arrowName)
+                .resizable()
+                .scaledToFit()
+                .frame(width: cellSize * circleScale * 0.7, height: cellSize * circleScale * 0.7)
+                .foregroundColor(.white)
+                .shadow(color: .black.opacity(0.6), radius: 2, x: 0, y: 1)
+        }
+    }
+
+    // Helper function for scale effect
+    private func scaleEffectForIndex(_ index: Int) -> CGFloat {
+        (index == 0 || index == speciesColors.count - 1) && hoverIndex == index ? 1.15 : 1.0
+    }
+    
     var body: some View {
         GeometryReader { geometry in
             let speciesCount = max(1, interactionMatrix.count)
@@ -167,11 +186,7 @@ struct InteractionMatrixGrid: View {
                             .frame(width: cellSize * circleScale, height: cellSize * circleScale)
                             .clipShape(Circle())
                             .frame(width: cellSize, height: cellSize)
-                            .overlay(
-                                Circle()
-                                    .stroke((index == 0 || index == speciesColors.count - 1) && hoverIndex == index ? Color.white.opacity(1.0) : Color.clear, lineWidth: 2) // White border on hover
-                                    .frame(width: cellSize * circleScale, height: cellSize * circleScale)
-                            )
+                            .overlay(arrowOverlay(for: index, cellSize: cellSize))
                             .scaleEffect((index == 0 || index == speciesColors.count - 1) && hoverIndex == index ? 1.15 : 1.0) // Slight pop effect
                             .animation(.easeInOut(duration: 0.2), value: hoverIndex)
                             .onHover { hovering in
