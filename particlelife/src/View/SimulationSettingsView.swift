@@ -81,7 +81,7 @@ struct SimulationSettingsView: View {
         .clipShape(RoundedCornerShape(corners: [.topRight, .bottomRight], radius: 20))
         .overlay(
             RoundedCornerShape(corners: [.topRight, .bottomRight], radius: 20)
-                .stroke(Color(white: 0.33), lineWidth: 2)
+                .stroke(Color(white: 0.33), lineWidth: 1.5)
         )
         .shadow(radius: 10)
         .opacity(isVisible ? 1.0 : 0.0)
@@ -338,12 +338,29 @@ struct SimulationSlidersView: View {
 }
 
 struct LogoView: View {
+    
+    @State private var hovering = false // Track hover state
+
     var body: some View {
         Image("particle-life-logo")
             .resizable()
             .scaledToFit()
-            .opacity(0.7)
+            .opacity(hovering ? 1.0 : 0.7)
             .frame(width: 120)
+            .scaleEffect(hovering ? 1.15 : 1.0) // Scale on hover
+            .animation(.easeInOut(duration: 0.15), value: hovering)
+            .onTapGesture {
+                openGitHubRepo()
+            }
+            .onHover { isHovering in
+                hovering = isHovering
+            }
+    }
+
+    private func openGitHubRepo() {
+        if let url = URL(string: "https://github.com/chessboy/particlelife") {
+            NSWorkspace.shared.open(url)
+        }
     }
 }
 

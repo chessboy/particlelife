@@ -3,32 +3,20 @@ import SwiftUI
 import Metal
 import MetalKit
 
-class ViewController: NSViewController, NSWindowDelegate {
-    var metalView: MTKView!
-    var renderer: Renderer!
-    
-    private var zoomingIn = false
-    private var zoomingOut = false
-    private var panningLeft = false
-    private var panningRight = false
-    private var panningUp = false
-    private var panningDown = false
+class ViewController: NSViewController  {
+    private var metalView: MTKView!
+    private var renderer: Renderer!
     private var actionTimer: Timer?
-
-    private var isResizing = false
-
-    var hostingView: NSHostingView<SimulationSettingsView>!
+    private var hostingView: NSHostingView<SimulationSettingsView>!
     
     override func viewWillAppear() {
         super.viewWillAppear()
         
-        if let window = view.window {
-            window.delegate = self
-        }
-
         self.view.window?.makeFirstResponder(self)
         centerWindowIfNeeded()
+        enforceWindowSizeConstraints()
 
+        NotificationCenter.default.addObserver(self, selector: #selector(didExitFullScreen), name: NSWindow.didExitFullScreenNotification, object: nil)
         actionTimer = Timer.scheduledTimer(timeInterval: 0.016, target: self, selector: #selector(updateCamera), userInfo: nil, repeats: true)
     }
     
@@ -38,17 +26,8 @@ class ViewController: NSViewController, NSWindowDelegate {
         actionTimer = nil
     }
     
-    private var retryCount = 0
-    private let maxRetries = 10
-    
     func centerWindowIfNeeded() {
-        guard let window = view.window, let screen = window.screen else {
-            if retryCount < maxRetries {
-                retryCount += 1
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { self.centerWindowIfNeeded() }
-            }
-            return
-        }
+        guard let window = view.window, let screen = window.screen else { return }
 
         let screenFrame = screen.visibleFrame
         let windowSize = window.frame.size
@@ -58,9 +37,9 @@ class ViewController: NSViewController, NSWindowDelegate {
         )
 
         window.setFrameOrigin(centeredOrigin)
-        Logger.log("Window centered on screen")
+        Logger.log("Window centered on screen: windowSize: \(windowSize), screenFrame: \(screenFrame)", level: .debug)
     }
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -72,82 +51,39 @@ class ViewController: NSViewController, NSWindowDelegate {
         
         renderer = Renderer(mtkView: metalView)
         addSettingsPanel()
-
+        
         NSLayoutConstraint.activate([
             metalView.topAnchor.constraint(equalTo: view.topAnchor),
             metalView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             metalView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             metalView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
         ])
-
-        DispatchQueue.main.async {
-            if let window = self.view.window {
-                self.constrainWindowAspectRatio()
-
-                // Force the window size to be within constraints **before** manual resize
-                let minHeight: CGFloat = 900
-                let minWidth: CGFloat = minHeight * Constants.ASPECT_RATIO
-                let correctedFrame = NSRect(x: window.frame.origin.x, y: window.frame.origin.y, width: max(window.frame.width, minWidth), height: max(window.frame.height, minHeight))
                 
-                window.setFrame(correctedFrame, display: true, animate: false)
-            }
-        }
-        
         view.window?.isMovableByWindowBackground = false
     }
-    
-    func windowWillResize(_ sender: NSWindow, to frameSize: NSSize) -> NSSize {
-        if isResizing {
-            return frameSize // Let macOS complete its own resizing
-        }
-        return enforceAspectRatio(for: frameSize)
-    }
-    
-    func windowWillStartLiveResize(_ notification: Notification) {
-        isResizing = true
-    }
-
-    func windowDidEndLiveResize(_ notification: Notification) {
-        isResizing = false
-        //Logger.log("Resize finished, enforcing strict aspect ratio.", level: .debug)
-        
-        DispatchQueue.main.async {
-            self.constrainWindowAspectRatio()
-        }
-    }
-        
-    func enforceAspectRatio(for frameSize: NSSize) -> NSSize {
-        let aspectRatio: CGFloat = Constants.ASPECT_RATIO
-        let minAllowedHeight: CGFloat = 900
-        let minAllowedWidth: CGFloat = minAllowedHeight * aspectRatio
-
-        let newWidth = max(frameSize.height * aspectRatio, minAllowedWidth)
-        let newHeight = max(frameSize.width / aspectRatio, minAllowedHeight)
-
-        return NSSize(width: newWidth, height: newHeight)
-    }
-    
-    func constrainWindowAspectRatio() {
+            
+    private func enforceWindowSizeConstraints() {
         guard let window = view.window else { return }
 
         let aspectRatio: CGFloat = Constants.ASPECT_RATIO
+        let minContentHeight: CGFloat = 900
+        let minContentWidth: CGFloat = round(minContentHeight * aspectRatio)
+
         let titleBarHeight = window.frame.height - window.contentLayoutRect.height
+        let minWindowHeight = minContentHeight + titleBarHeight
+        let minWindowWidth = minContentWidth
 
-        let minAllowedHeight: CGFloat = 900
-        let minAllowedWidth: CGFloat = minAllowedHeight * aspectRatio
-
+        // These two lines do ALL the work!
         window.aspectRatio = NSSize(width: aspectRatio, height: 1)
-        window.minSize = NSSize(width: minAllowedWidth, height: minAllowedHeight + titleBarHeight)
+        window.minSize = NSSize(width: minWindowWidth, height: minWindowHeight)
 
-        // Force constraints to take effect immediately
-        if window.frame.width < minAllowedWidth || window.frame.height < minAllowedHeight {
-            let correctedFrame = NSRect(
-                x: window.frame.origin.x,
-                y: window.frame.origin.y,
-                width: max(window.frame.width, minAllowedWidth),
-                height: max(window.frame.height, minAllowedHeight)
-            )
-            window.setFrame(correctedFrame, display: true, animate: false)
+        Logger.log("window size: \(window.frame.size) | content size: \(window.contentLayoutRect.size) | titleBarHeight: \(titleBarHeight)", level: .debug)
+    }
+    
+    // Reapply aspect ratio when exiting full screen
+    @objc private func didExitFullScreen() {
+        DispatchQueue.main.async {
+            self.enforceWindowSizeConstraints()
         }
     }
     
@@ -156,7 +92,7 @@ class ViewController: NSViewController, NSWindowDelegate {
         let hostingView = NSHostingView(rootView: settingsView)
         hostingView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(hostingView)
-
+        
         // Constrain to desired width and let height be flexible
         NSLayoutConstraint.activate([
             hostingView.widthAnchor.constraint(equalToConstant: 340),
@@ -164,6 +100,16 @@ class ViewController: NSViewController, NSWindowDelegate {
             hostingView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: -2)
         ])
     }
+}
+
+private var zoomingIn = false
+private var zoomingOut = false
+private var panningLeft = false
+private var panningRight = false
+private var panningUp = false
+private var panningDown = false
+
+extension ViewController {
 
     override var acceptsFirstResponder: Bool { true }
     
@@ -181,72 +127,45 @@ class ViewController: NSViewController, NSWindowDelegate {
         renderer.handleMouseClick(at: convertedLocation, in: metalView, isRightClick: isRightClick)
     }
 
+    private func handleMovementKey(_ event: NSEvent, isKeyDown: Bool) -> Bool {
+        switch event.keyCode {
+        case 24: zoomingIn = isKeyDown          // + key
+        case 27: zoomingOut = isKeyDown         // - key
+        case 123: panningLeft = isKeyDown       // Left arrow
+        case 124: panningRight = isKeyDown      // Right arrow
+        case 125: panningDown = isKeyDown       // Down arrow
+        case 126: panningUp = isKeyDown         // Up arrow
+        default: return false // Return false if key was not handled
+        }
+        return true // Return true if key was handled
+    }
+
     override func keyDown(with event: NSEvent) {
         if event.modifierFlags.contains(.command) && event.characters == "r" {
             renderer.respawnParticles()
             return
         }
         
+        if handleMovementKey(event, isKeyDown: true) {
+            return // Suppress system beep by returning early
+        }
+        
         switch event.keyCode {
-        case 49: // space bar
+        case 49: // Space bar
             renderer.isPaused.toggle()
-        case 29: // zero
+        case 29: // Zero
             renderer.resetPanAndZoom()
-        case 24: // + key (Start Zooming In)
-            zoomingIn = true
-            return
-        case 27: // - key (Start Zooming Out)
-            zoomingOut = true
-            return
-        case 123: // Left arrow (Start Panning Left)
-            panningLeft = true
-            return
-        case 124: // Right arrow (Start Panning Right)
-            panningRight = true
-            return
-        case 125: // Down arrow (Start Panning Down)
-            panningDown = true
-            return
-        case 126: // Up arrow (Start Panning Up)
-            panningUp = true
-            return
         default:
-            super.keyDown(with: event)
+            return // Do NOT call super.keyDown(with: event) to prevent beep
+        }
+    }
+
+    override func keyUp(with event: NSEvent) {
+        if handleMovementKey(event, isKeyDown: false) {
+            return // Suppress system beep by returning early
         }
     }
     
-    override func keyUp(with event: NSEvent) {
-        switch event.keyCode {
-        case 24: // + key (Stop Zooming In)
-            zoomingIn = false
-        case 27: // - key (Stop Zooming Out)
-            zoomingOut = false
-        case 123: // Left arrow (Stop Panning Left)
-            panningLeft = false
-        case 124: // Right arrow (Stop Panning Right)
-            panningRight = false
-        case 125: // Down arrow (Stop Panning Down)
-            panningDown = false
-        case 126: // Up arrow (Stop Panning Up)
-            panningUp = false
-        default:
-            break
-        }
-    }
-
-    private func handleZoomKeys(_ event: NSEvent, isKeyDown: Bool) -> Bool {
-        switch event.keyCode {
-        case 24: // + key
-            zoomingIn = isKeyDown
-            return true
-        case 27: // - key
-            zoomingOut = isKeyDown
-            return true
-        default:
-            return false
-        }
-    }
-
     @objc private func updateCamera() {
         if zoomingIn {
             renderer.zoomIn()  // Small zoom step for smooth effect

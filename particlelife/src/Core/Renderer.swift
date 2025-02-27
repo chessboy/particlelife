@@ -318,23 +318,18 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         let expectedAspectRatio: CGFloat = Constants.ASPECT_RATIO
         var correctedSize = size
         
-        let actualAspectRatio = size.width / size.height
-        
-        if abs(actualAspectRatio - expectedAspectRatio) > 0.01 { // If aspect ratio is off
-            if actualAspectRatio > expectedAspectRatio {
-                correctedSize.width = size.height * expectedAspectRatio
-            } else {
-                correctedSize.height = size.width / expectedAspectRatio
-            }
-            //Logger.log("Corrected drawable size = \(correctedSize.width) x \(correctedSize.height), ratio: \(correctedSize.width / correctedSize.height)", level: .debug)
+        if abs((size.width / size.height) - expectedAspectRatio) > 0.01 {
+            correctedSize = size.width > size.height * expectedAspectRatio
+            ? CGSize(width: size.height * expectedAspectRatio, height: size.height)
+            : CGSize(width: size.width, height: size.width / expectedAspectRatio)
+            
+//            Logger.log("Drawable size corrected: Original: \(size.width)x\(size.height), "
+//                       + "Corrected: \(correctedSize.width)x\(correctedSize.height), "
+//                       + "Computed Aspect Ratio: \(correctedSize.width / correctedSize.height)",
+//                       level: .debug)
         }
         
         BufferManager.shared.updateWindowSizeBuffer(width: Float(correctedSize.width), height: Float(correctedSize.height))
-        
-        // Force redraw after correcting the drawable size
-        DispatchQueue.main.async {
-            view.draw()
-        }
     }
 }
 

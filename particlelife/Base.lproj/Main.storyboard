@@ -706,13 +706,13 @@
             <objects>
                 <viewController title="Particle Life" id="XfG-lQ-9wD" customClass="ViewController" customModule="Particle_Life" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" id="m2S-Jp-Qdl">
-                        <rect key="frame" x="0.0" y="0.0" width="2000" height="1125"/>
+                        <rect key="frame" x="0.0" y="0.0" width="1600" height="872"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </view>
                 </viewController>
                 <customObject id="rPt-NT-nkU" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="75" y="1264"/>
+            <point key="canvasLocation" x="75" y="1166"/>
         </scene>
     </scenes>
 </document>
