@@ -68,7 +68,7 @@ class UserPresetStorage {
         
         // Perform migration
         presets = presets.map { preset in
-            preset.copy(newShouldResetSpeciesCount: true)
+            preset.copy(newShouldResetSpeciesCountAndColors: true)
         }
         
         // Detect modified presets
@@ -84,8 +84,8 @@ class UserPresetStorage {
         Logger.log("Changes detected during migration:")
         changedPresets.forEach { original, migrated in
             Logger.log("  - Preset '\(original.name)' modified.")
-            if original.shouldResetSpeciesCount != migrated.shouldResetSpeciesCount {
-                Logger.log("    * shouldResetSpeciesCount: \(original.shouldResetSpeciesCount) → \(migrated.shouldResetSpeciesCount)")
+            if original.shouldResetSpeciesCountAndColors != migrated.shouldResetSpeciesCountAndColors {
+                Logger.log("    * shouldResetSpeciesCountAndColors: \(original.shouldResetSpeciesCountAndColors) → \(migrated.shouldResetSpeciesCountAndColors)")
             }
         }
         

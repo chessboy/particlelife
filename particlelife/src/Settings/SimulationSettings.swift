@@ -126,9 +126,9 @@ extension SimulationSettings {
         
         var presetToApply = storedPreset
         
-        if !storedPreset.shouldResetSpeciesCount {
+        if !storedPreset.shouldResetSpeciesCountAndColors {
             Logger.log("Preserving speciesCount (\(selectedPreset.speciesCount)) while selecting preset '\(preset.name)'", level: .debug)
-            presetToApply = storedPreset.copy(newSpeciesCount: selectedPreset.speciesCount)  // Carry over species count
+            presetToApply = storedPreset.copy(newSpeciesCount: selectedPreset.speciesCount, newSpeciesColorOffset: speciesColorOffset)  // Carry over species count & species color offset
         } else {
             Logger.log("Ignoring previous speciesCount (\(selectedPreset.speciesCount)), using preset value: \(storedPreset.speciesCount)", level: .debug)
         }
@@ -156,7 +156,7 @@ extension SimulationSettings {
             pointSize: pointSize.value,
             worldSize: worldSize.value,
             isBuiltIn: false,
-            shouldResetSpeciesCount: true,
+            shouldResetSpeciesCountAndColors: true,
             speciesColorOffset: speciesColorOffset
         )
         

@@ -36,7 +36,7 @@ class PresetDefinitions {
             pointSize: 7,
             worldSize: 1.0,
             isBuiltIn: true,
-            shouldResetSpeciesCount: false,
+            shouldResetSpeciesCountAndColors: false,
             speciesColorOffset: 0
         )
     }
@@ -59,7 +59,7 @@ class PresetDefinitions {
             pointSize: 5,
             worldSize: 0.5,
             isBuiltIn: true,
-            shouldResetSpeciesCount: false,
+            shouldResetSpeciesCountAndColors: false,
             speciesColorOffset: 0
         )
     }
@@ -91,7 +91,7 @@ extension PresetDefinitions {
         pointSize: 4,
         worldSize: 0.75,
         isBuiltIn: true,
-        shouldResetSpeciesCount: true,
+        shouldResetSpeciesCountAndColors: true,
         speciesColorOffset: 0
     )
     
@@ -113,7 +113,7 @@ extension PresetDefinitions {
         pointSize: 12,
         worldSize: 1.25,
         isBuiltIn: true,
-        shouldResetSpeciesCount: true,
+        shouldResetSpeciesCountAndColors: true,
         speciesColorOffset: 0
     )
     
@@ -135,7 +135,7 @@ extension PresetDefinitions {
         pointSize: 10,
         worldSize: 2.00,
         isBuiltIn: true,
-        shouldResetSpeciesCount: true,
+        shouldResetSpeciesCountAndColors: true,
         speciesColorOffset: 0
     )
     
@@ -163,7 +163,7 @@ extension PresetDefinitions {
         pointSize: 10,
         worldSize: 3.00,
         isBuiltIn: true,
-        shouldResetSpeciesCount: true,
+        shouldResetSpeciesCountAndColors: true,
         speciesColorOffset: 0
     )
     
@@ -188,7 +188,7 @@ extension PresetDefinitions {
         pointSize: 5,
         worldSize: 0.50,
         isBuiltIn: true,
-        shouldResetSpeciesCount: true,
+        shouldResetSpeciesCountAndColors: true,
         speciesColorOffset: 0
     )
     
@@ -210,7 +210,7 @@ extension PresetDefinitions {
         pointSize: 6,
         worldSize: 0.50,
         isBuiltIn: true,
-        shouldResetSpeciesCount: true,
+        shouldResetSpeciesCountAndColors: true,
         speciesColorOffset: 3
     )
 
@@ -232,7 +232,7 @@ extension PresetDefinitions {
         pointSize: 10,
         worldSize: 1.25,
         isBuiltIn: true,
-        shouldResetSpeciesCount: true,
+        shouldResetSpeciesCountAndColors: true,
         speciesColorOffset: 0
     )
 
@@ -257,7 +257,7 @@ extension PresetDefinitions {
         pointSize: 3,
         worldSize: 0.50,
         isBuiltIn: true,
-        shouldResetSpeciesCount: true,
+        shouldResetSpeciesCountAndColors: true,
         speciesColorOffset: 1
     )
 
@@ -279,7 +279,7 @@ extension PresetDefinitions {
         pointSize: 11,
         worldSize: 1.00,
         isBuiltIn: true,
-        shouldResetSpeciesCount: true,
+        shouldResetSpeciesCountAndColors: true,
         speciesColorOffset: 0
     )
 }
