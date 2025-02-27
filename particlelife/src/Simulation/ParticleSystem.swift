@@ -27,7 +27,7 @@ class ParticleSystem: ObservableObject {
         
         SimulationSettings.shared.applyPreset(defaultPreset)
         generateParticles(preset: defaultPreset)
-        generateNewMatrix(preset: defaultPreset)
+        generateNewMatrix(preset: defaultPreset, speciesColorOffset: defaultPreset.speciesColorOffset)
         updatePhysicsAndBuffers(preset: defaultPreset)
         
         // listen for changes when a preset is applied
@@ -40,13 +40,6 @@ class ParticleSystem: ObservableObject {
         respawn(shouldGenerateNewMatrix: true)
     }
     
-    /// Called when a preset is applied but we don't want to respawn (eg. reset button)
-    @objc private func presetAppliedNoRespawn() {
-        Logger.log("Preset apprlied - updating Particle System - NO RESPAWN")
-        generateNewMatrix(preset: SimulationSettings.shared.selectedPreset)
-        BufferManager.shared.updateInteractionBuffer(interactionMatrix: interactionMatrix)
-    }
-
     /// Updates buffers and physics settings
     private func updatePhysicsAndBuffers(preset: SimulationPreset) {
         BufferManager.shared.clearParticleBuffers()
@@ -66,7 +59,7 @@ class ParticleSystem: ObservableObject {
 
         generateParticles(preset: preset)
         if shouldGenerateNewMatrix {
-            generateNewMatrix(preset: preset)
+            generateNewMatrix(preset: preset, speciesColorOffset: SimulationSettings.shared.speciesColorOffset)
         }
         updatePhysicsAndBuffers(preset: preset)
     }
@@ -81,7 +74,7 @@ class ParticleSystem: ObservableObject {
 
         let newPreset = settings.selectedPreset.copy(newSpeciesCount: newCount)
 
-        generateNewMatrix(preset: newPreset)
+        generateNewMatrix(preset: newPreset, speciesColorOffset: SimulationSettings.shared.speciesColorOffset)
         generateParticles(preset: newPreset)
         updatePhysicsAndBuffers(preset: newPreset)
 
@@ -139,15 +132,11 @@ class ParticleSystem: ObservableObject {
     }
     
     /// Generates a new interaction matrix and updates colors
-    private func generateNewMatrix(preset: SimulationPreset) {
+    private func generateNewMatrix(preset: SimulationPreset, speciesColorOffset: Int) {
         interactionMatrix = MatrixGenerator.generateInteractionMatrix(speciesCount: preset.speciesCount, type: preset.matrixType)
-        generateSpeciesColors(speciesCount: preset.speciesCount, speciesColorOffset: preset.speciesColorOffset)
+        generateSpeciesColors(speciesCount: preset.speciesCount, speciesColorOffset: speciesColorOffset)
     }
     
-    func updateSpeciesColors(speciesCount: Int, speciesColorOffset: Int) {
-        generateSpeciesColors(speciesCount: speciesCount, speciesColorOffset: speciesColorOffset)
-    }
-
     /// Generates colors for each species
     private func generateSpeciesColors(speciesCount: Int, speciesColorOffset: Int) {
         DispatchQueue.main.async {
@@ -155,6 +144,10 @@ class ParticleSystem: ObservableObject {
             self.speciesColors = (0..<speciesCount).map { predefinedColors[($0 + speciesColorOffset) % predefinedColors.count] }
             self.objectWillChange.send()
         }
+    }
+
+    func updateSpeciesColors(speciesCount: Int, speciesColorOffset: Int) {
+        generateSpeciesColors(speciesCount: speciesCount, speciesColorOffset: speciesColorOffset)
     }
 
     func dumpPresetAsCode() {
