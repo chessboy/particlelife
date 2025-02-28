@@ -21,14 +21,12 @@ struct MatrixView: View {
     
     @Binding var interactionMatrix: [[Float]]
     @Binding var isVisible: Bool
-    
     @Binding var isPinned: Bool
-    @State private var wasPinnedBeforeSelection: Bool = false
-
+    
     @State private var hoveredCell: (row: Int, col: Int)? = nil
     @State private var tooltipPosition: CGPoint? = nil
     @State private var tooltipText: String = ""
-    
+    @State private var wasPinnedBeforeSelection: Bool = false
     @State private var selectedCell: SelectedCell? = nil
     @State private var sliderPosition: UnitPoint = .zero
     @State private var sliderValue: Float = 0.0
@@ -324,7 +322,7 @@ struct InteractionMatrixGrid: View {
                 tooltipText = String(format: "%.2f", value)
                 tooltipPosition = computeTooltipPosition(row: row, col: col, cellSize: cellSize)
             } else {
-                // 🔥 Fully suppress tooltip while keeping hover effect
+                // Fully suppress tooltip while keeping hover effect
                 tooltipText = ""
                 tooltipPosition = nil
             }

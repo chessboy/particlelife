@@ -19,7 +19,7 @@ struct TooltipView: View {
     
     var body: some View {
         Text(text)
-            .font(.headline)
+            .font(.title3.bold())
             .foregroundColor(.white)
             .frame(width: 50)
             .padding(5)

@@ -24,6 +24,7 @@ struct SimulationSettingsView: View {
     @State private var presetName: String = "New Preset"
     
     @State private var isPinned: Bool = true
+    @State private var wasPinnedBeforeSheet: Bool = false
     @State private var isExpanded = true
     
     var body: some View {
@@ -57,7 +58,7 @@ struct SimulationSettingsView: View {
             
             // Preset, Matrix, Distribution: Grouped neatly
             VStack(spacing: 12) {
-                PresetPickerView(settings: settings, renderer: renderer)
+                PresetPickerView(settings: settings, renderer: renderer, isPinned: $isPinned, wasPinnedBeforeSheet: $wasPinnedBeforeSheet)
                 SpeciesPickerView(settings: settings, renderer: renderer)
                 ParticleCountPickerView(settings: settings, renderer: renderer)
                 MarixPickerView(settings: settings, renderer: renderer)
@@ -105,6 +106,9 @@ struct PresetPickerView: View {
     @State private var isShowingSaveSheet = false
     @State private var isShowingDeleteSheet = false
     
+    @Binding var isPinned: Bool
+    @Binding var wasPinnedBeforeSheet: Bool
+
     var body: some View {
         HStack(spacing: 8) {
             Text("File:")
@@ -116,9 +120,15 @@ struct PresetPickerView: View {
                 Button("⬜️ New") { ParticleSystem.shared.selectPreset(PresetDefinitions.emptyPreset) }
                 Button("🔀 Random") { ParticleSystem.shared.selectPreset(PresetDefinitions.randomPreset) }
                 Divider()
-                Button("💾 Save", action: { isShowingSaveSheet = true })
+                Button("💾 Save", action: {
+                    wasPinnedBeforeSheet = isPinned
+                    isPinned = true
+                    isShowingSaveSheet = true
+                })
                 Button("🗑 Delete", action: {
                     if !settings.selectedPreset.isBuiltIn {
+                        wasPinnedBeforeSheet = isPinned
+                        isPinned = true
                         isShowingDeleteSheet = true
                     }
                 })
@@ -155,14 +165,14 @@ struct PresetPickerView: View {
                 attachmentAnchor: .rect(.bounds),
                 arrowEdge: .top
             ) {
-                SavePresetSheet(isShowingSaveSheet: $isShowingSaveSheet, presetName: .constant(settings.selectedPreset.name))
+                SavePresetSheet(isShowingSaveSheet: $isShowingSaveSheet, presetName: .constant(settings.selectedPreset.name), isPinned: $isPinned, wasPinnedBeforeSheet: $wasPinnedBeforeSheet)
             }
             .popover(
                 isPresented: $isShowingDeleteSheet,
                 attachmentAnchor: .rect(.bounds),
                 arrowEdge: .top
             ) {
-                DeletePresetSheet(isShowingDeleteSheet: $isShowingDeleteSheet)
+                DeletePresetSheet(isShowingDeleteSheet: $isShowingDeleteSheet, isPinned: $isPinned, wasPinnedBeforeSheet: $wasPinnedBeforeSheet)
             }
         }
         .frame(width: pickerViewWidth)
@@ -433,6 +443,8 @@ struct FooterView: View {
 struct SavePresetSheet: View {
     @Binding var isShowingSaveSheet: Bool
     @Binding var presetName: String
+    @Binding var isPinned: Bool
+    @Binding var wasPinnedBeforeSheet: Bool
     @State private var showOverwriteAlert = false
     @State private var tempPresetName: String = ""
     
@@ -453,6 +465,7 @@ struct SavePresetSheet: View {
             HStack {
                 Button("Cancel") {
                     isShowingSaveSheet = false
+                    isPinned = wasPinnedBeforeSheet
                 }
                 .buttonStyle(.bordered)
                 .frame(width: 120)
@@ -507,12 +520,16 @@ struct SavePresetSheet: View {
             
             presetName = "Untitled"
             isShowingSaveSheet = false
+            isPinned = wasPinnedBeforeSheet
         }
     }
 }
 
 struct DeletePresetSheet: View {
     @Binding var isShowingDeleteSheet: Bool
+    @Binding var isPinned: Bool
+    @Binding var wasPinnedBeforeSheet: Bool
+
     let presetToDelete = SimulationSettings.shared.selectedPreset
     
     var body: some View {
@@ -528,6 +545,7 @@ struct DeletePresetSheet: View {
             HStack {
                 Button("Cancel") {
                     isShowingDeleteSheet = false
+                    isPinned = wasPinnedBeforeSheet
                 }
                 .buttonStyle(.bordered)
                 .frame(width: 120)
@@ -537,7 +555,8 @@ struct DeletePresetSheet: View {
                     SimulationSettings.shared.userPresets = PresetManager.shared.getUserPresets()
                     ParticleSystem.shared.selectPreset(PresetDefinitions.getDefaultPreset())
                     isShowingDeleteSheet = false
-                }
+                    isPinned = wasPinnedBeforeSheet
+               }
                 .buttonStyle(.borderedProminent)
                 .frame(width: 120)
                 .foregroundColor(.red)
