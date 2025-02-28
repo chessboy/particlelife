@@ -498,13 +498,7 @@ struct SavePresetSheet: View {
     
     private func handleSaveAttempt() {
         let allPresets = SimulationSettings.shared.userPresets
-        let builtInPresets = PresetDefinitions.getAllBuiltInPresets().map { $0.name }
-        
-        if builtInPresets.contains(tempPresetName) {
-            Logger.log("Attempted to overwrite a built-in preset", level: .warning)
-            //return
-        }
-        
+                
         if allPresets.contains(where: { $0.name == tempPresetName }) {
             showOverwriteAlert = true
         } else {
@@ -514,9 +508,11 @@ struct SavePresetSheet: View {
     
     private func savePreset(overwrite: Bool) {
         if !tempPresetName.isEmpty {
-            SimulationSettings.shared.saveCurrentPreset(named: tempPresetName,
-                                                        interactionMatrix: ParticleSystem.shared.interactionMatrix,
-                                                        replaceExisting: overwrite)
+            SimulationSettings.shared.saveCurrentPreset(
+                named: tempPresetName,
+                interactionMatrix: ParticleSystem.shared.interactionMatrix,
+                replaceExisting: overwrite
+            )
             
             presetName = "Untitled"
             isShowingSaveSheet = false
