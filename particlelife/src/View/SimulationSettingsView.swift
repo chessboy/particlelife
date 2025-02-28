@@ -85,7 +85,7 @@ struct SimulationSettingsView: View {
         )
         .shadow(radius: 10)
         .opacity(isVisible ? 1.0 : 0.0)
-        .offset(x: isVisible ? 0 : -340, y: 0)
+        //.offset(x: isVisible ? 0 : -340, y: 0)
         .disabled(!isVisible)
         .animation(.easeInOut(duration: 0.3), value: isVisible)
         .onHover { hovering in
@@ -105,7 +105,6 @@ struct PresetPickerView: View {
     @State private var isShowingSaveSheet = false
     @State private var isShowingDeleteSheet = false
 
-
     var body: some View {
         HStack(spacing: 8) {
             Text("File:")
@@ -114,8 +113,8 @@ struct PresetPickerView: View {
 
             Menu {
                 // 📁 File Actions
-                Button("⬜️ New") { settings.selectPreset(PresetDefinitions.emptyPreset) }
-                Button("🔀 Random") { settings.selectPreset(PresetDefinitions.randomPreset) }
+                Button("⬜️ New") { ParticleSystem.shared.selectPreset(PresetDefinitions.emptyPreset) }
+                Button("🔀 Random") { ParticleSystem.shared.selectPreset(PresetDefinitions.randomPreset) }
                 Divider()
                 Button("💾 Save", action: { isShowingSaveSheet = true })
                 Button("🗑 Delete", action: {
@@ -130,7 +129,7 @@ struct PresetPickerView: View {
                     Divider()
                     Menu("⭐ Presets") {
                         ForEach(PresetDefinitions.specialPresets, id: \.id) { preset in
-                            Button(preset.name) { settings.selectPreset(preset) }
+                            Button(preset.name) { ParticleSystem.shared.selectPreset(preset) }
                         }
                     }
                 }
@@ -140,7 +139,7 @@ struct PresetPickerView: View {
                     Divider()
                     Menu("📂 Mine") {
                         ForEach(settings.userPresets, id: \.id) { preset in
-                            Button(preset.name) { settings.selectPreset(preset) }
+                            Button(preset.name) { ParticleSystem.shared.selectPreset(preset) }
                         }
                     }
                 }
@@ -235,7 +234,7 @@ struct SimulationButtonsView: View {
                     ParticleSystem.shared.dumpPresetAsCode()
                 }
                 else {
-                    SimulationSettings.shared.selectPreset(SimulationSettings.shared.selectedPreset)
+                    ParticleSystem.shared.selectPreset(SimulationSettings.shared.selectedPreset)
                 }
             }
             .buttonStyle(SettingsButtonStyle())
@@ -534,7 +533,7 @@ struct DeletePresetSheet: View {
                 Button("Delete") {
                     PresetManager.shared.deleteUserPreset(named: presetToDelete.name)
                     SimulationSettings.shared.userPresets = PresetManager.shared.getUserPresets()
-                    SimulationSettings.shared.selectPreset(PresetDefinitions.getDefaultPreset())
+                    ParticleSystem.shared.selectPreset(PresetDefinitions.getDefaultPreset())
                     isShowingDeleteSheet = false
                 }
                 .buttonStyle(.borderedProminent)

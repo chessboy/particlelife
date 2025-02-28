@@ -35,9 +35,7 @@ class PresetDefinitions {
             repulsion: 0.03,
             pointSize: 7,
             worldSize: 1.0,
-            isBuiltIn: true,
-            shouldResetEverything: false,
-            speciesColorOffset: 0
+            preservesUISettings: true
         )
     }
     
@@ -58,9 +56,7 @@ class PresetDefinitions {
             repulsion: 0.03,
             pointSize: 5,
             worldSize: 0.5,
-            isBuiltIn: true,
-            shouldResetEverything: false,
-            speciesColorOffset: 0
+            preservesUISettings: true
         )
     }
 }
@@ -89,10 +85,7 @@ extension PresetDefinitions {
         friction: 0.20,
         repulsion: 0.03,
         pointSize: 7,
-        worldSize: 0.75,
-        isBuiltIn: true,
-        shouldResetEverything: true,
-        speciesColorOffset: 0
+        worldSize: 0.75
     )
     
     static let cells = SimulationPreset(
@@ -111,10 +104,7 @@ extension PresetDefinitions {
         friction: 0.20,
         repulsion: 0.03,
         pointSize: 12,
-        worldSize: 1.25,
-        isBuiltIn: true,
-        shouldResetEverything: true,
-        speciesColorOffset: 0
+        worldSize: 1.25
     )
     
     static let comet = SimulationPreset(
@@ -133,10 +123,7 @@ extension PresetDefinitions {
         friction: 0.20,
         repulsion: 0.03,
         pointSize: 10,
-        worldSize: 2.00,
-        isBuiltIn: true,
-        shouldResetEverything: true,
-        speciesColorOffset: 0
+        worldSize: 2.00
     )
     
     static let spaceWars = SimulationPreset(
@@ -161,10 +148,7 @@ extension PresetDefinitions {
         friction: 0.10,
         repulsion: 0.03,
         pointSize: 10,
-        worldSize: 3.00,
-        isBuiltIn: true,
-        shouldResetEverything: true,
-        speciesColorOffset: 0
+        worldSize: 3.00
     )
     
     static let sandArt = SimulationPreset(
@@ -187,9 +171,7 @@ extension PresetDefinitions {
         repulsion: 0.14,
         pointSize: 5,
         worldSize: 0.50,
-        isBuiltIn: true,
-        shouldResetEverything: true,
-        speciesColorOffset: 0
+        isBuiltIn: true
     )
     
     static let breathing = SimulationPreset(
@@ -209,8 +191,6 @@ extension PresetDefinitions {
         repulsion: 0.03,
         pointSize: 6,
         worldSize: 0.50,
-        isBuiltIn: true,
-        shouldResetEverything: true,
         speciesColorOffset: 3
     )
 
@@ -230,10 +210,7 @@ extension PresetDefinitions {
         friction: 0.20,
         repulsion: 0.03,
         pointSize: 10,
-        worldSize: 1.25,
-        isBuiltIn: true,
-        shouldResetEverything: true,
-        speciesColorOffset: 0
+        worldSize: 1.25
     )
 
     static let moreCells = SimulationPreset(
@@ -256,8 +233,6 @@ extension PresetDefinitions {
         repulsion: 0.03,
         pointSize: 3,
         worldSize: 0.50,
-        isBuiltIn: true,
-        shouldResetEverything: true,
         speciesColorOffset: 1
     )
 
@@ -277,9 +252,6 @@ extension PresetDefinitions {
         friction: 0.20,
         repulsion: 0.03,
         pointSize: 11,
-        worldSize: 1.00,
-        isBuiltIn: true,
-        shouldResetEverything: true,
-        speciesColorOffset: 0
+        worldSize: 1.00
     )
 }

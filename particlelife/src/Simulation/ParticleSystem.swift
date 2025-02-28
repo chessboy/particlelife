@@ -102,8 +102,8 @@ class ParticleSystem: ObservableObject {
             speciesCount: preset.speciesCount
         )
 
-        let uniqueSpecies = Set(particles.map { $0.species })
-        Logger.log("Unique species in new particles: \(uniqueSpecies)", level: .debug)
+        //let uniqueSpecies = Set(particles.map { $0.species })
+        //Logger.log("Unique species in new particles: \(uniqueSpecies)", level: .debug)
 
         let worldSize = SimulationSettings.shared.worldSize.value
         let scaleFactorX = preset.distributionType.shouldScaleToAspectRatio ? worldSize * Float(Constants.ASPECT_RATIO) : worldSize
@@ -168,5 +168,47 @@ class ParticleSystem: ObservableObject {
             BufferManager.shared.updateDeltaTimeBuffer(dt: &dt)
             lastDT = dt
         }
+    }
+}
+
+extension ParticleSystem {
+    
+    func selectPreset(_ preset: SimulationPreset) {
+        
+        let settings = SimulationSettings.shared
+        let selectedPreset = settings.selectedPreset
+        
+        Logger.log("Attempting to select preset '\(preset.name)' (ID: \(preset.id))", level: .debug)
+        
+        let userPresets = UserPresetStorage.loadUserPresets()
+        let allPresets = PresetDefinitions.getAllBuiltInPresets() + userPresets
+        //let availablePresets = allPresets.map { "\($0.name) (ID: \($0.id))" }
+        //Logger.log("Available presets: \n\(availablePresets.joined(separator: "\n"))", level: .debug)
+        
+        guard let storedPreset = allPresets.first(where: { $0.id == preset.id }) else {
+            Logger.log("ERROR: Preset '\(preset.name)' (ID: \(preset.id)) not found in storage!", level: .error)
+            return
+        }
+        
+        Logger.log("Preset '\(preset.name)' found. Selecting it now.", level: .debug)
+        
+        var presetToApply = storedPreset
+        
+        if storedPreset.preservesUISettings {
+            Logger.log("Preserving UI settings while selecting preset '\(preset.name)'", level: .debug)
+            presetToApply = storedPreset.copy(
+                newSpeciesCount: selectedPreset.speciesCount,
+                newParticleCount: selectedPreset.particleCount,
+                newDistributionType: selectedPreset.distributionType,
+                newSpeciesColorOffset: settings.speciesColorOffset
+            )
+        } else {
+            Logger.log("Using all preset setttings while selecting preset '\(preset.name)'", level: .debug)
+        }
+        
+        SimulationSettings.shared.selectedPreset = presetToApply
+        SimulationSettings.shared.applyPreset(presetToApply)
+        
+        NotificationCenter.default.post(name: .presetSelected, object: nil)
     }
 }

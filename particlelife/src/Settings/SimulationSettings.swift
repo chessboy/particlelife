@@ -108,39 +108,6 @@ extension SimulationSettings {
         worldSize.value = preset.worldSize
         speciesColorOffset = preset.speciesColorOffset
     }
-    
-    func selectPreset(_ preset: SimulationPreset) {
-        
-        Logger.log("Attempting to select preset '\(preset.name)' (ID: \(preset.id))", level: .debug)
-        
-        let allPresets = PresetDefinitions.getAllBuiltInPresets() + userPresets
-        //let availablePresets = allPresets.map { "\($0.name) (ID: \($0.id))" }
-        //Logger.log("Available presets: \n\(availablePresets.joined(separator: "\n"))", level: .debug)
-        
-        guard let storedPreset = allPresets.first(where: { $0.id == preset.id }) else {
-            Logger.log("ERROR: Preset '\(preset.name)' (ID: \(preset.id)) not found in storage!", level: .error)
-            return
-        }
-        
-        Logger.log("Preset '\(preset.name)' found. Selecting it now.", level: .debug)
-        
-        var presetToApply = storedPreset
-        
-        if !storedPreset.shouldResetEverything {
-            Logger.log("Preserving species count (\(selectedPreset.speciesCount)) and color offset (\(speciesColorOffset)) while selecting preset '\(preset.name)'", level: .debug)
-            presetToApply = storedPreset.copy(
-                newSpeciesCount: selectedPreset.speciesCount,
-                newSpeciesColorOffset: speciesColorOffset
-            )
-        } else {
-            Logger.log("Ignoring previous speciesCount (\(selectedPreset.speciesCount)), using preset value: \(storedPreset.speciesCount)", level: .debug)
-        }
-        
-        selectedPreset = presetToApply
-        applyPreset(selectedPreset)
-        
-        NotificationCenter.default.post(name: .presetSelected, object: nil)
-    }
 }
 
 extension SimulationSettings {
@@ -159,7 +126,7 @@ extension SimulationSettings {
             pointSize: pointSize.value,
             worldSize: worldSize.value,
             isBuiltIn: false,
-            shouldResetEverything: true,
+            preservesUISettings: false,
             speciesColorOffset: speciesColorOffset
         )
         

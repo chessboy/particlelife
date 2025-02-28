@@ -22,7 +22,7 @@ struct SimulationPreset: Identifiable {
     let pointSize: Float
     let worldSize: Float
     let isBuiltIn: Bool
-    let shouldResetEverything: Bool
+    let preservesUISettings: Bool
     let speciesColorOffset: Int
 
     init(
@@ -39,9 +39,9 @@ struct SimulationPreset: Identifiable {
         repulsion: Float,
         pointSize: Float,
         worldSize: Float,
-        isBuiltIn: Bool,
-        shouldResetEverything: Bool,
-        speciesColorOffset: Int
+        isBuiltIn: Bool = true,
+        preservesUISettings: Bool = false,
+        speciesColorOffset: Int = 0
     ) {
         self.id = id
         self.name = name
@@ -57,7 +57,7 @@ struct SimulationPreset: Identifiable {
         self.pointSize = pointSize
         self.worldSize = worldSize
         self.isBuiltIn = isBuiltIn
-        self.shouldResetEverything = shouldResetEverything
+        self.preservesUISettings = preservesUISettings
         self.speciesColorOffset = speciesColorOffset
     }
 }
@@ -82,7 +82,7 @@ extension SimulationPreset: Hashable {
         lhs.pointSize == rhs.pointSize &&
         lhs.worldSize == rhs.worldSize &&
         lhs.isBuiltIn == rhs.isBuiltIn &&
-        lhs.shouldResetEverything == rhs.shouldResetEverything &&
+        lhs.preservesUISettings == rhs.preservesUISettings &&
         lhs.speciesColorOffset == rhs.speciesColorOffset
     }
 }
@@ -92,7 +92,7 @@ extension SimulationPreset: Codable {
     enum CodingKeys: String, CodingKey {
         case id, name, speciesCount, particleCount, matrixType, distributionType
         case maxDistance, minDistance, beta, friction, repulsion
-        case pointSize, worldSize, isBuiltIn, shouldResetEverything, speciesColorOffset
+        case pointSize, worldSize, isBuiltIn, preservesUISettings, speciesColorOffset
     }
 
     /// Custom decoding to handle missing fields
@@ -114,7 +114,7 @@ extension SimulationPreset: Codable {
         pointSize = try container.decode(Float.self, forKey: .pointSize)
         worldSize = try container.decode(Float.self, forKey: .worldSize)
         isBuiltIn = try container.decode(Bool.self, forKey: .isBuiltIn)
-        shouldResetEverything = try container.decode(Bool.self, forKey: .shouldResetEverything)
+        preservesUISettings = try container.decode(Bool.self, forKey: .preservesUISettings)
         speciesColorOffset = try container.decode(Int.self, forKey: .speciesColorOffset)
     }
 
@@ -135,7 +135,7 @@ extension SimulationPreset: Codable {
         try container.encode(pointSize, forKey: .pointSize)
         try container.encode(worldSize, forKey: .worldSize)
         try container.encode(isBuiltIn, forKey: .isBuiltIn)
-        try container.encode(shouldResetEverything, forKey: .shouldResetEverything)
+        try container.encode(preservesUISettings, forKey: .preservesUISettings)
         try container.encode(speciesColorOffset, forKey: .speciesColorOffset)
     }
 }
@@ -153,7 +153,7 @@ extension SimulationPreset {
             ├─ Beta: \(beta), Friction: \(friction), Repulsion: \(repulsion)
             ├─ Point Size: \(pointSize), World Size: \(worldSize)
             └─ Built-in: \(isBuiltIn)
-            └─ Should Reset SpeciesCount: \(shouldResetEverything)
+            └─ Preserve UI Settings: \(preservesUISettings)
             └─ Species Color Offset: \(speciesColorOffset)
             """
     }
@@ -192,7 +192,7 @@ extension SimulationPreset {
             pointSize: \(Int(pointSize)),
             worldSize: \(String(format: "%.2f", worldSize)),
             isBuiltIn: \(isBuiltIn),
-            shouldResetEverything: \(shouldResetEverything),
+            preservesUISettings: \(preservesUISettings),
             speciesColorOffset: \(speciesColorOffset)
         )
         """
@@ -216,7 +216,7 @@ extension SimulationPreset {
         newPointSize: Float? = nil,
         newWorldSize: Float? = nil,
         newIsBuiltIn: Bool? = nil,
-        newShouldResetEverything: Bool? = nil,
+        newPreservesUISettings: Bool? = nil,
         newSpeciesColorOffset: Int? = nil
     ) -> SimulationPreset {
         var copiedMatrixType = newMatrixType ?? matrixType  // Use new matrix if provided
@@ -241,7 +241,7 @@ extension SimulationPreset {
             pointSize: newPointSize ?? pointSize,
             worldSize: newWorldSize ?? worldSize,
             isBuiltIn: newIsBuiltIn ?? isBuiltIn,
-            shouldResetEverything: newShouldResetEverything ?? shouldResetEverything,
+            preservesUISettings: newPreservesUISettings ?? preservesUISettings,
             speciesColorOffset: newSpeciesColorOffset ?? speciesColorOffset
         )
     }
