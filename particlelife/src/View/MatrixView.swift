@@ -26,7 +26,7 @@ struct MatrixView: View {
     @State private var wasPinnedBeforeSelection: Bool = false
 
     @State private var hoveredCell: (row: Int, col: Int)? = nil
-    @State private var tooltipPosition: CGPoint = .zero
+    @State private var tooltipPosition: CGPoint? = nil
     @State private var tooltipText: String = ""
     
     @State private var selectedCell: SelectedCell? = nil
@@ -100,8 +100,8 @@ struct MatrixView: View {
     // Floating tooltip positioned dynamically
     @ViewBuilder
     private var tooltipView: some View {
-        if hoveredCell != nil, selectedCell == nil {
-            TooltipView(text: tooltipText)
+        if hoveredCell != nil, selectedCell == nil, let tooltipPosition = tooltipPosition {
+            TooltipView(text: tooltipText, style: .fill)
                 .position(tooltipPosition)
         }
     }
@@ -123,20 +123,20 @@ struct InteractionMatrixGrid: View {
     @Binding var isVisible: Bool
     @Binding var isPinned: Bool
     @Binding var wasPinnedBeforeSelection: Bool
-
+    
     let speciesColors: [Color]
     @Binding var interactionMatrix: [[Float]]
     
     @Binding var hoveredCell: (row: Int, col: Int)?
     @Binding var tooltipText: String
-    @Binding var tooltipPosition: CGPoint
+    @Binding var tooltipPosition: CGPoint?
     
     @Binding var selectedCell: SelectedCell?
     @Binding var sliderPosition: UnitPoint
     @Binding var sliderValue: Float
-
+    
     @ObservedObject var renderer: Renderer
-        
+    
     private var spacing: CGFloat {
         let count = max(1, speciesColors.count)
         return max(3, 16 / CGFloat(count))
@@ -146,7 +146,7 @@ struct InteractionMatrixGrid: View {
         let count = max(1, speciesColors.count)
         return max(2, 16 / CGFloat(count))
     }
-
+    
     private var circleScale: CGFloat {
         let count = max(1, min(9, speciesColors.count))
         return 0.7 + (CGFloat(count - 1) / 8) * 0.15 // 0.7 to 0.85
@@ -165,7 +165,7 @@ struct InteractionMatrixGrid: View {
                 .shadow(color: .black.opacity(0.6), radius: 2, x: 0, y: 1)
         }
     }
-
+    
     // Helper function for scale effect
     private func scaleEffectForIndex(_ index: Int) -> CGFloat {
         (index == 0 || index == speciesColors.count - 1) && hoverIndex == index ? 1.15 : 1.0
@@ -176,7 +176,7 @@ struct InteractionMatrixGrid: View {
             let speciesCount = max(1, interactionMatrix.count)
             let totalWidth = max(10, geometry.size.width - CGFloat(speciesCount + 1) * spacing)
             let cellSize = max(5, totalWidth / CGFloat(speciesCount + 1))
-
+            
             VStack(spacing: spacing) {
                 // Header row with species colors
                 HStack(spacing: spacing) {
@@ -219,18 +219,18 @@ struct InteractionMatrixGrid: View {
     
     private func incrementSpeciesColorOffset() {
         SimulationSettings.shared.speciesColorOffset =
-            (SimulationSettings.shared.speciesColorOffset + 1) % SpeciesColor.speciesColors.count
+        (SimulationSettings.shared.speciesColorOffset + 1) % SpeciesColor.speciesColors.count
         
         updateSpeciesColors()
     }
-
+    
     private func decrementSpeciesColorOffset() {
         SimulationSettings.shared.speciesColorOffset =
-            (SimulationSettings.shared.speciesColorOffset - 1 + SpeciesColor.speciesColors.count) % SpeciesColor.speciesColors.count
+        (SimulationSettings.shared.speciesColorOffset - 1 + SpeciesColor.speciesColors.count) % SpeciesColor.speciesColors.count
         
         updateSpeciesColors()
     }
-
+    
     private func updateSpeciesColors() {
         ParticleSystem.shared.updateSpeciesColors(
             speciesCount: speciesColors.count,
@@ -258,7 +258,7 @@ struct InteractionMatrixGrid: View {
         }
         .frame(height: cellSize)
     }
-        
+    
     private func strokedRectangle(color: Color, lineWidth: CGFloat, cornerRadius: CGFloat) -> some View {
         RoundedRectangle(cornerRadius: cornerRadius)
             .strokeBorder(color, lineWidth: lineWidth)
@@ -276,38 +276,61 @@ struct InteractionMatrixGrid: View {
             )
             .overlay(
                 hoveredCell.map { hovered in
-                    hovered == (row, col) ? strokedRectangle(color: Color.white, lineWidth: 2, cornerRadius: cornerRadiusMatrix) : nil
+                    hovered == (row, col) ? strokedRectangle(color: Color.white.opacity(0.85), lineWidth: 2, cornerRadius: cornerRadiusMatrix) : nil
                 }
             )
+            .overlay(tooltipOverlay(value: value))
             .onHover { isHovering in
-                guard selectedCell == nil else { return } // Don't reset hover state if a cell is selected
-                
-                if isHovering {
-                    hoveredCell = (row, col)
-                    tooltipText = String(format: "%.2f", value)
-                    tooltipPosition = computeTooltipPosition(row: row, col: col, cellSize: cellSize)
-                } else if let hovered = hoveredCell, hovered == (row, col) {
-                    hoveredCell = nil // Only clear if it's the same hovered cell
-                }
+                handleHover(isHovering: isHovering, row: row, col: col, value: value, cellSize: cellSize)
             }
             .onTapGesture {
-                guard !renderer.isPaused else { return }
-                
-                if selectedCell == nil {
-                    wasPinnedBeforeSelection = isPinned
-                    isPinned = true // Temporarily pin while slider is open
-
-                    DispatchQueue.main.async {
-                        selectedCell = SelectedCell(row: row, col: col)
-                        sliderValue = value
-                        sliderPosition = computeSliderPosition(
-                            row: row, col: col,
-                            cellSize: cellSize,
-                            speciesCount: max(1, speciesColors.count)
-                        )
-                    }
-                }
+                handleTap(row: row, col: col, value: value, cellSize: cellSize)
             }
+    }
+    
+    @ViewBuilder
+    private func tooltipOverlay(value: Float) -> some View {
+        if speciesColors.count <= 3 {
+            TooltipView(text: String(format: "%.2f", value), style: .shadow)
+        }
+    }
+    
+    private func handleTap(row: Int, col: Int, value: Float, cellSize: CGFloat) {
+        guard !renderer.isPaused else { return }
+        
+        if selectedCell == nil {
+            wasPinnedBeforeSelection = isPinned
+            isPinned = true // Temporarily pin while slider is open
+            
+            DispatchQueue.main.async {
+                selectedCell = SelectedCell(row: row, col: col)
+                sliderValue = value
+                sliderPosition = computeSliderPosition(
+                    row: row, col: col,
+                    cellSize: cellSize,
+                    speciesCount: max(1, speciesColors.count)
+                )
+            }
+        }
+    }
+    
+    private func handleHover(isHovering: Bool, row: Int, col: Int, value: Float, cellSize: CGFloat) {
+        guard selectedCell == nil else { return } // Don't reset hover state if a cell is selected
+        
+        if isHovering {
+            hoveredCell = (row, col)
+            
+            if speciesColors.count > 3 {
+                tooltipText = String(format: "%.2f", value)
+                tooltipPosition = computeTooltipPosition(row: row, col: col, cellSize: cellSize)
+            } else {
+                // 🔥 Fully suppress tooltip while keeping hover effect
+                tooltipText = ""
+                tooltipPosition = nil
+            }
+        } else if let hovered = hoveredCell, hovered == (row, col) {
+            hoveredCell = nil
+        }
     }
 }
 
@@ -355,7 +378,7 @@ struct MatrixPreviewWrapper: View {
     
     init(n: Int) {
         self._n = State(initialValue: n)
-        self._matrix = State(initialValue: Array(repeating: Array(repeating: 0.0, count: n), count: n))
+        self._matrix = State(initialValue: Array(repeating: Array(repeating: 0.99, count: n), count: n))
         
         let offset = 0
         let predefinedColors = SpeciesColor.speciesColors
@@ -377,5 +400,5 @@ struct MatrixPreviewWrapper: View {
 }
 
 #Preview {
-    MatrixPreviewWrapper(n: 6)
+    MatrixPreviewWrapper(n: 3)
 }

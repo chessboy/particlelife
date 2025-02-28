@@ -39,7 +39,7 @@ struct SimulationSettingsView: View {
                 )
                 .frame(width: 300, height: 300)
                 .padding(.top, 10)
-
+                
                 // Pin Button in the Empty Top-Left Space
                 Button(action: {
                     isPinned.toggle() // Toggle the pinned state
@@ -54,7 +54,7 @@ struct SimulationSettingsView: View {
                 .offset(x: -3, y: 7)
                 .buttonStyle(PlainButtonStyle())
             }
-                        
+            
             // Preset, Matrix, Distribution: Grouped neatly
             VStack(spacing: 12) {
                 PresetPickerView(settings: settings, renderer: renderer)
@@ -68,8 +68,8 @@ struct SimulationSettingsView: View {
             // Controls: A little more room for clarity
             SimulationButtonsView(renderer: renderer)
             
-            .padding(.top, 20)
-            .padding(.bottom, 8)
+                .padding(.top, 20)
+                .padding(.bottom, 8)
             
             PhysicsSettingsView(settings: settings, renderer: renderer)
             FooterView(renderer: renderer, isPinned: $isPinned)
@@ -104,13 +104,13 @@ struct PresetPickerView: View {
     
     @State private var isShowingSaveSheet = false
     @State private var isShowingDeleteSheet = false
-
+    
     var body: some View {
         HStack(spacing: 8) {
             Text("File:")
                 .foregroundColor(labelColor)
                 .frame(width: pickerLabelWidth, alignment: .trailing)
-
+            
             Menu {
                 // 📁 File Actions
                 Button("⬜️ New") { ParticleSystem.shared.selectPreset(PresetDefinitions.emptyPreset) }
@@ -133,11 +133,13 @@ struct PresetPickerView: View {
                         }
                     }
                 }
-
+                
                 // 📂 User Presets
-                if !settings.userPresets.isEmpty {
-                    Divider()
-                    Menu("📂 Mine") {
+                Divider()
+                Menu("📂 Mine") {
+                    if settings.userPresets.isEmpty {
+                        Text("None Stored").foregroundColor(.secondary) // Show placeholder
+                    } else {
                         ForEach(settings.userPresets, id: \.id) { preset in
                             Button(preset.name) { ParticleSystem.shared.selectPreset(preset) }
                         }
@@ -252,7 +254,7 @@ struct SimulationButtonsView: View {
 struct SpeciesPickerView: View {
     @ObservedObject var settings: SimulationSettings
     @ObservedObject var renderer: Renderer
-
+    
     var body: some View {
         HStack(spacing: 0) {
             Text("Species:")
@@ -271,7 +273,7 @@ struct SpeciesPickerView: View {
             }
             .pickerStyle(MenuPickerStyle())
             .disabled(renderer.isPaused)
-
+            
         }
         .frame(width: pickerViewWidth)
     }
@@ -280,7 +282,7 @@ struct SpeciesPickerView: View {
 struct ParticleCountPickerView: View {
     @ObservedObject var settings: SimulationSettings
     @ObservedObject var renderer: Renderer
-
+    
     var body: some View {
         HStack(spacing: 0) {
             Text("Particles:")
@@ -340,7 +342,7 @@ struct SimulationSlidersView: View {
 struct LogoView: View {
     
     @State private var hovering = false // Track hover state
-
+    
     var body: some View {
         Image("particle-life-logo")
             .resizable()
@@ -356,7 +358,7 @@ struct LogoView: View {
                 hovering = isHovering
             }
     }
-
+    
     private func openGitHubRepo() {
         if let url = URL(string: "https://github.com/chessboy/particlelife") {
             NSWorkspace.shared.open(url)
@@ -368,7 +370,7 @@ struct PhysicsSettingsView: View {
     @ObservedObject var settings: SimulationSettings
     @ObservedObject var renderer: Renderer
     @State private var isExpanded = true
-
+    
     var body: some View {
         VStack {
             Button(action: {
@@ -390,7 +392,7 @@ struct PhysicsSettingsView: View {
                 .contentShape(Rectangle())
             }
             .frame(width: pickerViewWidth)
-
+            
             if isExpanded {
                 SimulationSlidersView(settings: settings, renderer: renderer)
                     .padding(.top, 8)
@@ -412,11 +414,11 @@ struct FooterView: View {
             Text(renderer.isPaused ? "PAUSED" : "FPS: \(renderer.fps)")
                 .font(.system(size: 14, weight: .bold, design: .monospaced))
                 .foregroundColor(renderer.isPaused || renderer.fps < 30 ? .red : .green)
-
+            
             Spacer()
             LogoView()
             Spacer()
-
+            
             Text("v\(AppInfo.version)")
                 .font(.system(size: 14, weight: .medium, design: .monospaced))
                 .foregroundColor(.gray)
@@ -433,13 +435,13 @@ struct SavePresetSheet: View {
     @Binding var presetName: String
     @State private var showOverwriteAlert = false
     @State private var tempPresetName: String = ""
-
+    
     var body: some View {
         VStack(spacing: 20) {
             Text("Enter Preset Name")
                 .font(.title2)
                 .bold()
-
+            
             TextField("Preset Name", text: $tempPresetName)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .frame(width: 200)
@@ -447,14 +449,14 @@ struct SavePresetSheet: View {
                 .onSubmit {
                     handleSaveAttempt()
                 }
-
+            
             HStack {
                 Button("Cancel") {
                     isShowingSaveSheet = false
                 }
                 .buttonStyle(.bordered)
                 .frame(width: 120)
-
+                
                 Button("Save") {
                     handleSaveAttempt()
                 }
@@ -480,28 +482,28 @@ struct SavePresetSheet: View {
             tempPresetName = presetName
         }
     }
-
+    
     private func handleSaveAttempt() {
         let allPresets = SimulationSettings.shared.userPresets
         let builtInPresets = PresetDefinitions.getAllBuiltInPresets().map { $0.name }
-
+        
         if builtInPresets.contains(tempPresetName) {
             Logger.log("Attempted to overwrite a built-in preset", level: .warning)
             //return
         }
-
+        
         if allPresets.contains(where: { $0.name == tempPresetName }) {
             showOverwriteAlert = true
         } else {
             savePreset(overwrite: false)
         }
     }
-
+    
     private func savePreset(overwrite: Bool) {
         if !tempPresetName.isEmpty {
             SimulationSettings.shared.saveCurrentPreset(named: tempPresetName,
-                interactionMatrix: ParticleSystem.shared.interactionMatrix,
-                replaceExisting: overwrite)
+                                                        interactionMatrix: ParticleSystem.shared.interactionMatrix,
+                                                        replaceExisting: overwrite)
             
             presetName = "Untitled"
             isShowingSaveSheet = false
