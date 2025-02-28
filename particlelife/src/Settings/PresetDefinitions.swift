@@ -11,7 +11,7 @@ class PresetDefinitions {
     
     static let randomPreset = makeRandomPreset(speciesCount: 3)
     static let emptyPreset = makeEmptyPreset(speciesCount: 3)
-    static let specialPresets = [snake, cells, sandArt, spaceWars, breathing, comet, comet2, moreCells, lava].sorted() { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+    static let specialPresets = [snake, cells, sandArt, spaceWars, breathing, comet, comet2, chloroplast, lava].sorted() { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
     
     static func getAllBuiltInPresets() -> [SimulationPreset] {
         return [randomPreset] + [emptyPreset] + specialPresets
@@ -31,9 +31,9 @@ class PresetDefinitions {
             maxDistance: 0.65,
             minDistance: 0.04,
             beta: 0.3,
-            friction: 0.2,
+            friction: 0.15,
             repulsion: 0.03,
-            pointSize: 7,
+            pointSize: 9,
             worldSize: 1.0,
             preservesUISettings: true
         )
@@ -52,7 +52,7 @@ class PresetDefinitions {
             maxDistance: 0.65,
             minDistance: 0.04,
             beta: 0.3,
-            friction: 0.2,
+            friction: 0.15,
             repulsion: 0.03,
             pointSize: 5,
             worldSize: 0.5,
@@ -62,7 +62,7 @@ class PresetDefinitions {
 }
 
 extension PresetDefinitions {
-
+    
     static let snake = SimulationPreset(
         name: "Snake",
         speciesCount: 9,
@@ -101,10 +101,11 @@ extension PresetDefinitions {
         maxDistance: 0.80,
         minDistance: 0.04,
         beta: 0.30,
-        friction: 0.20,
+        friction: 0.10,
         repulsion: 0.03,
         pointSize: 12,
-        worldSize: 1.25
+        worldSize: 1.25,
+        speciesColorOffset: 8
     )
     
     static let comet = SimulationPreset(
@@ -120,7 +121,7 @@ extension PresetDefinitions {
         maxDistance: 1.5,
         minDistance: 0.04,
         beta: 0.30,
-        friction: 0.20,
+        friction: 0.10,
         repulsion: 0.03,
         pointSize: 10,
         worldSize: 2.00
@@ -207,13 +208,13 @@ extension PresetDefinitions {
         maxDistance: 0.65,
         minDistance: 0.04,
         beta: 0.30,
-        friction: 0.20,
+        friction: 0.10,
         repulsion: 0.03,
         pointSize: 10,
         worldSize: 1.25
     )
 
-    static let moreCells = SimulationPreset(
+    static let chloroplast = SimulationPreset(
         name: "Chloroplast",
         speciesCount: 6,
         particleCount: .k20,
@@ -229,7 +230,7 @@ extension PresetDefinitions {
         maxDistance: 0.65,
         minDistance: 0.04,
         beta: 0.30,
-        friction: 0.20,
+        friction: 0.10,
         repulsion: 0.03,
         pointSize: 3,
         worldSize: 0.50,
@@ -249,7 +250,7 @@ extension PresetDefinitions {
         maxDistance: 0.65,
         minDistance: 0.04,
         beta: 0.30,
-        friction: 0.20,
+        friction: 0.10,
         repulsion: 0.03,
         pointSize: 11,
         worldSize: 1.00

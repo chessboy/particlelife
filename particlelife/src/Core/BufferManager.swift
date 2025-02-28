@@ -42,23 +42,16 @@ class BufferManager {
     private(set) var speciesCountBuffer: MTLBuffer?
     private(set) var speciesColorOffsetBuffer: MTLBuffer?
     
+    private var lastPhysicsSettings: PhysicsSettingsSnapshot?
+
     var areBuffersInitialized: Bool {
-        return particleCountBuffer != nil &&
-        interactionBuffer != nil &&
-        speciesCountBuffer != nil &&
-        deltaTimeBuffer != nil &&
-        maxDistanceBuffer != nil &&
-        minDistanceBuffer != nil &&
-        betaBuffer != nil &&
-        frictionBuffer != nil &&
-        repulsionBuffer != nil &&
-        pointSizeBuffer != nil &&
-        worldSizeBuffer != nil &&
-        windowSizeBuffer != nil &&
-        cameraBuffer != nil &&
-        zoomBuffer != nil &&
-        clickBuffer != nil &&
-        speciesColorOffsetBuffer != nil
+        let requiredBuffers: [MTLBuffer?] = [
+            particleCountBuffer, interactionBuffer, speciesCountBuffer, deltaTimeBuffer,
+            maxDistanceBuffer, minDistanceBuffer, betaBuffer, frictionBuffer, repulsionBuffer,
+            pointSizeBuffer, worldSizeBuffer, windowSizeBuffer, cameraBuffer, zoomBuffer,
+            clickBuffer, speciesColorOffsetBuffer
+        ]
+        return requiredBuffers.allSatisfy { $0 != nil }
     }
     
     private init() {
@@ -87,9 +80,15 @@ class BufferManager {
         worldSizeBuffer = createBuffer(type: Float.self)
         windowSizeBuffer = createBuffer(type: Float.self, count: 2)
         initializeBoundaryBuffer()
-        updateClickBuffer(clickPosition: SIMD2<Float>(0, 0), force: 0.0)
+        initializeClickBuffer()
+    }
+    
+    func initializeClickBuffer() {
+        guard clickBuffer == nil else { return }
+        clickBuffer = createBuffer(type: ClickData.self)
 
-        updatePhysicsBuffers()
+        var defaultClickData = ClickData(position: SIMD2<Float>(0, 0), force: 0.0)
+        clickBuffer?.contents().copyMemory(from: &defaultClickData, byteCount: MemoryLayout<ClickData>.stride)
     }
     
     func initializeBoundaryBuffer() {
@@ -133,12 +132,6 @@ class BufferManager {
         interactionBuffer = nil
         speciesCountBuffer = nil
     }
-    
-    func readClickBuffer() -> ClickData? {
-        guard let buffer = clickBuffer else { return nil } // Ensure buffer exists
-        let pointer = buffer.contents().bindMemory(to: ClickData.self, capacity: 1)
-        return pointer.pointee // Return the struct stored in the buffer
-    }
 }
 
 // Buffer Updates
@@ -146,14 +139,10 @@ extension BufferManager {
     
     func updateClickBuffer(clickPosition: SIMD2<Float>, force: Float, clear: Bool = false) {
         var clickData = clear ? ClickData(position: SIMD2<Float>(0, 0), force: 0.0) :
-                                ClickData(position: clickPosition, force: force)
-
-        if clickBuffer == nil {
-            clickBuffer = device.makeBuffer(length: MemoryLayout<ClickData>.stride, options: [])
-        }
-
+        ClickData(position: clickPosition, force: force)
+        
         guard let buffer = clickBuffer else { return }
-
+        
         memcpy(buffer.contents(), &clickData, MemoryLayout<ClickData>.stride)
     }
     
@@ -167,6 +156,24 @@ extension BufferManager {
     
     func updatePhysicsBuffers() {
         let settings = SimulationSettings.shared
+        let currentSettings = PhysicsSettingsSnapshot(
+            maxDistance: settings.maxDistance.value,
+            minDistance: settings.minDistance.value,
+            beta: settings.beta.value,
+            friction: settings.friction.value,
+            repulsion: settings.repulsion.value,
+            pointSize: settings.pointSize.value,
+            worldSize: settings.worldSize.value,
+            speciesColorOffset: settings.speciesColorOffset
+        )
+        
+        if let last = lastPhysicsSettings, last.isEqual(to: currentSettings) {
+            return // 🚀 No change, skip update
+        }
+        
+        lastPhysicsSettings = currentSettings
+        
+        Logger.log("Updated physics buffers", level: .debug, showCaller: true)
         
         updateBuffer(maxDistanceBuffer, with: settings.maxDistance)
         updateBuffer(minDistanceBuffer, with: settings.minDistance)
@@ -202,7 +209,7 @@ extension BufferManager {
     func updateSpeciesColorOffsetBuffer(speciesColorOffset: Int) {
         updateBuffer(speciesColorOffsetBuffer, with: speciesColorOffset)
     }
-
+    
     func updateDeltaTimeBuffer(dt: inout Float) {
         updateBuffer(deltaTimeBuffer, with: dt)
     }
@@ -227,7 +234,8 @@ extension BufferManager {
     private func updateBuffer<T>(_ buffer: MTLBuffer?, with value: T) {
         guard let buffer = buffer else { return }
         withUnsafeBytes(of: value) { rawBuffer in
-            buffer.contents().copyMemory(from: rawBuffer.baseAddress!, byteCount: MemoryLayout<T>.stride)
+            guard let baseAddress = rawBuffer.baseAddress else { return }
+            buffer.contents().copyMemory(from: baseAddress, byteCount: MemoryLayout<T>.stride)
         }
     }
     
@@ -235,7 +243,31 @@ extension BufferManager {
     private func updateBuffer<T: SIMD>(_ buffer: MTLBuffer?, with value: T) {
         guard let buffer = buffer else { return }
         withUnsafeBytes(of: value) { rawBuffer in
-            buffer.contents().copyMemory(from: rawBuffer.baseAddress!, byteCount: MemoryLayout<T>.stride)
+            guard let baseAddress = rawBuffer.baseAddress else { return }
+            buffer.contents().copyMemory(from: baseAddress, byteCount: MemoryLayout<T>.stride)
         }
+    }
+}
+
+struct PhysicsSettingsSnapshot {
+    let maxDistance: Float
+    let minDistance: Float
+    let beta: Float
+    let friction: Float
+    let repulsion: Float
+    let pointSize: Float
+    let worldSize: Float
+    let speciesColorOffset: Int
+
+    /// Compare two snapshots
+    func isEqual(to other: PhysicsSettingsSnapshot) -> Bool {
+        return maxDistance == other.maxDistance &&
+               minDistance == other.minDistance &&
+               beta == other.beta &&
+               friction == other.friction &&
+               repulsion == other.repulsion &&
+               pointSize == other.pointSize &&
+               worldSize == other.worldSize &&
+               speciesColorOffset == other.speciesColorOffset
     }
 }

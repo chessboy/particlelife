@@ -28,29 +28,40 @@ class SimulationSettings: ObservableObject {
     @Published var userPresets: [SimulationPreset] = PresetManager.shared.getUserPresets()
     @Published var selectedPreset: SimulationPreset = PresetDefinitions.getDefaultPreset()
     
+    private var bufferUpdateWorkItem: DispatchWorkItem?
+
+    private func scheduleBufferUpdate() {
+        bufferUpdateWorkItem?.cancel()
+        let workItem = DispatchWorkItem {
+            BufferManager.shared.updatePhysicsBuffers()
+        }
+        bufferUpdateWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05, execute: workItem) // 50ms delay
+    }
+
     @Published var maxDistance = ConfigurableSetting(
         value: 0.65, defaultValue: 0.65, min: 0.5, max: 1.5, step: 0.05, format: "%.2f",
-        onChange: { _ in BufferManager.shared.updatePhysicsBuffers() }
+        onChange: { _ in SimulationSettings.shared.scheduleBufferUpdate() }
     )
     
     @Published var minDistance = ConfigurableSetting(
         value: 0.04, defaultValue: 0.04, min: 0.01, max: 0.1, step: 0.01, format: "%.2f",
-        onChange: { _ in BufferManager.shared.updatePhysicsBuffers() }
+        onChange: { _ in SimulationSettings.shared.scheduleBufferUpdate() }
     )
     
     @Published var beta = ConfigurableSetting(
         value: 0.3, defaultValue: 0.3, min: 0.1, max: 0.5, step: 0.025, format: "%.2f",
-        onChange: { _ in BufferManager.shared.updatePhysicsBuffers() }
+        onChange: { _ in SimulationSettings.shared.scheduleBufferUpdate() }
     )
     
     @Published var friction = ConfigurableSetting(
         value: 0.2, defaultValue: 0.2, min: 0, max: 0.5, step: 0.05, format: "%.2f",
-        onChange: { _ in BufferManager.shared.updatePhysicsBuffers() }
+        onChange: { _ in SimulationSettings.shared.scheduleBufferUpdate() }
     )
     
     @Published var repulsion = ConfigurableSetting(
         value: 0.03, defaultValue: 0.03, min: 0.01, max: 0.2, step: 0.01, format: "%.2f",
-        onChange: { _ in BufferManager.shared.updatePhysicsBuffers() }
+        onChange: { _ in SimulationSettings.shared.scheduleBufferUpdate() }
     )
     
     @Published var pointSize = ConfigurableSetting(
@@ -65,7 +76,7 @@ class SimulationSettings: ObservableObject {
     
     @Published var speciesColorOffset: Int = 0 {
         didSet {
-            BufferManager.shared.updatePhysicsBuffers()
+            SimulationSettings.shared.scheduleBufferUpdate()
         }
     }
 }
@@ -75,7 +86,7 @@ extension SimulationSettings {
     private static func handlePointSizeChange(_ newValue: Float) {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { // 50ms debounce
             if shared.pointSize.value == newValue { // Ensure consistency
-                BufferManager.shared.updatePhysicsBuffers()
+                SimulationSettings.shared.scheduleBufferUpdate()
             }
         }
     }
@@ -93,7 +104,7 @@ extension SimulationSettings {
     private static func handleWorldSizeChange(_ newValue: Float) {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { // 50ms debounce
             if shared.worldSize.value == newValue { // Ensure consistency
-                BufferManager.shared.updatePhysicsBuffers()
+                SimulationSettings.shared.scheduleBufferUpdate()
             }
         }
     }
