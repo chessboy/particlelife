@@ -85,6 +85,7 @@ struct SimulationSettingsView: View {
         )
         .shadow(radius: 10)
         .opacity(isVisible ? 1.0 : 0.0)
+        .offset(x: isVisible ? 0 : -340, y: 0)
         .disabled(!isVisible)
         .animation(.easeInOut(duration: 0.3), value: isVisible)
         .onHover { hovering in
@@ -486,8 +487,8 @@ struct SavePresetSheet: View {
         let builtInPresets = PresetDefinitions.getAllBuiltInPresets().map { $0.name }
 
         if builtInPresets.contains(tempPresetName) {
-            Logger.log("Attempted to overwrite a built-in preset", level: .error)
-            return
+            Logger.log("Attempted to overwrite a built-in preset", level: .warning)
+            //return
         }
 
         if allPresets.contains(where: { $0.name == tempPresetName }) {

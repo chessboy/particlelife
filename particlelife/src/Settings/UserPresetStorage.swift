@@ -68,7 +68,7 @@ class UserPresetStorage {
         
         // Perform migration
         presets = presets.map { preset in
-            preset.copy(newShouldResetSpeciesCountAndColors: true)
+            preset.copy(newShouldResetEverything: true)
         }
         
         // Detect modified presets
@@ -84,8 +84,8 @@ class UserPresetStorage {
         Logger.log("Changes detected during migration:")
         changedPresets.forEach { original, migrated in
             Logger.log("  - Preset '\(original.name)' modified.")
-            if original.shouldResetSpeciesCountAndColors != migrated.shouldResetSpeciesCountAndColors {
-                Logger.log("    * shouldResetSpeciesCountAndColors: \(original.shouldResetSpeciesCountAndColors) → \(migrated.shouldResetSpeciesCountAndColors)")
+            if original.shouldResetEverything != migrated.shouldResetEverything {
+                Logger.log("    * shouldResetSpeciesCountAndColors: \(original.shouldResetEverything) → \(migrated.shouldResetEverything)")
             }
         }
         
@@ -124,7 +124,7 @@ class UserPresetStorage {
                 presets.append(preset) // Should never happen, but fallback
             }
         } else {
-            let allPresets = presets + PresetDefinitions.getAllBuiltInPresets()
+            let allPresets = presets
             let uniqueName = ensureUniqueName(for: preset.name, existingPresets: allPresets)
             finalPreset = preset.copy(withName: uniqueName)
             presets.append(finalPreset)

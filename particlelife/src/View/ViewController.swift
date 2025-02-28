@@ -1,3 +1,10 @@
+//
+//  ViewController.swift
+//  particlelife
+//
+//  Created by Rob Silverman on 2/24/25.
+//
+
 import Cocoa
 import SwiftUI
 import Metal
@@ -25,21 +32,7 @@ class ViewController: NSViewController  {
         actionTimer?.invalidate()
         actionTimer = nil
     }
-    
-    func centerWindowIfNeeded() {
-        guard let window = view.window, let screen = window.screen else { return }
-
-        let screenFrame = screen.visibleFrame
-        let windowSize = window.frame.size
-        let centeredOrigin = NSPoint(
-            x: screenFrame.midX - windowSize.width / 2,
-            y: screenFrame.midY - windowSize.height / 2
-        )
-
-        window.setFrameOrigin(centeredOrigin)
-        Logger.log("Window centered on screen: windowSize: \(windowSize), screenFrame: \(screenFrame)", level: .debug)
-    }
-    
+        
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -61,7 +54,21 @@ class ViewController: NSViewController  {
                 
         view.window?.isMovableByWindowBackground = false
     }
-            
+           
+    func centerWindowIfNeeded() {
+        guard let window = view.window, let screen = window.screen else { return }
+
+        let screenFrame = screen.visibleFrame
+        let windowSize = window.frame.size
+        let centeredOrigin = NSPoint(
+            x: screenFrame.midX - windowSize.width / 2,
+            y: screenFrame.midY - windowSize.height / 2
+        )
+
+        window.setFrameOrigin(centeredOrigin)
+        Logger.log("Window centered on screen: windowSize: \(windowSize), screenFrame: \(screenFrame)", level: .debug)
+    }
+
     private func enforceWindowSizeConstraints() {
         guard let window = view.window else { return }
 
