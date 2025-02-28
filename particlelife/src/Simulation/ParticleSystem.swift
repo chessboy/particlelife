@@ -14,14 +14,14 @@ class ParticleSystem: ObservableObject {
     static let shared = ParticleSystem()
     
     private var particles: [Particle] = []
-
+    
     @Published var interactionMatrix: [[Float]] = []
     @Published private(set) var speciesColors: [Color] = []
-
+    
     private var cancellables = Set<AnyCancellable>()
     private var lastUpdateTime: TimeInterval = Date().timeIntervalSince1970
     private var lastDT: Float = 0.001
-
+    
     init() {
         let defaultPreset = PresetDefinitions.getDefaultPreset()
         
@@ -52,11 +52,11 @@ class ParticleSystem: ObservableObject {
         BufferManager.shared.updateCameraBuffer(cameraPosition: .zero)
         BufferManager.shared.updateZoomBuffer(zoomLevel: 1.0)
     }
-
+    
     /// Resets the simulation and regenerates particles
     func respawn(shouldGenerateNewMatrix: Bool) {
         let preset = SimulationSettings.shared.selectedPreset
-
+        
         generateParticles(preset: preset)
         if shouldGenerateNewMatrix {
             generateNewMatrix(preset: preset, speciesColorOffset: SimulationSettings.shared.speciesColorOffset)
@@ -66,18 +66,18 @@ class ParticleSystem: ObservableObject {
     
     func speciesCountWillChange(newCount: Int) {
         let settings = SimulationSettings.shared
-
+        
         guard newCount != settings.selectedPreset.speciesCount else {
             Logger.log("No change needed, speciesCount is already \(settings.selectedPreset.speciesCount)", level: .debug)
             return
         }
-
+        
         let newPreset = settings.selectedPreset.copy(newSpeciesCount: newCount)
-
+        
         generateNewMatrix(preset: newPreset, speciesColorOffset: SimulationSettings.shared.speciesColorOffset)
         generateParticles(preset: newPreset)
         updatePhysicsAndBuffers(preset: newPreset)
-
+        
         SimulationSettings.shared.selectedPreset = newPreset
     }
     
@@ -101,14 +101,14 @@ class ParticleSystem: ObservableObject {
             particleCount: preset.particleCount,
             speciesCount: preset.speciesCount
         )
-
+        
         //let uniqueSpecies = Set(particles.map { $0.species })
         //Logger.log("Unique species in new particles: \(uniqueSpecies)", level: .debug)
-
+        
         let worldSize = SimulationSettings.shared.worldSize.value
         let scaleFactorX = preset.distributionType.shouldScaleToAspectRatio ? worldSize * Float(Constants.ASPECT_RATIO) : worldSize
         let scaleFactorY = worldSize
-
+        
         if preset.distributionType.shouldRecenter {
             // Compute the centroid before scaling
             var center = SIMD2<Float>(0, 0)
@@ -116,7 +116,7 @@ class ParticleSystem: ObservableObject {
                 center += p.position
             }
             center /= Float(particles.count) // Compute average center
-
+            
             // Scale, aspect correct, and recenter
             for i in particles.indices {
                 particles[i].position.x = (particles[i].position.x - center.x) * scaleFactorX
@@ -145,11 +145,11 @@ class ParticleSystem: ObservableObject {
             self.objectWillChange.send()
         }
     }
-
+    
     func updateSpeciesColors(speciesCount: Int, speciesColorOffset: Int) {
         generateSpeciesColors(speciesCount: speciesCount, speciesColorOffset: speciesColorOffset)
     }
-
+    
     func dumpPresetAsCode() {
         print(SimulationSettings.shared.selectedPreset.asCode)
     }
@@ -158,16 +158,21 @@ class ParticleSystem: ObservableObject {
     func update() {
         let currentTime = Date().timeIntervalSince1970
         var dt = Float(currentTime - lastUpdateTime)
-        dt = max(0.0001, min(dt, 0.01))
-        lastUpdateTime = currentTime
-
-        let smoothingFactor: Float = 0.1
+        dt = max(0.0001, min(dt, 0.01)) // Clamp dt
+        
+        let smoothingFactor: Float = 0.05
         dt = (1.0 - smoothingFactor) * lastDT + smoothingFactor * dt
         
-        if abs(dt - lastDT) > 0.0001 {
-            BufferManager.shared.updateDeltaTimeBuffer(dt: &dt)
+        // Snap dt to avoid micro jitter
+        let quantizationStep: Float = 0.0005
+        dt = round(dt / quantizationStep) * quantizationStep
+        
+        if abs(dt - lastDT) > 0.00005 {
+            BufferManager.shared.updateDeltaTimeBuffer(dt: &dt)  // Send RAW dt (not dtFactor!)
             lastDT = dt
         }
+        
+        lastUpdateTime = currentTime
     }
 }
 
