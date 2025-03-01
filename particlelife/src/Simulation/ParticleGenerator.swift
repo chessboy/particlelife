@@ -55,8 +55,8 @@ enum ParticleCount: Int, CaseIterable, Identifiable, Codable {
     case k10 = 10240
     case k20 = 20480
     case k30 = 30720
+    case k35 = 35840
     case k40 = 40960
-    case k50 = 49152
 
     var id: Int { self.rawValue }
 
@@ -68,21 +68,13 @@ enum ParticleCount: Int, CaseIterable, Identifiable, Codable {
         case .k10: return "10K"
         case .k20: return "20K"
         case .k30: return "30K"
+        case .k35: return "35K"
         case .k40: return "40K"
-        case .k50: return "50K"
         }
     }
 }
 
 extension ParticleCount {
-    /// Returns the smallest and largest values for use in a slider
-    static var minValue: Int { allCases.first?.rawValue ?? 1024 }
-    static var maxValue: Int { allCases.last?.rawValue ?? 49152 }
-
-    /// Finds the closest matching ParticleCount case
-    static func closest(to value: Int) -> ParticleCount {
-        return allCases.min(by: { abs($0.rawValue - value) < abs($1.rawValue - value) }) ?? .k10
-    }
     
     /// Returns the particle count for a given species count (1-9).
     static func particles(for speciesCount: Int) -> ParticleCount {
@@ -96,8 +88,8 @@ extension ParticleCount {
             4: .k20,
             5: .k20,
             6: .k30,
-            7: .k30,
-            8: .k30,
+            7: .k35,
+            8: .k35,
             9: .k40
         ]
 

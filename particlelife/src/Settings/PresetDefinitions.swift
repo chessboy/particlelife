@@ -68,7 +68,7 @@ extension PresetDefinitions {
     static let snake = SimulationPreset(
         name: "Snake",
         speciesCount: 9,
-        particleCount: .k40,
+        particleCount: .k35,
         matrixType: .custom([
             [1.00, 0.25, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00],
             [0.00, 1.00, 0.25, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00],
@@ -93,7 +93,7 @@ extension PresetDefinitions {
     static let cells = SimulationPreset(
         name: "Cells",
         speciesCount: 3,
-        particleCount: .k40,
+        particleCount: .k35,
         matrixType: .custom([
             [-1.00,  -0.05,  1.00],
             [-0.05,  0.50,  -0.05],
@@ -132,7 +132,7 @@ extension PresetDefinitions {
     static let spaceWars = SimulationPreset(
         name: "Space Wars",
         speciesCount: 9,
-        particleCount: .k40,
+        particleCount: .k35,
         matrixType: .custom([
             [0.99, 0.16, -0.79, 0.89, -0.13, 0.94, 0.94, 0.33, 0.18],
             [-0.68, -0.99, 0.63, 0.30, 0.26, 0.32, 0.06, 0.63, 0.47],

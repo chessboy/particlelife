@@ -71,19 +71,7 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
             isPaused.toggle()
         }
     }
-    
-    private func adjustZoomAndCameraForWorldSize(_ newWorldSize: Float) {
-        let baseSize: Float = 1.0
-        let minZoom: Float = 0.1
-        let maxZoom: Float = 4.5
         
-        zoomLevel = min(max(baseSize / newWorldSize, minZoom), maxZoom)
-        BufferManager.shared.updateZoomBuffer(zoomLevel: zoomLevel)
-        
-        cameraPosition = .zero
-        BufferManager.shared.updateCameraBuffer(cameraPosition: cameraPosition)
-    }
-    
     @objc private func handleAppWillResignActive() {
         isPaused = true
     }
@@ -232,9 +220,48 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         renderEncoder.endEncoding()
         commandBuffer?.present(drawable)
     }
+        
+    func respawnParticles() {
+        if isPaused {
+            isPaused.toggle()
+        }
+        particleSystem.respawn(shouldGenerateNewMatrix: false)
+    }
     
-    // Zoom Controls
+    func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {
+        let expectedAspectRatio: CGFloat = Constants.ASPECT_RATIO
+        var correctedSize = size
+        
+        if abs((size.width / size.height) - expectedAspectRatio) > 0.01 {
+            correctedSize = size.width > size.height * expectedAspectRatio
+            ? CGSize(width: size.height * expectedAspectRatio, height: size.height)
+            : CGSize(width: size.width, height: size.width / expectedAspectRatio)
+            
+//            Logger.log("Drawable size corrected: Original: \(size.width)x\(size.height), "
+//                       + "Corrected: \(correctedSize.width)x\(correctedSize.height), "
+//                       + "Computed Aspect Ratio: \(correctedSize.width / correctedSize.height)",
+//                       level: .debug)
+        }
+        
+        BufferManager.shared.updateWindowSizeBuffer(width: Float(correctedSize.width), height: Float(correctedSize.height))
+    }
+}
+
+// Camera Handling
+extension Renderer {
     
+    private func adjustZoomAndCameraForWorldSize(_ newWorldSize: Float) {
+        let baseSize: Float = 1.0
+        let minZoom: Float = 0.1
+        let maxZoom: Float = 4.5
+        
+        zoomLevel = min(max(baseSize / newWorldSize, minZoom), maxZoom)
+        BufferManager.shared.updateZoomBuffer(zoomLevel: zoomLevel)
+        
+        cameraPosition = .zero
+        BufferManager.shared.updateCameraBuffer(cameraPosition: cameraPosition)
+    }
+
     func resetPanAndZoom() {
         guard !isPaused else { return }
         zoomLevel = 1.0
@@ -284,33 +311,9 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
     private func updateCamera() {
         BufferManager.shared.updateCameraBuffer(cameraPosition: cameraPosition)
     }
-    
-    func respawnParticles() {
-        if isPaused {
-            isPaused.toggle()
-        }
-        particleSystem.respawn(shouldGenerateNewMatrix: false)
-    }
-    
-    func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {
-        let expectedAspectRatio: CGFloat = Constants.ASPECT_RATIO
-        var correctedSize = size
-        
-        if abs((size.width / size.height) - expectedAspectRatio) > 0.01 {
-            correctedSize = size.width > size.height * expectedAspectRatio
-            ? CGSize(width: size.height * expectedAspectRatio, height: size.height)
-            : CGSize(width: size.width, height: size.width / expectedAspectRatio)
-            
-//            Logger.log("Drawable size corrected: Original: \(size.width)x\(size.height), "
-//                       + "Corrected: \(correctedSize.width)x\(correctedSize.height), "
-//                       + "Computed Aspect Ratio: \(correctedSize.width / correctedSize.height)",
-//                       level: .debug)
-        }
-        
-        BufferManager.shared.updateWindowSizeBuffer(width: Float(correctedSize.width), height: Float(correctedSize.height))
-    }
 }
 
+// Mouse Handling
 extension Renderer {
     
     /// Handles mouse clicks and perturbs nearby particles
