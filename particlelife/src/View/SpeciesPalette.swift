@@ -13,6 +13,8 @@ enum SpeciesPalette: Int, CaseIterable {
     case dark
     case alt
     case vivid
+    case sunset
+    case ocean
 
     static let colorCount = 9
 
@@ -78,6 +80,30 @@ enum SpeciesPalette: Int, CaseIterable {
                 Color(red: 1.0, green: 0.0, blue: 1.0),   // 💜 Hyper Magenta
                 Color(red: 1.0, green: 0.0, blue: 0.5)    // 💖 Hot Raspberry
             ]
+        case .sunset:
+            return [
+                Color(red: 1.0, green: 0.5, blue: 0.2),   // 🌅 Warm Tangerine
+                Color(red: 1.0, green: 0.3, blue: 0.3),   // 🍓 Deep Strawberry Red
+                Color(red: 1.0, green: 0.75, blue: 0.3),  // 🍑 Golden Peach
+                Color(red: 0.8, green: 0.5, blue: 0.2),   // 🌄 Burnt Sienna
+                Color(red: 0.6, green: 0.3, blue: 0.6),   // 🌌 Dusk Purple
+                Color(red: 0.3, green: 0.3, blue: 0.7),   // 🌃 Twilight Blue
+                Color(red: 0.15, green: 0.15, blue: 0.5), // 🌙 Deep Night Indigo
+                Color(red: 1.0, green: 0.85, blue: 0.4),  // ☀️ Soft Golden Glow
+                Color(red: 0.8, green: 0.6, blue: 0.2)    // 🌾 Earthy Amber
+            ]
+        case .ocean:
+            return [
+                Color(red: 0.0, green: 0.2, blue: 0.6),   // 🌊 Deep Ocean Blue
+                Color(red: 0.0, green: 0.5, blue: 0.8),   // 🟦 Bright Cerulean
+                Color(red: 0.0, green: 0.7, blue: 1.0),   // 💎 Electric Aqua
+                Color(red: 0.0, green: 0.4, blue: 0.3),   // 🦑 Deep Sea Green
+                Color(red: 0.2, green: 0.8, blue: 0.6),   // 🐬 Turquoise
+                Color(red: 0.6, green: 1.0, blue: 0.8),   // 🏝️ Soft Mint Green
+                Color(red: 0.8, green: 0.9, blue: 1.0),   // ☁️ Pale Sky Blue
+                Color(red: 1.0, green: 1.0, blue: 1.0),   // 🌊 Foam White
+                Color(red: 0.1, green: 0.3, blue: 0.5)    // 🌑 Midnight Tide
+            ]
         }
     }
 
@@ -88,6 +114,8 @@ enum SpeciesPalette: Int, CaseIterable {
         case .dark: return "Dark"
         case .alt: return "Alt"
         case .vivid: return "Vivid"
+        case .sunset: return "Sunset"
+        case .ocean: return "Ocean"
         }
     }
 }

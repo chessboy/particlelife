@@ -28,7 +28,7 @@ float rand(int x, int y, int z) {
     return ((1.0 - ((seed * (seed * seed * 15731 + 789221) + 1376312589) & 2147483647) / 1073741824.0f) + 1.0f) / 2.0f;
 }
 
-constant float3 colorPalettes[5][9] = {
+constant float3 colorPalettes[7][9] = {
     {   // Default Bright Palette
         float3(1.0, 0.2, 0.2),   // 🔴 Soft Red
         float3(1.0, 0.6, 0.0),   // 🟠 Orange
@@ -83,6 +83,28 @@ constant float3 colorPalettes[5][9] = {
         float3(0.6, 0.0, 1.0),   // 🔮 Deep Violet
         float3(1.0, 0.0, 1.0),   // 💜 Hyper Magenta
         float3(1.0, 0.0, 0.5)    // 💖 Hot Raspberry
+    },
+    {   // **Sunset Palette 🌅**
+        float3(1.0, 0.5, 0.2),   // 🌅 Warm Tangerine
+        float3(1.0, 0.3, 0.3),   // 🍓 Deep Strawberry Red
+        float3(1.0, 0.75, 0.3),  // 🍑 Golden Peach
+        float3(0.8, 0.5, 0.2),   // 🌄 Burnt Sienna
+        float3(0.6, 0.3, 0.6),   // 🌌 Dusk Purple
+        float3(0.3, 0.3, 0.7),   // 🌃 Twilight Blue
+        float3(0.15, 0.15, 0.5), // 🌙 Deep Night Indigo
+        float3(1.0, 0.85, 0.4),  // ☀️ Soft Golden Glow
+        float3(0.8, 0.6, 0.2)    // 🌾 Earthy Amber
+    },
+    {   // **Ocean Palette 🌊**
+        float3(0.0, 0.2, 0.6),   // 🌊 Deep Ocean Blue
+        float3(0.0, 0.5, 0.8),   // 🟦 Bright Cerulean
+        float3(0.0, 0.7, 1.0),   // 💎 Electric Aqua
+        float3(0.0, 0.4, 0.3),   // 🦑 Deep Sea Green
+        float3(0.2, 0.8, 0.6),   // 🐬 Turquoise
+        float3(0.6, 1.0, 0.8),   // 🏝️ Soft Mint Green
+        float3(0.8, 0.9, 1.0),   // ☁️ Pale Sky Blue
+        float3(1.0, 1.0, 1.0),   // 🌊 Foam White
+        float3(0.1, 0.3, 0.5)    // 🌑 Midnight Tide
     }
 };
 
