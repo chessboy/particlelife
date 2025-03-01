@@ -138,7 +138,7 @@ class ParticleSystem: ObservableObject {
     
     /// Generates colors for each species based on the selected palette
     private func generateSpeciesColors(speciesCount: Int, speciesColorOffset: Int, paletteIndex: Int) {
-        Logger.log("updateSpeciesColors: speciesCount: \(speciesCount), speciesColorOffset: \(speciesColorOffset), paletteIndex: \(paletteIndex)", level: .debug)
+        //Logger.log("updateSpeciesColors: speciesCount: \(speciesCount), speciesColorOffset: \(speciesColorOffset), paletteIndex: \(paletteIndex)", level: .debug)
         
         DispatchQueue.main.async {
             guard let selectedPalette = SpeciesPalette(rawValue: paletteIndex) else { return }
@@ -161,13 +161,13 @@ class ParticleSystem: ObservableObject {
     func update() {
         let currentTime = Date().timeIntervalSince1970
         var dt = Float(currentTime - lastUpdateTime)
-        dt = max(0.0001, min(dt, 0.01)) // Clamp dt
+        dt = max(0.0001, min(dt, 0.0105)) // Clamp dt was 0.01
         
         let smoothingFactor: Float = 0.05
         dt = (1.0 - smoothingFactor) * lastDT + smoothingFactor * dt
         
         // Snap dt to avoid micro jitter
-        let quantizationStep: Float = 0.0005
+        let quantizationStep: Float = 0.0004 // was 0.0005
         dt = round(dt / quantizationStep) * quantizationStep
         
         if abs(dt - lastDT) > 0.00005 {

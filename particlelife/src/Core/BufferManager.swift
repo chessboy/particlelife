@@ -180,7 +180,7 @@ extension BufferManager {
         
         lastPhysicsSettings = currentSettings
         
-        Logger.log("Updated physics buffers", level: .debug, showCaller: true)
+        //Logger.log("Updated physics buffers", level: .debug, showCaller: true)
         
         updateBuffer(maxDistanceBuffer, with: settings.maxDistance)
         updateBuffer(minDistanceBuffer, with: settings.minDistance)

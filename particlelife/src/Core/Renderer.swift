@@ -184,7 +184,7 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         computeEncoder.setBuffer(bufferManager.worldSizeBuffer, offset: 0, index: 11)
         computeEncoder.setBuffer(bufferManager.clickBuffer, offset: 0, index: 12)
         
-        let threadGroupSize = 512
+        let threadGroupSize = 256
         let particleCount = SimulationSettings.shared.selectedPreset.particleCount.rawValue
         let threadGroups = (particleCount + threadGroupSize - 1) / threadGroupSize
         computeEncoder.dispatchThreadgroups(MTLSize(width: threadGroups, height: 1, depth: 1),
