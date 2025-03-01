@@ -166,6 +166,10 @@ extension ViewController {
             renderer.isPaused.toggle()
         case 29: // Zero
             renderer.resetPanAndZoom()
+        case 116: // page up
+            ParticleSystem.shared.decrementSpeciesColorOffset()
+        case 121: // page down
+            ParticleSystem.shared.incrementSpeciesColorOffset()
         default:
             return // Do NOT call super.keyDown(with: event) to prevent beep
         }

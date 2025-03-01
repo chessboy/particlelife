@@ -153,6 +153,13 @@ class ParticleSystem: ObservableObject {
         generateSpeciesColors(speciesCount: speciesCount, speciesColorOffset: speciesColorOffset, paletteIndex: paletteIndex)
     }
     
+    private func updateSpeciesColorsFromSettings() {
+        updateSpeciesColors(speciesCount: speciesColors.count,
+            speciesColorOffset: SimulationSettings.shared.speciesColorOffset,
+            paletteIndex: SimulationSettings.shared.paletteIndex
+        )
+    }
+    
     func dumpPresetAsCode() {
         print(SimulationSettings.shared.selectedPreset.asCode)
     }
@@ -219,5 +226,15 @@ extension ParticleSystem {
         SimulationSettings.shared.applyPreset(presetToApply)
         
         NotificationCenter.default.post(name: .presetSelected, object: nil)
+    }
+    
+    func incrementSpeciesColorOffset() {
+        SimulationSettings.shared.incrementSpeciesColorOffset()
+        updateSpeciesColorsFromSettings()
+    }
+    
+    func decrementSpeciesColorOffset() {
+        SimulationSettings.shared.decrementSpeciesColorOffset()
+        updateSpeciesColorsFromSettings()
     }
 }

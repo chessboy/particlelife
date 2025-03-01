@@ -18,7 +18,7 @@ struct SelectedCell: Identifiable, Equatable {
 }
 
 struct MatrixView: View {
-    
+        
     @Binding var matrix: [[Float]]
     @Binding var isVisible: Bool
     @Binding var isPinned: Bool
@@ -68,6 +68,8 @@ struct MatrixView: View {
                 }
             )
         }
+        .compositingGroup()
+        .drawingGroup()
         .onChange(of: selectedCell) { oldValue, newValue in
             if let newValue = newValue {
                 hoveredCell = (newValue.row, newValue.col) // Ensure the outline is applied immediately
@@ -116,6 +118,8 @@ struct MatrixView: View {
 
 struct MatrixGrid: View {
     
+    static let switchToTooltips = 4
+
     @Binding var isVisible: Bool
     @Binding var isPinned: Bool
     @Binding var wasPinnedBeforeSelection: Bool
@@ -198,9 +202,9 @@ struct MatrixGrid: View {
                             }
                             .onTapGesture {
                                 if index == 0 {
-                                    incrementSpeciesColorOffset()
+                                    ParticleSystem.shared.incrementSpeciesColorOffset()
                                 } else if index == speciesColors.count - 1 {
-                                    decrementSpeciesColorOffset()
+                                    ParticleSystem.shared.decrementSpeciesColorOffset()
                                 }
                             }
                     }
@@ -216,27 +220,7 @@ struct MatrixGrid: View {
             }
         }
     }
-    
-    private func incrementSpeciesColorOffset() {
-        SimulationSettings.shared.speciesColorOffset =
-        (SimulationSettings.shared.speciesColorOffset + 1) % SpeciesPalette.colorCount
-        updateSpeciesColors()
-    }
-    
-    private func decrementSpeciesColorOffset() {
-        SimulationSettings.shared.speciesColorOffset =
-        (SimulationSettings.shared.speciesColorOffset - 1 + SpeciesPalette.colorCount) % SpeciesPalette.colorCount
-        updateSpeciesColors()
-    }
-    
-    private func updateSpeciesColors() {
-        ParticleSystem.shared.updateSpeciesColors(
-            speciesCount: speciesColors.count,
-            speciesColorOffset: SimulationSettings.shared.speciesColorOffset,
-            paletteIndex: SimulationSettings.shared.paletteIndex
-        )
-    }
-    
+        
     @ViewBuilder
     private func rowView(row: Int, totalWidth: CGFloat, cellSize: CGFloat) -> some View {
         HStack(spacing: spacing) {
@@ -289,7 +273,7 @@ struct MatrixGrid: View {
     
     @ViewBuilder
     private func tooltipOverlay(value: Float) -> some View {
-        if speciesColors.count <= 3 {
+        if speciesColors.count <= MatrixGrid.switchToTooltips {
             TooltipView(text: String(format: "%.2f", value), style: .shadow)
         }
     }
@@ -319,7 +303,7 @@ struct MatrixGrid: View {
         if isHovering {
             hoveredCell = (row, col)
             
-            if speciesColors.count > 3 {
+            if speciesColors.count > MatrixGrid.switchToTooltips {
                 tooltipText = String(format: "%.2f", value)
                 tooltipPosition = computeTooltipPosition(row: row, col: col, cellSize: cellSize)
             } else {

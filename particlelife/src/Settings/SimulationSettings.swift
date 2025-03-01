@@ -85,6 +85,14 @@ class SimulationSettings: ObservableObject {
             SimulationSettings.shared.scheduleBufferUpdate()
         }
     }
+    
+    func incrementSpeciesColorOffset() {
+        speciesColorOffset = (speciesColorOffset + 1) % SpeciesPalette.colorCount
+    }
+    
+    func decrementSpeciesColorOffset() {
+        speciesColorOffset = (speciesColorOffset - 1 + SpeciesPalette.colorCount) % SpeciesPalette.colorCount
+    }
 }
 
 extension SimulationSettings {
