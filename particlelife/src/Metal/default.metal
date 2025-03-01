@@ -166,33 +166,6 @@ fragment float4 fragment_main(VertexOut in [[stage_in]], float2 pointCoord [[poi
     return float4(in.color.rgb, alpha);
 }
 
-// draw boundary
-vertex VertexOut vertex_boundary(
-    uint id [[vertex_id]],
-    const device float2* cameraPosition [[buffer(1)]],
-    const device float* zoomLevel [[buffer(2)]],
-    const device float* worldSize [[buffer(3)]]
-) {
-    VertexOut out;
-
-    float halfSize = *worldSize;
-    float2 boundaryVertices[5] = {
-        float2(-halfSize, -halfSize), // Bottom-left
-        float2( halfSize, -halfSize), // Bottom-right
-        float2( halfSize,  halfSize), // Top-right
-        float2(-halfSize,  halfSize), // Top-left
-        float2(-halfSize, -halfSize)  // Closing the loop
-    };
-
-    float2 worldPosition = boundaryVertices[id] - *cameraPosition;
-    worldPosition *= *zoomLevel;
-
-    out.position = float4(worldPosition, 0.0, 1.0);
-    out.color = float4(0.0, 0.33, 0.5, 1.0);
-
-    return out;
-}
-
 float2 handleBoundary(float2 pos, float worldSize) {
     float boundaryX = worldSize * ASPECT_RATIO;
     float boundaryY = worldSize;

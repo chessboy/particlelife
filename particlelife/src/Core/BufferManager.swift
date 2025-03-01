@@ -25,7 +25,6 @@ class BufferManager {
     private(set) var zoomBuffer: MTLBuffer?
     private(set) var clickBuffer: MTLBuffer?
     private(set) var windowSizeBuffer: MTLBuffer?
-    private(set) var boundaryVertexBuffer: MTLBuffer?
 
     // Physics Settings Buffers
     private(set) var maxDistanceBuffer: MTLBuffer?
@@ -88,7 +87,6 @@ class BufferManager {
         windowSizeBuffer = createBuffer(type: Float.self, count: 2)
         speciesCountBuffer = createBuffer(type: Int.self)
         initializeClickBuffer()
-        initializeBoundaryBuffer()
     }
     
     private func createBuffer<T>(type: T.Type, count: Int = 1) -> MTLBuffer? {
@@ -101,12 +99,7 @@ class BufferManager {
         var defaultClickData = ClickData(position: SIMD2<Float>(0, 0), force: 0.0)
         clickBuffer?.contents().copyMemory(from: &defaultClickData, byteCount: MemoryLayout<ClickData>.stride)
     }
-    
-    func initializeBoundaryBuffer() {
-        let vertexIndices: [UInt32] = [0, 1, 2, 3, 4] // Just indices for 5 vertices
-        boundaryVertexBuffer = device.makeBuffer(bytes: vertexIndices, length: MemoryLayout<UInt32>.stride * vertexIndices.count, options: [])
-    }
-    
+        
     func updateParticleBuffers(particles: [Particle], matrix: [[Float]], speciesCount: Int) {
         let particleSize = MemoryLayout<Particle>.stride * particles.count
         let flatMatrix = flattenMatrix(matrix)

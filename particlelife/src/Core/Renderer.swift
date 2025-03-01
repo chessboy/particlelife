@@ -11,8 +11,6 @@ import Combine
 
 class Renderer: NSObject, MTKViewDelegate, ObservableObject {
     
-    private let drawWorldBoundary = false
-    
     @Published var fps: Int = 0
     @Published var isPaused: Bool = false {
         didSet {
@@ -35,7 +33,6 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
     private var particleSystem: ParticleSystem!
     
     private var pipelineState: MTLRenderPipelineState?
-    private var boundaryPipelineState: MTLRenderPipelineState?
     private var computePipeline: MTLComputePipelineState?
     
     private var cancellables = Set<AnyCancellable>()
@@ -127,26 +124,7 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
             fatalError("ERROR: Failed to create render pipeline state: \(error)")
         }
     }
-    
-    /// Lazy setup for boundary pipeline
-    private func setupBoundaryPipeline() {
-        guard let device = device, let library = device.makeDefaultLibrary() else { return }
         
-        let boundaryVertexFunction = library.makeFunction(name: "vertex_boundary")
-        let fragmentFunction = library.makeFunction(name: "fragment_main")
-        
-        let boundaryPipelineDescriptor = MTLRenderPipelineDescriptor()
-        boundaryPipelineDescriptor.vertexFunction = boundaryVertexFunction
-        boundaryPipelineDescriptor.fragmentFunction = fragmentFunction
-        boundaryPipelineDescriptor.colorAttachments[0].pixelFormat = .bgra8Unorm
-        
-        do {
-            boundaryPipelineState = try device.makeRenderPipelineState(descriptor: boundaryPipelineDescriptor)
-        } catch {
-            Logger.logWithError("Failed to create boundary pipeline state", error: error)
-        }
-    }
-    
     func draw(in view: MTKView) {
         if isPaused || !BufferManager.shared.areBuffersInitialized {
             return
@@ -236,21 +214,7 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         
         guard let renderEncoder = commandBuffer?.makeRenderCommandEncoder(descriptor: passDescriptor) else { return }
         let bufferManager: BufferManager = BufferManager.shared
-        
-        // Draw World Boundary (Only if enabled)
-        if drawWorldBoundary {
-            if boundaryPipelineState == nil {
-                setupBoundaryPipeline() // Create only when needed
-            }
-            if let boundaryPipelineState = boundaryPipelineState {
-                renderEncoder.setRenderPipelineState(boundaryPipelineState)
-                renderEncoder.setVertexBuffer(BufferManager.shared.cameraBuffer, offset: 0, index: 1)
-                renderEncoder.setVertexBuffer(BufferManager.shared.zoomBuffer, offset: 0, index: 2)
-                renderEncoder.setVertexBuffer(BufferManager.shared.worldSizeBuffer, offset: 0, index: 3)
-                renderEncoder.drawPrimitives(type: .lineStrip, vertexStart: 0, vertexCount: 5)
-            }
-        }
-        
+                
         // Draw Particles
         renderEncoder.setRenderPipelineState(pipelineState)
         renderEncoder.setVertexBuffer(bufferManager.particleBuffer, offset: 0, index: 0)
