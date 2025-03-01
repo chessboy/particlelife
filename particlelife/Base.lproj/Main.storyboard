@@ -706,7 +706,7 @@
             <objects>
                 <viewController title="Particle Life" id="XfG-lQ-9wD" customClass="ViewController" customModule="Particle_Life" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" id="m2S-Jp-Qdl">
-                        <rect key="frame" x="0.0" y="0.0" width="1600" height="872"/>
+                        <rect key="frame" x="0.0" y="0.0" width="1671" height="912"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </view>
                 </viewController>

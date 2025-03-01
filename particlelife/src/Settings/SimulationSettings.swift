@@ -79,6 +79,12 @@ class SimulationSettings: ObservableObject {
             SimulationSettings.shared.scheduleBufferUpdate()
         }
     }
+    
+    @Published var paletteIndex: Int = 0 {
+        didSet {
+            SimulationSettings.shared.scheduleBufferUpdate()
+        }
+    }
 }
 
 extension SimulationSettings {
@@ -118,16 +124,17 @@ extension SimulationSettings {
         pointSize.value = preset.pointSize
         worldSize.value = preset.worldSize
         speciesColorOffset = preset.speciesColorOffset
+        paletteIndex = preset.paletteIndex
     }
 }
 
 extension SimulationSettings {
-    func saveCurrentPreset(named presetName: String, interactionMatrix: [[Float]], replaceExisting: Bool = false) {
+    func saveCurrentPreset(named presetName: String, matrix: [[Float]], replaceExisting: Bool = false) {
         let newPreset = SimulationPreset(
             name: presetName,
             speciesCount: selectedPreset.speciesCount,
             particleCount: selectedPreset.particleCount,
-            matrixType: .custom(interactionMatrix),
+            matrixType: .custom(matrix),
             distributionType: selectedPreset.distributionType,
             maxDistance: maxDistance.value,
             minDistance: minDistance.value,
@@ -138,7 +145,8 @@ extension SimulationSettings {
             worldSize: worldSize.value,
             isBuiltIn: false,
             preservesUISettings: false,
-            speciesColorOffset: speciesColorOffset
+            speciesColorOffset: speciesColorOffset,
+            paletteIndex: paletteIndex
         )
         
         // Save preset

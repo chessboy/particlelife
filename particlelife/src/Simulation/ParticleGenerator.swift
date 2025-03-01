@@ -103,7 +103,6 @@ extension ParticleCount {
 
         return mapping[speciesCount] ?? .k10
     }
-
 }
 
 struct ParticleGenerator {

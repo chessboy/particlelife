@@ -15,7 +15,7 @@ class ParticleSystem: ObservableObject {
     
     private var particles: [Particle] = []
     
-    @Published var interactionMatrix: [[Float]] = []
+    @Published var matrix: [[Float]] = []
     @Published private(set) var speciesColors: [Color] = []
     
     private var cancellables = Set<AnyCancellable>()
@@ -27,7 +27,7 @@ class ParticleSystem: ObservableObject {
         
         SimulationSettings.shared.applyPreset(defaultPreset)
         generateParticles(preset: defaultPreset)
-        generateNewMatrix(preset: defaultPreset, speciesColorOffset: defaultPreset.speciesColorOffset)
+        generateNewMatrix(preset: defaultPreset, speciesColorOffset: defaultPreset.speciesColorOffset, paletteIndex: 0)
         updatePhysicsAndBuffers(preset: defaultPreset)
         
         // listen for changes when a preset is applied
@@ -44,7 +44,7 @@ class ParticleSystem: ObservableObject {
     private func updatePhysicsAndBuffers(preset: SimulationPreset) {
         BufferManager.shared.updateParticleBuffers(
             particles: particles,
-            interactionMatrix: interactionMatrix,
+            matrix: matrix,
             speciesCount: preset.speciesCount
         )
         BufferManager.shared.updatePhysicsBuffers()
@@ -58,7 +58,7 @@ class ParticleSystem: ObservableObject {
         
         generateParticles(preset: preset)
         if shouldGenerateNewMatrix {
-            generateNewMatrix(preset: preset, speciesColorOffset: SimulationSettings.shared.speciesColorOffset)
+            generateNewMatrix(preset: preset, speciesColorOffset: SimulationSettings.shared.speciesColorOffset, paletteIndex: SimulationSettings.shared.paletteIndex)
         }
         updatePhysicsAndBuffers(preset: preset)
     }
@@ -73,7 +73,7 @@ class ParticleSystem: ObservableObject {
         
         let newPreset = settings.selectedPreset.copy(newSpeciesCount: newCount)
         
-        generateNewMatrix(preset: newPreset, speciesColorOffset: SimulationSettings.shared.speciesColorOffset)
+        generateNewMatrix(preset: newPreset, speciesColorOffset: SimulationSettings.shared.speciesColorOffset, paletteIndex: SimulationSettings.shared.paletteIndex)
         generateParticles(preset: newPreset)
         updatePhysicsAndBuffers(preset: newPreset)
         
@@ -130,23 +130,27 @@ class ParticleSystem: ObservableObject {
         }
     }
     
-    /// Generates a new interaction matrix and updates colors
-    private func generateNewMatrix(preset: SimulationPreset, speciesColorOffset: Int) {
-        interactionMatrix = MatrixGenerator.generateInteractionMatrix(speciesCount: preset.speciesCount, type: preset.matrixType)
-        generateSpeciesColors(speciesCount: preset.speciesCount, speciesColorOffset: speciesColorOffset)
+    /// Generates a new matrix and updates colors using species color offset
+    private func generateNewMatrix(preset: SimulationPreset, speciesColorOffset: Int, paletteIndex: Int) {
+        matrix = MatrixGenerator.generateMatrix(speciesCount: preset.speciesCount, type: preset.matrixType)
+        generateSpeciesColors(speciesCount: preset.speciesCount, speciesColorOffset: speciesColorOffset, paletteIndex: paletteIndex)
     }
     
-    /// Generates colors for each species
-    private func generateSpeciesColors(speciesCount: Int, speciesColorOffset: Int) {
+    /// Generates colors for each species based on the selected palette
+    private func generateSpeciesColors(speciesCount: Int, speciesColorOffset: Int, paletteIndex: Int) {
+        Logger.log("updateSpeciesColors: speciesCount: \(speciesCount), speciesColorOffset: \(speciesColorOffset), paletteIndex: \(paletteIndex)", level: .debug)
+        
         DispatchQueue.main.async {
-            let predefinedColors = SpeciesColor.speciesColors
+            guard let selectedPalette = SpeciesPalette(rawValue: paletteIndex) else { return }
+            let predefinedColors = selectedPalette.colors // Get colors directly from the enum
+            
             self.speciesColors = (0..<speciesCount).map { predefinedColors[($0 + speciesColorOffset) % predefinedColors.count] }
             self.objectWillChange.send()
         }
     }
     
-    func updateSpeciesColors(speciesCount: Int, speciesColorOffset: Int) {
-        generateSpeciesColors(speciesCount: speciesCount, speciesColorOffset: speciesColorOffset)
+    func updateSpeciesColors(speciesCount: Int, speciesColorOffset: Int, paletteIndex: Int) {
+        generateSpeciesColors(speciesCount: speciesCount, speciesColorOffset: speciesColorOffset, paletteIndex: paletteIndex)
     }
     
     func dumpPresetAsCode() {
@@ -204,7 +208,8 @@ extension ParticleSystem {
                 newSpeciesCount: selectedPreset.speciesCount,
                 newParticleCount: selectedPreset.particleCount,
                 newDistributionType: selectedPreset.distributionType,
-                newSpeciesColorOffset: settings.speciesColorOffset
+                newSpeciesColorOffset: settings.speciesColorOffset,
+                newPaletteIndex: settings.paletteIndex
             )
         } else {
             Logger.log("Using all preset setttings while selecting preset '\(preset.name)'", level: .debug)

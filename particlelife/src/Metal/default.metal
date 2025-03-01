@@ -28,21 +28,68 @@ float rand(int x, int y, int z) {
     return ((1.0 - ((seed * (seed * seed * 15731 + 789221) + 1376312589) & 2147483647) / 1073741824.0f) + 1.0f) / 2.0f;
 }
 
-
-float3 speciesColor(int species, int offset) {
-    int adjustedSpecies = (species + offset) % 9; // Wrap around at 9
-    switch (adjustedSpecies) {
-        case 0: return float3(1.0, 0.2, 0.2);   // 🔴 Soft Red
-        case 1: return float3(1.0, 0.6, 0.0);   // 🟠 Orange
-        case 2: return float3(0.95, 0.95, 0.0); // 🟡 Warm Yellow
-        case 3: return float3(0.0, 0.8, 0.2);   // 🟢 Green (Deeper)
-        case 4: return float3(0.0, 0.4, 1.0);   // 🔵 Bright Blue
-        case 5: return float3(0.6, 0.2, 1.0);   // 🟣 Purple
-        case 6: return float3(0.0, 1.0, 1.0);   // 🔵 Cyan
-        case 7: return float3(1.0, 0.0, 0.6);   // 💖 Hot Pink
-        case 8: return float3(0.2, 0.8, 0.6);   // 🌊 Teal
-        default: return float3(0.7, 0.7, 0.7);  // ⚫ Light Gray (Fallback)
+constant float3 colorPalettes[5][9] = {
+    {   // Default Bright Palette
+        float3(1.0, 0.2, 0.2),   // 🔴 Soft Red
+        float3(1.0, 0.6, 0.0),   // 🟠 Orange
+        float3(0.95, 0.95, 0.0), // 🟡 Warm Yellow
+        float3(0.0, 0.8, 0.2),   // 🟢 Green
+        float3(0.0, 0.4, 1.0),   // 🔵 Bright Blue
+        float3(0.6, 0.2, 1.0),   // 🟣 Purple
+        float3(0.0, 1.0, 1.0),   // 🔵 Cyan
+        float3(1.0, 0.0, 0.6),   // 💖 Hot Pink
+        float3(0.2, 0.8, 0.6)    // 🌊 Teal
+    },
+    {   // Muted Nature-Inspired Palette
+        float3(0.9, 0.5, 0.4),   // 🍂 Rust
+        float3(0.8, 0.7, 0.5),   // 🌾 Wheat
+        float3(0.4, 0.6, 0.3),   // 🌲 Forest Green
+        float3(0.2, 0.5, 0.7),   // 🌊 Deep Teal
+        float3(0.8, 0.3, 0.4),   // 🍓 Soft Berry
+        float3(0.6, 0.4, 0.2),   // 🪵 Walnut Brown
+        float3(0.7, 0.7, 0.5),   // 🌰 Olive
+        float3(0.4, 0.3, 0.6),   // 🍇 Plum
+        float3(0.3, 0.4, 0.5)    // ⛈ Stormy Blue
+    },
+    {   // Dark Cosmic Palette
+        float3(0.2, 0.5, 0.3),    // 🍞 Moldy Green-Blue
+        float3(0.25, 0.05, 0.5),  // 🔮 Dark Purple (slightly brighter, more visible)
+        float3(0.4, 0.05, 0.75),  // 🟣 Electric Violet (enhanced separation)
+        float3(0.0, 0.4, 0.8),    // 🔵 Deep Ocean Blue
+        float3(0.1, 0.6, 0.3),    // 🌿 Muted Teal Green
+        float3(0.6, 0.8, 0.2),    // 💛 Vibrant Chartreuse
+        float3(0.9, 0.9, 0.2),    // ⚡ Soft Glow Yellow
+        float3(0.6, 0.3, 0.7),    // 🔮 Dim Lavender
+        float3(0.2, 0.2, 0.2)     // ⚫ Charcoal Grey
+    },
+    {   // **SpeciesColorAlt Palette**
+        float3(0.95, 0.35, 0.35),  // 🍓 Soft Strawberry
+        float3(1.0, 0.55, 0.15),   // 🍊 Sunset Orange
+        float3(1.0, 0.85, 0.3),    // 🍋 Lemon Gold
+        float3(0.3, 0.8, 0.4),     // 🌿 Leaf Green
+        float3(0.3, 0.6, 1.0),     // 🌊 Sky Blue
+        float3(0.7, 0.4, 1.0),     // 🎆 Soft Lavender
+        float3(0.2, 0.9, 0.9),     // 🌴 Aqua Green
+        float3(1.0, 0.3, 0.7),     // 🌸 Cherry Blossom
+        float3(0.3, 0.85, 0.7)     // 🦜 Mint Teal
+    },
+    {   // **SpeciesColorWild Palette**
+        float3(1.0, 0.0, 0.0),   // 🔥 Pure Red
+        float3(1.0, 0.5, 0.0),   // 🧡 Neon Orange
+        float3(1.0, 1.0, 0.0),   // ⚡ Electric Yellow
+        float3(0.0, 1.0, 0.0),   // 🍀 Vivid Green
+        float3(0.0, 1.0, 1.0),   // 💎 Neon Cyan
+        float3(0.0, 0.0, 1.0),   // 🔵 Ultra Blue
+        float3(0.6, 0.0, 1.0),   // 🔮 Deep Violet
+        float3(1.0, 0.0, 1.0),   // 💜 Hyper Magenta
+        float3(1.0, 0.0, 0.5)    // 💖 Hot Raspberry
     }
+};
+
+float3 speciesColor(int species, int offset, int paletteIndex) {
+    int adjustedSpecies = (species + offset) % 9; // Ensure within bounds
+    int palette = clamp(paletteIndex, 0, int(sizeof(colorPalettes) / sizeof(colorPalettes[0])) - 1);
+    return colorPalettes[palette][adjustedSpecies];
 }
 
 // draw particles
@@ -51,7 +98,8 @@ vertex VertexOut vertex_main(const device Particle* particles [[buffer(0)]],
                              const device float* zoomLevel [[buffer(2)]],
                              constant float* pointSize [[buffer(3)]],
                              constant int* speciesColorOffset [[buffer(4)]],
-                             constant float2* windowSize [[buffer(5)]],
+                             constant int* paletteIndex [[buffer(5)]],
+                             constant float2* windowSize [[buffer(6)]],
                              uint id [[vertex_id]]) {
     VertexOut out;
 
@@ -80,8 +128,9 @@ vertex VertexOut vertex_main(const device Particle* particles [[buffer(0)]],
 
     out.position = float4(worldPosition, 0.0, 1.0);
     out.pointSize = scaledPointSize;
-    out.color = float4(speciesColor(particles[id].species, *speciesColorOffset), 1.0);
-        
+    
+    out.color = float4(speciesColor(particles[id].species, *speciesColorOffset, *paletteIndex), 1.0);
+    
     return out;
 }
 

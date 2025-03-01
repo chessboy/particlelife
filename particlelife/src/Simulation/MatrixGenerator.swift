@@ -60,8 +60,8 @@ enum MatrixType: Codable, Hashable, CaseIterable {
 
 enum MatrixGenerator {
     
-    static func generateInteractionMatrix(speciesCount: Int, type: MatrixType) -> [[Float]] {
-        Logger.log("Generating interaction matrix: speciesCount: \(speciesCount), type: \(type)", level: .debug)
+    static func generateMatrix(speciesCount: Int, type: MatrixType) -> [[Float]] {
+        Logger.log("Generating matrix: speciesCount: \(speciesCount), type: \(type)", level: .debug)
         
         var matrix = [[Float]](repeating: [Float](repeating: 0.0, count: speciesCount), count: speciesCount)
         

@@ -36,25 +36,26 @@ class BufferManager {
     private(set) var pointSizeBuffer: MTLBuffer?
     private(set) var worldSizeBuffer: MTLBuffer?
 
-    // Particle Buffers
-    private(set) var particleCountBuffer: MTLBuffer?
+    // Particle & Matrix Buffers
+    private(set) var particleBuffer: MTLBuffer?
+    private(set) var matrixBuffer: MTLBuffer?
     private var particleBuffers: [MTLBuffer?] = [nil, nil]  // Double buffering for particles
-    private var interactionBuffers: [MTLBuffer?] = [nil, nil]  // Double buffering for interaction matrix
+    private var matrixBuffers: [MTLBuffer?] = [nil, nil]  // Double buffering for the matrix
     private var activeBufferIndex = 0  // Tracks which buffer is in use
 
-    private(set) var interactionBuffer: MTLBuffer?
     private(set) var speciesCountBuffer: MTLBuffer?
     private(set) var speciesColorOffsetBuffer: MTLBuffer?
-    
+    private(set) var paletteIndexBuffer: MTLBuffer?
+
     // prevent unecessary buffer copy if nothing's changed
     private var lastPhysicsSettings: PhysicsSettingsSnapshot?
 
     var areBuffersInitialized: Bool {
         let requiredBuffers: [MTLBuffer?] = [
-            particleCountBuffer, interactionBuffer, speciesCountBuffer, deltaTimeBuffer,
+            particleBuffer, matrixBuffer, speciesCountBuffer, deltaTimeBuffer,
             maxDistanceBuffer, minDistanceBuffer, betaBuffer, frictionBuffer, repulsionBuffer,
             pointSizeBuffer, worldSizeBuffer, windowSizeBuffer, cameraBuffer, zoomBuffer,
-            clickBuffer, speciesColorOffsetBuffer
+            clickBuffer, speciesColorOffsetBuffer, paletteIndexBuffer
         ]
         return requiredBuffers.allSatisfy { $0 != nil }
     }
@@ -82,6 +83,7 @@ class BufferManager {
         zoomBuffer = createBuffer(type: Float.self)
         pointSizeBuffer = createBuffer(type: Float.self)
         speciesColorOffsetBuffer = createBuffer(type: Int.self)
+        paletteIndexBuffer = createBuffer(type: Int.self)
         worldSizeBuffer = createBuffer(type: Float.self)
         windowSizeBuffer = createBuffer(type: Float.self, count: 2)
         speciesCountBuffer = createBuffer(type: Int.self)
@@ -105,9 +107,9 @@ class BufferManager {
         boundaryVertexBuffer = device.makeBuffer(bytes: vertexIndices, length: MemoryLayout<UInt32>.stride * vertexIndices.count, options: [])
     }
     
-    func updateParticleBuffers(particles: [Particle], interactionMatrix: [[Float]], speciesCount: Int) {
+    func updateParticleBuffers(particles: [Particle], matrix: [[Float]], speciesCount: Int) {
         let particleSize = MemoryLayout<Particle>.stride * particles.count
-        let flatMatrix = flattenInteractionMatrix(interactionMatrix)
+        let flatMatrix = flattenMatrix(matrix)
         let matrixSize = MemoryLayout<Float>.stride * flatMatrix.count
 
         // Ensure both particle buffers exist or are resized
@@ -116,31 +118,31 @@ class BufferManager {
             particleBuffers[1] = device.makeBuffer(length: particleSize, options: .storageModeShared)
         }
 
-        // Ensure both interaction buffers exist or are resized
-        if interactionBuffers[0] == nil || interactionBuffers[0]!.length != matrixSize {
-            interactionBuffers[0] = device.makeBuffer(length: matrixSize, options: .storageModeShared)
-            interactionBuffers[1] = device.makeBuffer(length: matrixSize, options: .storageModeShared)
+        // Ensure both matrix buffers exist or are resized
+        if matrixBuffers[0] == nil || matrixBuffers[0]!.length != matrixSize {
+            matrixBuffers[0] = device.makeBuffer(length: matrixSize, options: .storageModeShared)
+            matrixBuffers[1] = device.makeBuffer(length: matrixSize, options: .storageModeShared)
         }
 
         // Write to the inactive buffers
         let inactiveParticleBuffer = particleBuffers[1 - activeBufferIndex]!
         inactiveParticleBuffer.contents().copyMemory(from: particles, byteCount: particleSize)
 
-        let inactiveInteractionBuffer = interactionBuffers[1 - activeBufferIndex]!
-        inactiveInteractionBuffer.contents().copyMemory(from: flatMatrix, byteCount: matrixSize)
+        let inactiveMatrixBuffer = matrixBuffers[1 - activeBufferIndex]!
+        inactiveMatrixBuffer.contents().copyMemory(from: flatMatrix, byteCount: matrixSize)
 
         // Swap buffers
         activeBufferIndex = 1 - activeBufferIndex
 
         // Update the active buffers
-        particleCountBuffer = particleBuffers[activeBufferIndex]
-        interactionBuffer = interactionBuffers[activeBufferIndex]
+        particleBuffer = particleBuffers[activeBufferIndex]
+        matrixBuffer = matrixBuffers[activeBufferIndex]
 
         // No need to recreate species count buffer
         updateSpeciesCountBuffer(speciesCount: speciesCount)
     }
 
-    private func flattenInteractionMatrix(_ matrix: [[Float]]) -> [Float] {
+    private func flattenMatrix(_ matrix: [[Float]]) -> [Float] {
         return matrix.flatMap { $0 }
     }
 }
@@ -175,7 +177,8 @@ extension BufferManager {
             repulsion: settings.repulsion.value,
             pointSize: settings.pointSize.value,
             worldSize: settings.worldSize.value,
-            speciesColorOffset: settings.speciesColorOffset
+            speciesColorOffset: settings.speciesColorOffset,
+            paletteIndex: settings.paletteIndex
         )
         
         if let last = lastPhysicsSettings, last.isEqual(to: currentSettings) {
@@ -194,22 +197,19 @@ extension BufferManager {
         updateBuffer(pointSizeBuffer, with: settings.pointSize)
         updateBuffer(worldSizeBuffer, with: settings.worldSize)
         updateBuffer(speciesColorOffsetBuffer, with: settings.speciesColorOffset)
+        updateBuffer(paletteIndexBuffer, with: settings.paletteIndex)
     }
         
-    func updateInteractionBuffer(interactionMatrix: [[Float]]) {
-        guard let interactionBuffer = interactionBuffer else { return }
-        let flatMatrix = flattenInteractionMatrix(interactionMatrix)
-        interactionBuffer.contents().copyMemory(from: flatMatrix, byteCount: flatMatrix.count * MemoryLayout<Float>.stride)
+    func updateMatrixBuffer(matrix: [[Float]]) {
+        guard let matrixBuffer = matrixBuffer else { return }
+        let flatMatrix = flattenMatrix(matrix)
+        matrixBuffer.contents().copyMemory(from: flatMatrix, byteCount: flatMatrix.count * MemoryLayout<Float>.stride)
     }
     
     func updateSpeciesCountBuffer(speciesCount: Int) {
         updateBuffer(speciesCountBuffer, with: speciesCount)
     }
-    
-    func updateSpeciesColorOffsetBuffer(speciesColorOffset: Int) {
-        updateBuffer(speciesColorOffsetBuffer, with: speciesColorOffset)
-    }
-    
+        
     func updateDeltaTimeBuffer(dt: inout Float) {
         updateBuffer(deltaTimeBuffer, with: dt)
     }
@@ -219,14 +219,14 @@ extension BufferManager {
         updateBuffer(windowSizeBuffer, with: windowSize)
     }
     
-    func updateInteractionMatrix(matrix: [[Float]], speciesCount: Int) {
-        let flatMatrix = flattenInteractionMatrix(matrix)
+    func updateMatrixAndSpeciesCount(matrix: [[Float]], speciesCount: Int) {
+        let flatMatrix = flattenMatrix(matrix)
         let matrixSize = flatMatrix.count * MemoryLayout<Float>.stride
         
-        if interactionBuffer == nil || interactionBuffer!.length != matrixSize {
-            interactionBuffer = device.makeBuffer(length: matrixSize, options: [])
+        if matrixBuffer == nil || matrixBuffer!.length != matrixSize {
+            matrixBuffer = device.makeBuffer(length: matrixSize, options: [])
         }
-        interactionBuffer?.contents().copyMemory(from: flatMatrix, byteCount: matrixSize)
+        matrixBuffer?.contents().copyMemory(from: flatMatrix, byteCount: matrixSize)
         
         updateSpeciesCountBuffer(speciesCount: speciesCount)
     }
@@ -258,16 +258,18 @@ struct PhysicsSettingsSnapshot {
     let pointSize: Float
     let worldSize: Float
     let speciesColorOffset: Int
-
+    let paletteIndex: Int
+    
     /// Compare two snapshots
     func isEqual(to other: PhysicsSettingsSnapshot) -> Bool {
         return maxDistance == other.maxDistance &&
-               minDistance == other.minDistance &&
-               beta == other.beta &&
-               friction == other.friction &&
-               repulsion == other.repulsion &&
-               pointSize == other.pointSize &&
-               worldSize == other.worldSize &&
-               speciesColorOffset == other.speciesColorOffset
+        minDistance == other.minDistance &&
+        beta == other.beta &&
+        friction == other.friction &&
+        repulsion == other.repulsion &&
+        pointSize == other.pointSize &&
+        worldSize == other.worldSize &&
+        speciesColorOffset == other.speciesColorOffset &&
+        paletteIndex == other.paletteIndex
     }
 }

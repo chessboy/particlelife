@@ -15,6 +15,8 @@ struct Constants {
     }
     
     static let ASPECT_RATIO: CGFloat = 1.7778
+    
+    static let startInFullScreen = false
 }
 
 struct AppInfo {

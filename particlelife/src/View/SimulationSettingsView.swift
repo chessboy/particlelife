@@ -32,7 +32,7 @@ struct SimulationSettingsView: View {
             
             ZStack(alignment: .topLeading) {
                 MatrixView(
-                    interactionMatrix: $particleSystem.interactionMatrix,
+                    matrix: $particleSystem.matrix,
                     isVisible: $isVisible,
                     isPinned: $isPinned,
                     renderer: renderer,
@@ -63,6 +63,7 @@ struct SimulationSettingsView: View {
                 ParticleCountPickerView(settings: settings, renderer: renderer)
                 MatrixPickerView(settings: settings, renderer: renderer)
                 DistributionPickerView(settings: settings, renderer: renderer)
+                PalettePickerView(settings: settings, renderer: renderer)
             }
             .padding(.top, 15)
             
@@ -235,6 +236,44 @@ struct DistributionPickerView: View {
             .disabled(renderer.isPaused)
         }
         .frame(width: pickerViewWidth)
+    }
+}
+
+struct PalettePickerView: View {
+    @ObservedObject var settings: SimulationSettings
+    @ObservedObject var renderer: Renderer
+    
+    var body: some View {
+        HStack(spacing: 0) {
+            Text("Palette:")
+                .foregroundColor(labelColor)
+                .frame(width: pickerLabelWidth, alignment: .trailing)
+            
+            Picker("", selection: Binding(
+                get: { settings.paletteIndex },
+                set: { newIndex in
+                    if newIndex != settings.paletteIndex {
+                        settings.paletteIndex = newIndex
+                        updateSpeciesColors()
+                    }
+                }
+            )) {
+                ForEach(SpeciesPalette.allCases.indices, id: \.self) { index in
+                    Text(SpeciesPalette.allCases[index].name).tag(index)
+                }
+            }
+            .pickerStyle(MenuPickerStyle())
+            .disabled(renderer.isPaused)
+        }
+        .frame(width: pickerViewWidth)
+    }
+    
+    private func updateSpeciesColors() {
+        ParticleSystem.shared.updateSpeciesColors(
+            speciesCount: SimulationSettings.shared.selectedPreset.speciesCount,
+            speciesColorOffset: SimulationSettings.shared.speciesColorOffset,
+            paletteIndex: SimulationSettings.shared.paletteIndex
+        )
     }
 }
 
@@ -513,7 +552,7 @@ struct SavePresetSheet: View {
         if !tempPresetName.isEmpty {
             SimulationSettings.shared.saveCurrentPreset(
                 named: tempPresetName,
-                interactionMatrix: ParticleSystem.shared.interactionMatrix,
+                matrix: ParticleSystem.shared.matrix,
                 replaceExisting: overwrite
             )
             

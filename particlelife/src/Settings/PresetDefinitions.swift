@@ -194,7 +194,8 @@ extension PresetDefinitions {
         repulsion: 0.03,
         pointSize: 6,
         worldSize: 0.50,
-        speciesColorOffset: 3
+        speciesColorOffset: 3,
+        paletteIndex: 2
     )
 
     static let comet2 = SimulationPreset(
@@ -219,16 +220,16 @@ extension PresetDefinitions {
     static let chloroplast = SimulationPreset(
         name: "Chloroplast",
         speciesCount: 6,
-        particleCount: .k20,
+        particleCount: .k30,
         matrixType: .custom([
             [-1.00, 0.00, 0.00, 0.00, 0.00, 0.00],
             [0.00, 0.00, 0.00, 0.25, 0.00, 0.00],
-            [0.00, 0.00, 0.00, 0.00, 0.00, 0.25],
+            [0.00, 0.00, -0.05, 0.00, 0.00, 0.30],
             [0.00, 0.00, 0.25, 0.00, 0.00, 0.00],
             [0.00, 0.00, 0.00, 0.00, -1.00, 0.00],
-            [0.00, 0.69, 0.00, 0.34, 0.00, -0.75]
+            [0.00, 0.69, 0.00, 0.34, 0.00, -0.65]
         ]),
-        distributionType: .uniform,
+        distributionType: .centeredCircle,
         maxDistance: 0.65,
         minDistance: 0.04,
         beta: 0.30,

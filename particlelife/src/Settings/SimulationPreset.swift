@@ -24,6 +24,7 @@ struct SimulationPreset: Identifiable {
     let isBuiltIn: Bool
     let preservesUISettings: Bool
     let speciesColorOffset: Int
+    let paletteIndex: Int
 
     init(
         id: UUID = UUID(),
@@ -41,7 +42,8 @@ struct SimulationPreset: Identifiable {
         worldSize: Float,
         isBuiltIn: Bool = true,
         preservesUISettings: Bool = false,
-        speciesColorOffset: Int = 0
+        speciesColorOffset: Int = 0,
+        paletteIndex: Int = 0
     ) {
         self.id = id
         self.name = name
@@ -59,6 +61,7 @@ struct SimulationPreset: Identifiable {
         self.isBuiltIn = isBuiltIn
         self.preservesUISettings = preservesUISettings
         self.speciesColorOffset = speciesColorOffset
+        self.paletteIndex = paletteIndex
     }
 }
 
@@ -83,7 +86,8 @@ extension SimulationPreset: Hashable {
         lhs.worldSize == rhs.worldSize &&
         lhs.isBuiltIn == rhs.isBuiltIn &&
         lhs.preservesUISettings == rhs.preservesUISettings &&
-        lhs.speciesColorOffset == rhs.speciesColorOffset
+        lhs.speciesColorOffset == rhs.speciesColorOffset &&
+        lhs.paletteIndex == rhs.paletteIndex
     }
 }
 
@@ -92,7 +96,7 @@ extension SimulationPreset: Codable {
     enum CodingKeys: String, CodingKey {
         case id, name, speciesCount, particleCount, matrixType, distributionType
         case maxDistance, minDistance, beta, friction, repulsion
-        case pointSize, worldSize, isBuiltIn, preservesUISettings, speciesColorOffset
+        case pointSize, worldSize, isBuiltIn, preservesUISettings, speciesColorOffset, paletteIndex
     }
 
     /// Custom decoding to handle missing fields
@@ -116,6 +120,7 @@ extension SimulationPreset: Codable {
         isBuiltIn = try container.decode(Bool.self, forKey: .isBuiltIn)
         preservesUISettings = try container.decode(Bool.self, forKey: .preservesUISettings)
         speciesColorOffset = try container.decode(Int.self, forKey: .speciesColorOffset)
+        paletteIndex = try container.decode(Int.self, forKey: .paletteIndex)
     }
 
     /// Custom encoding (ensures all fields are saved)
@@ -137,6 +142,7 @@ extension SimulationPreset: Codable {
         try container.encode(isBuiltIn, forKey: .isBuiltIn)
         try container.encode(preservesUISettings, forKey: .preservesUISettings)
         try container.encode(speciesColorOffset, forKey: .speciesColorOffset)
+        try container.encode(paletteIndex, forKey: .paletteIndex)
     }
 }
 
@@ -152,14 +158,15 @@ extension SimulationPreset {
             ├─ Max Distance: \(maxDistance), Min Distance: \(minDistance)
             ├─ Beta: \(beta), Friction: \(friction), Repulsion: \(repulsion)
             ├─ Point Size: \(pointSize), World Size: \(worldSize)
-            └─ Built-in: \(isBuiltIn)
-            └─ Preserve UI Settings: \(preservesUISettings)
-            └─ Species Color Offset: \(speciesColorOffset)
+            ├─ Built-in: \(isBuiltIn)
+            ├─ Preserve UI Settings: \(preservesUISettings)
+            ├─ Species Color Offset: \(speciesColorOffset)
+            └─ Palette Index: \(paletteIndex)
             """
     }
     
     /// Extracts the matrix from `MatrixType` if it's `.custom`
-    private var interactionMatrixString: String {
+    private var matrixString: String {
         guard case .custom(let matrix) = matrixType else { return "[]" }
         
         return "[\n" + matrix
@@ -170,7 +177,7 @@ extension SimulationPreset {
     /// Returns a string representation of `MatrixType`, handling `.custom` separately
     private var matrixTypeString: String {
         if case .custom = matrixType {
-            return ".custom(\(interactionMatrixString))"
+            return ".custom(\(matrixString))"
         }
         return ".\(matrixType)" // Converts the enum case to a string automatically
     }
@@ -193,7 +200,8 @@ extension SimulationPreset {
             worldSize: \(String(format: "%.2f", worldSize)),
             isBuiltIn: \(isBuiltIn),
             preservesUISettings: \(preservesUISettings),
-            speciesColorOffset: \(speciesColorOffset)
+            speciesColorOffset: \(speciesColorOffset),
+            paletteIndex: \(paletteIndex)
         )
         """
     }
@@ -217,7 +225,8 @@ extension SimulationPreset {
         newWorldSize: Float? = nil,
         newIsBuiltIn: Bool? = nil,
         newPreservesUISettings: Bool? = nil,
-        newSpeciesColorOffset: Int? = nil
+        newSpeciesColorOffset: Int? = nil,
+        newPaletteIndex: Int? = nil
     ) -> SimulationPreset {
         var copiedMatrixType = newMatrixType ?? matrixType  // Use new matrix if provided
         
@@ -242,7 +251,8 @@ extension SimulationPreset {
             worldSize: newWorldSize ?? worldSize,
             isBuiltIn: newIsBuiltIn ?? isBuiltIn,
             preservesUISettings: newPreservesUISettings ?? preservesUISettings,
-            speciesColorOffset: newSpeciesColorOffset ?? speciesColorOffset
+            speciesColorOffset: newSpeciesColorOffset ?? speciesColorOffset,
+            paletteIndex: newPaletteIndex ?? paletteIndex
         )
     }
 }

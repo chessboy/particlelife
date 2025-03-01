@@ -19,7 +19,7 @@ struct SelectedCell: Identifiable, Equatable {
 
 struct MatrixView: View {
     
-    @Binding var interactionMatrix: [[Float]]
+    @Binding var matrix: [[Float]]
     @Binding var isVisible: Bool
     @Binding var isPinned: Bool
     
@@ -36,12 +36,12 @@ struct MatrixView: View {
     let speciesColors: [Color]
     
     var body: some View {
-        InteractionMatrixGrid(
+        MatrixGrid(
             isVisible: $isVisible,
             isPinned: $isPinned,
             wasPinnedBeforeSelection: $wasPinnedBeforeSelection,
             speciesColors: speciesColors,
-            interactionMatrix: $interactionMatrix,
+            matrix: $matrix,
             hoveredCell: $hoveredCell,
             tooltipText: $tooltipText,
             tooltipPosition: $tooltipPosition,
@@ -105,25 +105,24 @@ struct MatrixView: View {
     }
         
     private func setMatrixValue(row: Int, col: Int, newValue: Float) {
-        interactionMatrix[row][col] = newValue
-        BufferManager.shared.updateInteractionBuffer(interactionMatrix: interactionMatrix)
+        matrix[row][col] = newValue
+        BufferManager.shared.updateMatrixBuffer(matrix: matrix)
         tooltipText = String(format: "%.2f", newValue)
         
         // update the current preset's matrix
-        SimulationSettings.shared.selectedPreset = SimulationSettings.shared.selectedPreset.copy(withName: nil, newMatrixType: .custom(interactionMatrix))
+        SimulationSettings.shared.selectedPreset = SimulationSettings.shared.selectedPreset.copy(withName: nil, newMatrixType: .custom(matrix))
     }
 }
 
-struct InteractionMatrixGrid: View {
-    @State private var lastMouseButton: Int = 0
-    @State private var hoverIndex: Int? = nil
+struct MatrixGrid: View {
     
     @Binding var isVisible: Bool
     @Binding var isPinned: Bool
     @Binding var wasPinnedBeforeSelection: Bool
     
     let speciesColors: [Color]
-    @Binding var interactionMatrix: [[Float]]
+    
+    @Binding var matrix: [[Float]]
     
     @Binding var hoveredCell: (row: Int, col: Int)?
     @Binding var tooltipText: String
@@ -134,6 +133,9 @@ struct InteractionMatrixGrid: View {
     @Binding var sliderValue: Float
     
     @ObservedObject var renderer: Renderer
+
+    @State private var lastMouseButton: Int = 0
+    @State private var hoverIndex: Int? = nil
     
     private var spacing: CGFloat {
         let count = max(1, speciesColors.count)
@@ -171,7 +173,7 @@ struct InteractionMatrixGrid: View {
     
     var body: some View {
         GeometryReader { geometry in
-            let speciesCount = max(1, interactionMatrix.count)
+            let speciesCount = max(1, matrix.count)
             let totalWidth = max(10, geometry.size.width - CGFloat(speciesCount + 1) * spacing)
             let cellSize = max(5, totalWidth / CGFloat(speciesCount + 1))
             
@@ -207,7 +209,7 @@ struct InteractionMatrixGrid: View {
                 
                 // Matrix rows with species color indicators
                 VStack(spacing: spacing) {
-                    ForEach(interactionMatrix.indices, id: \.self) { row in
+                    ForEach(matrix.indices, id: \.self) { row in
                         rowView(row: row, totalWidth: totalWidth, cellSize: cellSize)
                     }
                 }
@@ -217,22 +219,21 @@ struct InteractionMatrixGrid: View {
     
     private func incrementSpeciesColorOffset() {
         SimulationSettings.shared.speciesColorOffset =
-        (SimulationSettings.shared.speciesColorOffset + 1) % SpeciesColor.speciesColors.count
-        
+        (SimulationSettings.shared.speciesColorOffset + 1) % SpeciesPalette.colorCount
         updateSpeciesColors()
     }
     
     private func decrementSpeciesColorOffset() {
         SimulationSettings.shared.speciesColorOffset =
-        (SimulationSettings.shared.speciesColorOffset - 1 + SpeciesColor.speciesColors.count) % SpeciesColor.speciesColors.count
-        
+        (SimulationSettings.shared.speciesColorOffset - 1 + SpeciesPalette.colorCount) % SpeciesPalette.colorCount
         updateSpeciesColors()
     }
     
     private func updateSpeciesColors() {
         ParticleSystem.shared.updateSpeciesColors(
             speciesCount: speciesColors.count,
-            speciesColorOffset: SimulationSettings.shared.speciesColorOffset
+            speciesColorOffset: SimulationSettings.shared.speciesColorOffset,
+            paletteIndex: SimulationSettings.shared.paletteIndex
         )
     }
     
@@ -250,7 +251,7 @@ struct InteractionMatrixGrid: View {
             }
             
             // Matrix cells for this row
-            ForEach(interactionMatrix[row].indices, id: \.self) { col in
+            ForEach(matrix[row].indices, id: \.self) { col in
                 cellView(row: row, col: col, totalWidth: totalWidth, cellSize: cellSize)
             }
         }
@@ -264,7 +265,7 @@ struct InteractionMatrixGrid: View {
     
     @ViewBuilder
     private func cellView(row: Int, col: Int, totalWidth: CGFloat, cellSize: CGFloat) -> some View {
-        let value = interactionMatrix[row][col]
+        let value = matrix[row][col]
         
         RoundedRectangle(cornerRadius: cornerRadiusMatrix)
             .fill(colorForValue(value))
@@ -332,7 +333,7 @@ struct InteractionMatrixGrid: View {
     }
 }
 
-extension InteractionMatrixGrid {
+extension MatrixGrid {
     
     private func computeTooltipPosition(row: Int, col: Int, cellSize: CGFloat) -> CGPoint {
         let xPadding: CGFloat = cellSize / 2 // center horizontally
@@ -379,14 +380,14 @@ struct MatrixPreviewWrapper: View {
         self._matrix = State(initialValue: Array(repeating: Array(repeating: 0.99, count: n), count: n))
         
         let offset = 0
-        let predefinedColors = SpeciesColor.speciesColors
+        let predefinedColors = SpeciesPalette.muted.colors // Directly access the palette via the enum
         self.speciesColors = (0..<n).map { predefinedColors[($0 + offset) % predefinedColors.count] }
     }
     
     var body: some View {
         
         MatrixView(
-            interactionMatrix: $matrix,
+            matrix: $matrix,
             isVisible: $isVisible,
             isPinned: $isPinned,
             renderer: Renderer(),
@@ -398,5 +399,5 @@ struct MatrixPreviewWrapper: View {
 }
 
 #Preview {
-    MatrixPreviewWrapper(n: 3)
+    MatrixPreviewWrapper(n: 2)
 }

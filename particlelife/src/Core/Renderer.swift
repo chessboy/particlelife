@@ -204,8 +204,8 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         computeEncoder.setComputePipelineState(computePipeline)
         
         let bufferManager: BufferManager = BufferManager.shared
-        computeEncoder.setBuffer(bufferManager.particleCountBuffer, offset: 0, index: 0)
-        computeEncoder.setBuffer(bufferManager.interactionBuffer, offset: 0, index: 1)
+        computeEncoder.setBuffer(bufferManager.particleBuffer, offset: 0, index: 0)
+        computeEncoder.setBuffer(bufferManager.matrixBuffer, offset: 0, index: 1)
         computeEncoder.setBuffer(bufferManager.speciesCountBuffer, offset: 0, index: 2)
         computeEncoder.setBuffer(bufferManager.deltaTimeBuffer, offset: 0, index: 3)
         computeEncoder.setBuffer(bufferManager.maxDistanceBuffer, offset: 0, index: 4)
@@ -253,12 +253,13 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         
         // Draw Particles
         renderEncoder.setRenderPipelineState(pipelineState)
-        renderEncoder.setVertexBuffer(bufferManager.particleCountBuffer, offset: 0, index: 0)
+        renderEncoder.setVertexBuffer(bufferManager.particleBuffer, offset: 0, index: 0)
         renderEncoder.setVertexBuffer(bufferManager.cameraBuffer, offset: 0, index: 1)
         renderEncoder.setVertexBuffer(bufferManager.zoomBuffer, offset: 0, index: 2)
         renderEncoder.setVertexBuffer(bufferManager.pointSizeBuffer, offset: 0, index: 3)
         renderEncoder.setVertexBuffer(bufferManager.speciesColorOffsetBuffer, offset: 0, index: 4)
-        renderEncoder.setVertexBuffer(bufferManager.windowSizeBuffer, offset: 0, index: 5)
+        renderEncoder.setVertexBuffer(bufferManager.paletteIndexBuffer, offset: 0, index: 5)
+        renderEncoder.setVertexBuffer(bufferManager.windowSizeBuffer, offset: 0, index: 6)
         
         let particleCount = SimulationSettings.shared.selectedPreset.particleCount.rawValue
         renderEncoder.drawPrimitives(type: .point, vertexStart: 0, vertexCount: particleCount)

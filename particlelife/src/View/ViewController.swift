@@ -26,7 +26,7 @@ class ViewController: NSViewController  {
         NotificationCenter.default.addObserver(self, selector: #selector(didExitFullScreen), name: NSWindow.didExitFullScreenNotification, object: nil)
         actionTimer = Timer.scheduledTimer(timeInterval: 0.016, target: self, selector: #selector(updateCamera), userInfo: nil, repeats: true)
         
-        if let window = view.window {
+        if Constants.startInFullScreen, let window = view.window {
             window.toggleFullScreen(nil)  // Make window fullscreen on launch
         }
     }
@@ -77,7 +77,7 @@ class ViewController: NSViewController  {
         guard let window = view.window else { return }
 
         let aspectRatio: CGFloat = Constants.ASPECT_RATIO
-        let minContentHeight: CGFloat = 900
+        let minContentHeight: CGFloat = 940
         let minContentWidth: CGFloat = round(minContentHeight * aspectRatio)
 
         let titleBarHeight = window.frame.height - window.contentLayoutRect.height
