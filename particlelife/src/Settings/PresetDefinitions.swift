@@ -9,8 +9,8 @@ import Foundation
 
 class PresetDefinitions {
     
-    static let randomPreset = makeRandomPreset(speciesCount: 3)
-    static let emptyPreset = makeEmptyPreset(speciesCount: 3)
+    static let randomPreset = makeRandomPreset(speciesCount: 6)
+    static let emptyPreset = makeEmptyPreset(speciesCount: 6)
     static let specialPresets = [snake, cells, sandArt, spaceWars, breathing, comet, comet2, chloroplast, lava].sorted() { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
     
     static func getAllBuiltInPresets() -> [SimulationPreset] {
@@ -18,24 +18,25 @@ class PresetDefinitions {
     }
     
     static func getDefaultPreset() -> SimulationPreset {
-        return emptyPreset
+        return randomPreset
     }
     
     static func makeRandomPreset(speciesCount: Int) -> SimulationPreset {
         return SimulationPreset(
             name: "Random",
             speciesCount: speciesCount,
-            particleCount: .k40,
+            particleCount: ParticleCount.particles(for: speciesCount),
             matrixType: .random,
             distributionType: .uniform,
             maxDistance: 0.65,
             minDistance: 0.04,
             beta: 0.3,
-            friction: 0.15,
+            friction: 0.14,
             repulsion: 0.03,
             pointSize: 9,
             worldSize: 1.0,
-            preservesUISettings: true
+            preservesUISettings: true,
+            speciesColorOffset: 0
         )
     }
     
@@ -52,11 +53,12 @@ class PresetDefinitions {
             maxDistance: 0.65,
             minDistance: 0.04,
             beta: 0.3,
-            friction: 0.15,
+            friction: 0.14,
             repulsion: 0.03,
             pointSize: 5,
             worldSize: 0.5,
-            preservesUISettings: true
+            preservesUISettings: true,
+            speciesColorOffset: 0
         )
     }
 }
@@ -111,7 +113,7 @@ extension PresetDefinitions {
     static let comet = SimulationPreset(
         name: "Comet",
         speciesCount: 3,
-        particleCount: .k40,
+        particleCount: .k30,
         matrixType: .custom([
             [-1.00, 1.00, -0.25],
             [1.00, -1.00, 0.50],
@@ -123,7 +125,7 @@ extension PresetDefinitions {
         beta: 0.30,
         friction: 0.10,
         repulsion: 0.03,
-        pointSize: 10,
+        pointSize: 12,
         worldSize: 2.00
     )
     
@@ -155,7 +157,7 @@ extension PresetDefinitions {
     static let sandArt = SimulationPreset(
         name: "Sand Art",
         speciesCount: 6,
-        particleCount: .k40,
+        particleCount: .k30,
         matrixType: .custom([
             [0.00, -0.75, 0.00, 0.00, 0.00, 0.00],
             [0.00, 0.00, -1.00, 0.00, 0.00, 0.25],
@@ -168,7 +170,7 @@ extension PresetDefinitions {
         maxDistance: 0.60,
         minDistance: 0.02,
         beta: 0.30,
-        friction: 0.15,
+        friction: 0.14,
         repulsion: 0.14,
         pointSize: 5,
         worldSize: 0.50,
@@ -188,7 +190,7 @@ extension PresetDefinitions {
         maxDistance: 0.65,
         minDistance: 0.04,
         beta: 0.30,
-        friction: 0.15,
+        friction: 0.14,
         repulsion: 0.03,
         pointSize: 6,
         worldSize: 0.50,
@@ -198,7 +200,7 @@ extension PresetDefinitions {
     static let comet2 = SimulationPreset(
         name: "Comet 2",
         speciesCount: 3,
-        particleCount: .k40,
+        particleCount: .k30,
         matrixType: .custom([
             [-0.78, 0.11, 0.38],
             [0.66, 0.11, -0.49],
@@ -210,7 +212,7 @@ extension PresetDefinitions {
         beta: 0.30,
         friction: 0.10,
         repulsion: 0.03,
-        pointSize: 10,
+        pointSize: 14,
         worldSize: 1.25
     )
 
@@ -240,7 +242,7 @@ extension PresetDefinitions {
     static let lava = SimulationPreset(
         name: "Lava",
         speciesCount: 3,
-        particleCount: .k40,
+        particleCount: .k30,
         matrixType: .custom([
             [0.00, 0.00, 0.65],
             [0.00, -0.70, 0.70],

@@ -42,8 +42,7 @@ class ParticleSystem: ObservableObject {
     
     /// Updates buffers and physics settings
     private func updatePhysicsAndBuffers(preset: SimulationPreset) {
-        BufferManager.shared.clearParticleBuffers()
-        BufferManager.shared.initializeParticleBuffers(
+        BufferManager.shared.updateParticleBuffers(
             particles: particles,
             interactionMatrix: interactionMatrix,
             speciesCount: preset.speciesCount

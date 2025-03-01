@@ -20,11 +20,15 @@ class ViewController: NSViewController  {
         super.viewWillAppear()
         
         self.view.window?.makeFirstResponder(self)
-        centerWindowIfNeeded()
+        centerWindow()
         enforceWindowSizeConstraints()
 
         NotificationCenter.default.addObserver(self, selector: #selector(didExitFullScreen), name: NSWindow.didExitFullScreenNotification, object: nil)
         actionTimer = Timer.scheduledTimer(timeInterval: 0.016, target: self, selector: #selector(updateCamera), userInfo: nil, repeats: true)
+        
+        if let window = view.window {
+            window.toggleFullScreen(nil)  // Make window fullscreen on launch
+        }
     }
     
     override func viewWillDisappear() {
@@ -55,7 +59,7 @@ class ViewController: NSViewController  {
         view.window?.isMovableByWindowBackground = false
     }
            
-    func centerWindowIfNeeded() {
+    func centerWindow() {
         guard let window = view.window, let screen = window.screen else { return }
 
         let screenFrame = screen.visibleFrame
@@ -66,7 +70,7 @@ class ViewController: NSViewController  {
         )
 
         window.setFrameOrigin(centeredOrigin)
-        Logger.log("Window centered on screen: windowSize: \(windowSize), screenFrame: \(screenFrame)", level: .debug)
+        Logger.log("Window centered on screen: windowSize: \(windowSize), screenFrame: \(screenFrame), origin: \(centeredOrigin)", level: .debug)
     }
 
     private func enforceWindowSizeConstraints() {

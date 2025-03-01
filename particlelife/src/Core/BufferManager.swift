@@ -19,12 +19,15 @@ class BufferManager {
     var device: MTLDevice
     var commandQueue: MTLCommandQueue
     
-    // Core Buffers
+    // UI Buffers
+    private(set) var deltaTimeBuffer: MTLBuffer?
     private(set) var cameraBuffer: MTLBuffer?
     private(set) var zoomBuffer: MTLBuffer?
-    
+    private(set) var clickBuffer: MTLBuffer?
+    private(set) var windowSizeBuffer: MTLBuffer?
+    private(set) var boundaryVertexBuffer: MTLBuffer?
+
     // Physics Settings Buffers
-    private(set) var deltaTimeBuffer: MTLBuffer?
     private(set) var maxDistanceBuffer: MTLBuffer?
     private(set) var minDistanceBuffer: MTLBuffer?
     private(set) var betaBuffer: MTLBuffer?
@@ -32,16 +35,18 @@ class BufferManager {
     private(set) var repulsionBuffer: MTLBuffer?
     private(set) var pointSizeBuffer: MTLBuffer?
     private(set) var worldSizeBuffer: MTLBuffer?
-    private(set) var windowSizeBuffer: MTLBuffer?
-    private(set) var boundaryVertexBuffer: MTLBuffer?
-    private(set) var clickBuffer: MTLBuffer?
 
     // Particle Buffers
     private(set) var particleCountBuffer: MTLBuffer?
+    private var particleBuffers: [MTLBuffer?] = [nil, nil]  // Double buffering for particles
+    private var interactionBuffers: [MTLBuffer?] = [nil, nil]  // Double buffering for interaction matrix
+    private var activeBufferIndex = 0  // Tracks which buffer is in use
+
     private(set) var interactionBuffer: MTLBuffer?
     private(set) var speciesCountBuffer: MTLBuffer?
     private(set) var speciesColorOffsetBuffer: MTLBuffer?
     
+    // prevent unecessary buffer copy if nothing's changed
     private var lastPhysicsSettings: PhysicsSettingsSnapshot?
 
     var areBuffersInitialized: Bool {
@@ -79,14 +84,18 @@ class BufferManager {
         speciesColorOffsetBuffer = createBuffer(type: Int.self)
         worldSizeBuffer = createBuffer(type: Float.self)
         windowSizeBuffer = createBuffer(type: Float.self, count: 2)
-        initializeBoundaryBuffer()
+        speciesCountBuffer = createBuffer(type: Int.self)
         initializeClickBuffer()
+        initializeBoundaryBuffer()
     }
     
+    private func createBuffer<T>(type: T.Type, count: Int = 1) -> MTLBuffer? {
+        return device.makeBuffer(length: MemoryLayout<T>.stride * count, options: [])
+    }
+
     func initializeClickBuffer() {
         guard clickBuffer == nil else { return }
         clickBuffer = createBuffer(type: ClickData.self)
-
         var defaultClickData = ClickData(position: SIMD2<Float>(0, 0), force: 0.0)
         clickBuffer?.contents().copyMemory(from: &defaultClickData, byteCount: MemoryLayout<ClickData>.stride)
     }
@@ -95,42 +104,44 @@ class BufferManager {
         let vertexIndices: [UInt32] = [0, 1, 2, 3, 4] // Just indices for 5 vertices
         boundaryVertexBuffer = device.makeBuffer(bytes: vertexIndices, length: MemoryLayout<UInt32>.stride * vertexIndices.count, options: [])
     }
-
-    private func createBuffer<T>(type: T.Type, count: Int = 1) -> MTLBuffer? {
-        return device.makeBuffer(length: MemoryLayout<T>.stride * count, options: [])
-    }
     
-    func initializeParticleBuffers(particles: [Particle], interactionMatrix: [[Float]], speciesCount: Int) {
-        // Ensure particle buffer exists
+    func updateParticleBuffers(particles: [Particle], interactionMatrix: [[Float]], speciesCount: Int) {
         let particleSize = MemoryLayout<Particle>.stride * particles.count
-        if particleCountBuffer == nil || particleCountBuffer!.length != particleSize {
-            particleCountBuffer = device.makeBuffer(length: particleSize, options: .storageModeShared)
-        }
-        particleCountBuffer?.contents().copyMemory(from: particles, byteCount: particleSize)
-        
-        // Ensure interaction buffer exists
         let flatMatrix = flattenInteractionMatrix(interactionMatrix)
         let matrixSize = MemoryLayout<Float>.stride * flatMatrix.count
-        if interactionBuffer == nil || interactionBuffer!.length != matrixSize {
-            interactionBuffer = device.makeBuffer(length: matrixSize, options: .storageModeShared)
+
+        // Ensure both particle buffers exist or are resized
+        if particleBuffers[0] == nil || particleBuffers[0]!.length != particleSize {
+            particleBuffers[0] = device.makeBuffer(length: particleSize, options: .storageModeShared)
+            particleBuffers[1] = device.makeBuffer(length: particleSize, options: .storageModeShared)
         }
-        interactionBuffer?.contents().copyMemory(from: flatMatrix, byteCount: matrixSize)
-        
-        // Ensure species count buffer exists
-        if speciesCountBuffer == nil {
-            speciesCountBuffer = createBuffer(type: Int.self)
+
+        // Ensure both interaction buffers exist or are resized
+        if interactionBuffers[0] == nil || interactionBuffers[0]!.length != matrixSize {
+            interactionBuffers[0] = device.makeBuffer(length: matrixSize, options: .storageModeShared)
+            interactionBuffers[1] = device.makeBuffer(length: matrixSize, options: .storageModeShared)
         }
+
+        // Write to the inactive buffers
+        let inactiveParticleBuffer = particleBuffers[1 - activeBufferIndex]!
+        inactiveParticleBuffer.contents().copyMemory(from: particles, byteCount: particleSize)
+
+        let inactiveInteractionBuffer = interactionBuffers[1 - activeBufferIndex]!
+        inactiveInteractionBuffer.contents().copyMemory(from: flatMatrix, byteCount: matrixSize)
+
+        // Swap buffers
+        activeBufferIndex = 1 - activeBufferIndex
+
+        // Update the active buffers
+        particleCountBuffer = particleBuffers[activeBufferIndex]
+        interactionBuffer = interactionBuffers[activeBufferIndex]
+
+        // No need to recreate species count buffer
         updateSpeciesCountBuffer(speciesCount: speciesCount)
     }
-    
+
     private func flattenInteractionMatrix(_ matrix: [[Float]]) -> [Float] {
         return matrix.flatMap { $0 }
-    }
-    
-    func clearParticleBuffers() {
-        particleCountBuffer = nil
-        interactionBuffer = nil
-        speciesCountBuffer = nil
     }
 }
 
@@ -184,18 +195,7 @@ extension BufferManager {
         updateBuffer(worldSizeBuffer, with: settings.worldSize)
         updateBuffer(speciesColorOffsetBuffer, with: settings.speciesColorOffset)
     }
-    
-    func updateParticleBuffer(particles: [Particle]) {
-        let expectedSize = particles.count * MemoryLayout<Particle>.stride
         
-        if particleCountBuffer == nil || particleCountBuffer!.length != expectedSize {
-            particleCountBuffer = device.makeBuffer(length: expectedSize, options: .storageModeShared)
-        }
-        
-        guard let buffer = particleCountBuffer else { return }
-        buffer.contents().copyMemory(from: particles, byteCount: expectedSize)
-    }
-    
     func updateInteractionBuffer(interactionMatrix: [[Float]]) {
         guard let interactionBuffer = interactionBuffer else { return }
         let flatMatrix = flattenInteractionMatrix(interactionMatrix)

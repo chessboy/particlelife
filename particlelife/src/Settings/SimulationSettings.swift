@@ -55,7 +55,7 @@ class SimulationSettings: ObservableObject {
     )
     
     @Published var friction = ConfigurableSetting(
-        value: 0.2, defaultValue: 0.2, min: 0, max: 0.5, step: 0.05, format: "%.2f",
+        value: 0.1, defaultValue: 0.1, min: 0.02, max: 0.3, step: 0.02, format: "%.2f",
         onChange: { _ in SimulationSettings.shared.scheduleBufferUpdate() }
     )
     

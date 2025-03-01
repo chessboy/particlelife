@@ -61,7 +61,7 @@ struct SimulationSettingsView: View {
                 PresetPickerView(settings: settings, renderer: renderer, isPinned: $isPinned, wasPinnedBeforeSheet: $wasPinnedBeforeSheet)
                 SpeciesPickerView(settings: settings, renderer: renderer)
                 ParticleCountPickerView(settings: settings, renderer: renderer)
-                MarixPickerView(settings: settings, renderer: renderer)
+                MatrixPickerView(settings: settings, renderer: renderer)
                 DistributionPickerView(settings: settings, renderer: renderer)
             }
             .padding(.top, 15)
@@ -108,7 +108,7 @@ struct PresetPickerView: View {
     
     @Binding var isPinned: Bool
     @Binding var wasPinnedBeforeSheet: Bool
-
+    
     var body: some View {
         HStack(spacing: 8) {
             Text("File:")
@@ -119,6 +119,30 @@ struct PresetPickerView: View {
                 // 📁 File Actions
                 Button("⬜️ New") { ParticleSystem.shared.selectPreset(PresetDefinitions.emptyPreset) }
                 Button("🔀 Random") { ParticleSystem.shared.selectPreset(PresetDefinitions.randomPreset) }
+                
+                // ⭐ Built-in Presets
+                Divider()
+                Menu("⭐ Presets") {
+                    if PresetDefinitions.specialPresets.isEmpty {
+                        Text("None Stored").foregroundColor(.secondary) // Show placeholder
+                    } else {
+                        ForEach(PresetDefinitions.specialPresets, id: \.id) { preset in
+                            Button(preset.name) { ParticleSystem.shared.selectPreset(preset) }
+                        }
+                    }
+                }
+                
+                // 📂 User Presets
+                Menu("📂 Mine") {
+                    if settings.userPresets.isEmpty {
+                        Text("None Stored").foregroundColor(.secondary) // Show placeholder
+                    } else {
+                        ForEach(settings.userPresets, id: \.id) { preset in
+                            Button(preset.name) { ParticleSystem.shared.selectPreset(preset) }
+                        }
+                    }
+                }
+
                 Divider()
                 Button("💾 Save", action: {
                     wasPinnedBeforeSheet = isPinned
@@ -134,27 +158,6 @@ struct PresetPickerView: View {
                 })
                 .disabled(settings.selectedPreset.isBuiltIn)
                 
-                // ⭐ Built-in Presets
-                if !PresetDefinitions.specialPresets.isEmpty {
-                    Divider()
-                    Menu("⭐ Presets") {
-                        ForEach(PresetDefinitions.specialPresets, id: \.id) { preset in
-                            Button(preset.name) { ParticleSystem.shared.selectPreset(preset) }
-                        }
-                    }
-                }
-                
-                // 📂 User Presets
-                Divider()
-                Menu("📂 Mine") {
-                    if settings.userPresets.isEmpty {
-                        Text("None Stored").foregroundColor(.secondary) // Show placeholder
-                    } else {
-                        ForEach(settings.userPresets, id: \.id) { preset in
-                            Button(preset.name) { ParticleSystem.shared.selectPreset(preset) }
-                        }
-                    }
-                }
             } label: {
                 Text(settings.selectedPreset.name)
             }
@@ -179,7 +182,7 @@ struct PresetPickerView: View {
     }
 }
 
-struct MarixPickerView: View {
+struct MatrixPickerView: View {
     @ObservedObject var settings: SimulationSettings
     @ObservedObject var renderer: Renderer
     
@@ -498,7 +501,7 @@ struct SavePresetSheet: View {
     
     private func handleSaveAttempt() {
         let allPresets = SimulationSettings.shared.userPresets
-                
+        
         if allPresets.contains(where: { $0.name == tempPresetName }) {
             showOverwriteAlert = true
         } else {
@@ -525,7 +528,7 @@ struct DeletePresetSheet: View {
     @Binding var isShowingDeleteSheet: Bool
     @Binding var isPinned: Bool
     @Binding var wasPinnedBeforeSheet: Bool
-
+    
     let presetToDelete = SimulationSettings.shared.selectedPreset
     
     var body: some View {
@@ -552,7 +555,7 @@ struct DeletePresetSheet: View {
                     ParticleSystem.shared.selectPreset(PresetDefinitions.getDefaultPreset())
                     isShowingDeleteSheet = false
                     isPinned = wasPinnedBeforeSheet
-               }
+                }
                 .buttonStyle(.borderedProminent)
                 .frame(width: 120)
                 .foregroundColor(.red)

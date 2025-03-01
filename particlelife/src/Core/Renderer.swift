@@ -11,7 +11,7 @@ import Combine
 
 class Renderer: NSObject, MTKViewDelegate, ObservableObject {
     
-    private let drawWorldBoundary = true
+    private let drawWorldBoundary = false
     
     @Published var fps: Int = 0
     @Published var isPaused: Bool = false {
@@ -28,6 +28,7 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
     
     private var lastUpdateTime: TimeInterval = Date().timeIntervalSince1970
     private var frameCount = 0
+    private var clickPersistenceFrames: Int = 0
     
     private var device: MTLDevice?
     private var commandQueue: MTLCommandQueue?
@@ -181,6 +182,18 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         
         BufferManager.shared.updateCameraBuffer(cameraPosition: cameraPosition)
         BufferManager.shared.updateZoomBuffer(zoomLevel: zoomLevel)
+              
+        monitorClickBuffer()
+    }
+    
+    func monitorClickBuffer() {
+        if clickPersistenceFrames > 0 {
+            clickPersistenceFrames -= 1
+        } else if clickPersistenceFrames == 0 {
+            BufferManager.shared.updateClickBuffer(clickPosition: SIMD2<Float>(0, 0), force: 0.0, clear: true)
+            clickPersistenceFrames = -1  // Ensure we don't keep clearing needlessly
+            //Logger.log("Cleared click buffer", level: .debug)
+       }
     }
     
     // Runs the Metal Compute Pass
@@ -338,17 +351,15 @@ extension Renderer {
     /// Handles mouse clicks and perturbs nearby particles
     func handleMouseClick(at location: CGPoint, in view: MTKView, isRightClick: Bool) {
         guard !isPaused else { return }
-        
+
         let worldPosition = screenToWorld(location, drawableSize: view.drawableSize, viewSize: view.frame.size)
         let effectRadius: Float = isRightClick ? 3.0 : 1.0
-                
+
         // Send click data to Metal
         BufferManager.shared.updateClickBuffer(clickPosition: worldPosition, force: effectRadius)
-        
-        // Clear click buffer after 1 frame (~16ms delay)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.016) {
-            BufferManager.shared.updateClickBuffer(clickPosition: SIMD2<Float>(0, 0), force: 0.0, clear: true)
-        }
+
+        // Reset click persistence timer after 3 frames
+        clickPersistenceFrames = 3
     }
     
     func screenToWorld(_ screenPosition: CGPoint, drawableSize: CGSize, viewSize: CGSize) -> SIMD2<Float> {
