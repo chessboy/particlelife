@@ -36,57 +36,61 @@ struct MatrixView: View {
     let speciesColors: [Color]
     
     var body: some View {
-        MatrixGrid(
-            isVisible: $isVisible,
-            isPinned: $isPinned,
-            wasPinnedBeforeSelection: $wasPinnedBeforeSelection,
-            speciesColors: speciesColors,
-            matrix: $matrix,
-            hoveredCell: $hoveredCell,
-            tooltipText: $tooltipText,
-            tooltipPosition: $tooltipPosition,
-            selectedCell: $selectedCell,
-            sliderPosition: $sliderPosition,
-            sliderValue: $sliderValue,
-            renderer: renderer
-        )
-        .overlay(tooltipView, alignment: .topLeading)
-        .popover(
-            item: $selectedCell,
-            attachmentAnchor: .point(sliderPosition),
-            arrowEdge: .top
-        ) { selected in
-            SliderPopupView(
-                value: $sliderValue,
-                onValueChange: { newValue in
-                    if selectedCell == selected {
-                        setMatrixValue(row: selected.row, col: selected.col, newValue: newValue)
+        VStack {
+            ZStack {
+                
+                MatrixGrid(
+                    isVisible: $isVisible,
+                    isPinned: $isPinned,
+                    wasPinnedBeforeSelection: $wasPinnedBeforeSelection,
+                    speciesColors: speciesColors,
+                    matrix: $matrix,
+                    hoveredCell: $hoveredCell,
+                    tooltipText: $tooltipText,
+                    tooltipPosition: $tooltipPosition,
+                    selectedCell: $selectedCell,
+                    sliderPosition: $sliderPosition,
+                    sliderValue: $sliderValue,
+                    renderer: renderer
+                )
+                .overlay(tooltipView, alignment: .topLeading)
+                .popover(
+                    item: $selectedCell,
+                    attachmentAnchor: .point(sliderPosition),
+                    arrowEdge: .top
+                ) { selected in
+                    SliderPopupView(
+                        value: $sliderValue,
+                        onValueChange: { newValue in
+                            if selectedCell == selected {
+                                setMatrixValue(row: selected.row, col: selected.col, newValue: newValue)
+                            }
+                        },
+                        onDismiss: {
+                            clearSelection()
+                        }
+                    )
+                }
+                .onChange(of: selectedCell) { oldValue, newValue in
+                    if let newValue = newValue {
+                        hoveredCell = (newValue.row, newValue.col) // Ensure the outline is applied immediately
+                    } else {
+                        hoveredCell = nil
+                        isPinned = wasPinnedBeforeSelection
                     }
-                },
-                onDismiss: {
-                    clearSelection()
                 }
-            )
-        }
-        .compositingGroup()
-        .drawingGroup()
-        .onChange(of: selectedCell) { oldValue, newValue in
-            if let newValue = newValue {
-                hoveredCell = (newValue.row, newValue.col) // Ensure the outline is applied immediately
-            } else {
-                hoveredCell = nil
-                isPinned = wasPinnedBeforeSelection
-            }
-        }
-        .onAppear {
-            NSEvent.addLocalMonitorForEvents(matching: [.keyDown]) { event in
-                if event.keyCode == 53 || event.keyCode == 36 || event.keyCode == 76 {
-                    // 53 = ESC, 36 = Return, 76 = Enter
-                    clearSelection()
-                    return nil
+                .onAppear {
+                    NSEvent.addLocalMonitorForEvents(matching: [.keyDown]) { event in
+                        if event.keyCode == 53 || event.keyCode == 36 || event.keyCode == 76 {
+                            // 53 = ESC, 36 = Return, 76 = Enter
+                            clearSelection()
+                            return nil
+                        }
+                        return event
+                    }
                 }
-                return event
             }
+            .animation(.easeInOut(duration: 0.3), value: matrix)
         }
     }
     
@@ -118,7 +122,7 @@ struct MatrixView: View {
 
 struct MatrixGrid: View {
     
-    static let switchToTooltips = 4
+    static let switchToTooltips = 3
 
     @Binding var isVisible: Bool
     @Binding var isPinned: Bool
@@ -263,6 +267,7 @@ struct MatrixGrid: View {
                 }
             )
             .overlay(tooltipOverlay(value: value))
+            .animation(.easeInOut(duration: 0.3), value: value)
             .onHover { isHovering in
                 handleHover(isHovering: isHovering, row: row, col: col, value: value, cellSize: cellSize)
             }
@@ -275,6 +280,7 @@ struct MatrixGrid: View {
     private func tooltipOverlay(value: Float) -> some View {
         if speciesColors.count <= MatrixGrid.switchToTooltips {
             TooltipView(text: String(format: "%.2f", value), style: .shadow)
+                .animation(.easeInOut(duration: 0.3), value: value)
         }
     }
     
