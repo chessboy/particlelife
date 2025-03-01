@@ -9,8 +9,8 @@ import Foundation
 
 class PresetDefinitions {
     
-    static let randomPreset = makeRandomPreset(speciesCount: 6)
-    static let emptyPreset = makeEmptyPreset(speciesCount: 6)
+    static let randomPreset = makeRandomPreset(speciesCount: 3)
+    static let emptyPreset = makeEmptyPreset(speciesCount: 3)
     static let specialPresets = [snake, cells, sandArt, spaceWars, breathing, comet, comet2, chloroplast, lava].sorted() { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
     
     static func getAllBuiltInPresets() -> [SimulationPreset] {

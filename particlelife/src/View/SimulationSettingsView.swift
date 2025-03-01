@@ -27,6 +27,8 @@ struct SimulationSettingsView: View {
     @State private var wasPinnedBeforeSheet: Bool = false
     @State private var isExpanded = true
     
+    @State private var isPinHovered = false
+    
     var body: some View {
         VStack(spacing: 0) {
             
@@ -49,11 +51,16 @@ struct SimulationSettingsView: View {
                         .foregroundColor(isPinned ? .yellow : .gray)
                         .font(.system(size: 16))
                         .padding(6)
-                        .background(Color.black)
+                        .background(isPinHovered ? Color.gray.opacity(0.3) : Color.black)
                         .clipShape(Circle())
                 }
                 .offset(x: -3, y: 7)
                 .buttonStyle(PlainButtonStyle())
+                .onHover { hovering in
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        isPinHovered = hovering
+                    }
+                }
             }
             
             // Preset, Matrix, Distribution: Grouped neatly
@@ -87,9 +94,8 @@ struct SimulationSettingsView: View {
         )
         .shadow(radius: 10)
         .opacity(isVisible ? 1.0 : 0.0)
-        //.offset(x: isVisible ? 0 : -340, y: 0)
         .disabled(!isVisible)
-        .animation(.easeInOut(duration: 0.3), value: isVisible)
+        .animation(.easeInOut(duration: 0.2), value: isVisible)
         .onHover { hovering in
             if !isPinned && !isShowingSaveSheet && !isShowingDeleteSheet {
                 withAnimation {
@@ -118,7 +124,7 @@ struct PresetPickerView: View {
             
             Menu {
                 // 📁 File Actions
-                Button("⬜️ New") { ParticleSystem.shared.selectPreset(PresetDefinitions.emptyPreset) }
+                Button("🌱 New") { ParticleSystem.shared.selectPreset(PresetDefinitions.emptyPreset) }
                 Button("🔀 Random") { ParticleSystem.shared.selectPreset(PresetDefinitions.randomPreset) }
                 
                 // ⭐ Built-in Presets
@@ -150,6 +156,7 @@ struct PresetPickerView: View {
                     isPinned = true
                     isShowingSaveSheet = true
                 })
+                
                 Button("🗑 Delete", action: {
                     if !settings.selectedPreset.isBuiltIn {
                         wasPinnedBeforeSheet = isPinned
@@ -164,6 +171,12 @@ struct PresetPickerView: View {
             }
             .pickerStyle(MenuPickerStyle())
             .disabled(renderer.isPaused)
+            .onReceive(NotificationCenter.default.publisher(for: .saveTriggered)) { _ in
+                Logger.log("received save notification")
+                wasPinnedBeforeSheet = isPinned
+                isPinned = true
+                isShowingSaveSheet = true
+            }
             .popover(
                 isPresented: $isShowingSaveSheet,
                 attachmentAnchor: .rect(.bounds),
@@ -279,6 +292,8 @@ struct PalettePickerView: View {
 
 struct SimulationButtonsView: View {
     @ObservedObject var renderer: Renderer
+    @State private var isResetHovered = false
+    @State private var isRespawnHovered = false
     
     var body: some View {
         HStack(spacing: 20) {
@@ -293,12 +308,26 @@ struct SimulationButtonsView: View {
             }
             .buttonStyle(SettingsButtonStyle())
             .disabled(renderer.isPaused)
-            
+            .onHover { hovering in
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    isResetHovered = hovering
+                }
+            }
+            .background(isResetHovered ? Color.white.opacity(0.5) : Color.clear)
+            .cornerRadius(6)
+
             Button("♻️  Respawn") {
                 renderer.respawnParticles()
             }
             .buttonStyle(SettingsButtonStyle())
             .disabled(renderer.isPaused)
+            .onHover { hovering in
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    isRespawnHovered = hovering
+                }
+            }
+            .background(isRespawnHovered ? Color.white.opacity(0.5) : Color.clear)
+            .cornerRadius(6)
         }
     }
 }
@@ -422,11 +451,12 @@ struct PhysicsSettingsView: View {
     @ObservedObject var settings: SimulationSettings
     @ObservedObject var renderer: Renderer
     @State private var isExpanded = true
-    
+    @State private var isButtonHovered = false
+
     var body: some View {
         VStack {
             Button(action: {
-                withAnimation(.easeInOut(duration: 0.3)) {
+                withAnimation(.easeInOut(duration: 0.2)) {
                     isExpanded.toggle()
                 }
             }) {
@@ -436,7 +466,7 @@ struct PhysicsSettingsView: View {
                     Spacer()
                     Image(systemName: "chevron.right")
                         .rotationEffect(.degrees(isExpanded ? 90 : 0))
-                        .animation(.easeInOut(duration: 0.3), value: isExpanded)
+                        .animation(.easeInOut(duration: 0.2), value: isExpanded)
                         .font(.title2)
                 }
                 .padding(6)
@@ -444,11 +474,18 @@ struct PhysicsSettingsView: View {
                 .contentShape(Rectangle())
             }
             .frame(width: pickerViewWidth)
-            
+            .onHover { hovering in
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    isButtonHovered = hovering
+                }
+            }
+            .background(isButtonHovered ? Color.gray.opacity(0.2) : Color.clear)
+
             if isExpanded {
                 SimulationSlidersView(settings: settings, renderer: renderer)
                     .padding(.top, 8)
                     .transition(.opacity.combined(with: .move(edge: .top)))
+                
             }
         }
         .padding(.vertical, 10)

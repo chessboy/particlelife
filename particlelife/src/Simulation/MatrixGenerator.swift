@@ -77,7 +77,7 @@ enum MatrixGenerator {
         case .randomWeak:
             for i in 0..<speciesCount {
                 for j in 0..<speciesCount {
-                    if .oneIn(6) {
+                    if .oneIn(2) {
                         matrix[i][j] = Float.random(in: -0.2...0.2)
                     } else {
                         matrix[i][j] = 0.0

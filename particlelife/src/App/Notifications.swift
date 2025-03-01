@@ -10,4 +10,5 @@ import Foundation
 extension Notification.Name {
     static let respawn = Notification.Name("respawn")
     static let presetSelected = Notification.Name("presetSelected")
+    static let saveTriggered = Notification.Name("saveTriggered")
 }

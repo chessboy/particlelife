@@ -22,7 +22,7 @@ class ViewController: NSViewController  {
         self.view.window?.makeFirstResponder(self)
         centerWindow()
         enforceWindowSizeConstraints()
-
+        
         NotificationCenter.default.addObserver(self, selector: #selector(didExitFullScreen), name: NSWindow.didExitFullScreenNotification, object: nil)
         actionTimer = Timer.scheduledTimer(timeInterval: 0.016, target: self, selector: #selector(updateCamera), userInfo: nil, repeats: true)
         
@@ -36,7 +36,7 @@ class ViewController: NSViewController  {
         actionTimer?.invalidate()
         actionTimer = nil
     }
-        
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -55,39 +55,39 @@ class ViewController: NSViewController  {
             metalView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             metalView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
         ])
-                
+        
         view.window?.isMovableByWindowBackground = false
     }
-           
+    
     func centerWindow() {
         guard let window = view.window, let screen = window.screen else { return }
-
+        
         let screenFrame = screen.visibleFrame
         let windowSize = window.frame.size
         let centeredOrigin = NSPoint(
             x: screenFrame.midX - windowSize.width / 2,
             y: screenFrame.midY - windowSize.height / 2
         )
-
+        
         window.setFrameOrigin(centeredOrigin)
         Logger.log("Window centered on screen: windowSize: \(windowSize), screenFrame: \(screenFrame), origin: \(centeredOrigin)", level: .debug)
     }
-
+    
     private func enforceWindowSizeConstraints() {
         guard let window = view.window else { return }
-
+        
         let aspectRatio: CGFloat = Constants.ASPECT_RATIO
         let minContentHeight: CGFloat = 940
         let minContentWidth: CGFloat = round(minContentHeight * aspectRatio)
-
+        
         let titleBarHeight = window.frame.height - window.contentLayoutRect.height
         let minWindowHeight = minContentHeight + titleBarHeight
         let minWindowWidth = minContentWidth
-
+        
         // These two lines do ALL the work!
         window.aspectRatio = NSSize(width: aspectRatio, height: 1)
         window.minSize = NSSize(width: minWindowWidth, height: minWindowHeight)
-
+        
         Logger.log("window size: \(window.frame.size) | content size: \(window.contentLayoutRect.size) | titleBarHeight: \(titleBarHeight)", level: .debug)
     }
     
@@ -154,6 +154,11 @@ extension ViewController {
     override func keyDown(with event: NSEvent) {
         if event.modifierFlags.contains(.command) && event.characters == "r" {
             renderer.respawnParticles()
+            return
+        }
+        
+        if event.modifierFlags.contains(.command) && event.characters == "s" {
+            NotificationCenter.default.post(name: .saveTriggered, object: nil)
             return
         }
         
