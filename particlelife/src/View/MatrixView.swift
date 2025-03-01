@@ -20,13 +20,10 @@ struct SelectedCell: Identifiable, Equatable {
 struct MatrixView: View {
         
     @Binding var matrix: [[Float]]
-    @Binding var isVisible: Bool
-    @Binding var isPinned: Bool
     
     @State private var hoveredCell: (row: Int, col: Int)? = nil
     @State private var tooltipPosition: CGPoint? = nil
     @State private var tooltipText: String = ""
-    @State private var wasPinnedBeforeSelection: Bool = false
     @State private var selectedCell: SelectedCell? = nil
     @State private var sliderPosition: UnitPoint = .zero
     @State private var sliderValue: Float = 0.0
@@ -40,9 +37,6 @@ struct MatrixView: View {
             ZStack {
                 
                 MatrixGrid(
-                    isVisible: $isVisible,
-                    isPinned: $isPinned,
-                    wasPinnedBeforeSelection: $wasPinnedBeforeSelection,
                     speciesColors: speciesColors,
                     matrix: $matrix,
                     hoveredCell: $hoveredCell,
@@ -76,7 +70,6 @@ struct MatrixView: View {
                         hoveredCell = (newValue.row, newValue.col) // Ensure the outline is applied immediately
                     } else {
                         hoveredCell = nil
-                        isPinned = wasPinnedBeforeSelection
                     }
                 }
                 .onAppear {
@@ -98,7 +91,6 @@ struct MatrixView: View {
         guard selectedCell != nil else { return }
         selectedCell = nil
         hoveredCell = nil
-        isPinned = wasPinnedBeforeSelection
     }
 
     // Floating tooltip positioned dynamically
@@ -123,10 +115,6 @@ struct MatrixView: View {
 struct MatrixGrid: View {
     
     static let switchToTooltips = 3
-
-    @Binding var isVisible: Bool
-    @Binding var isPinned: Bool
-    @Binding var wasPinnedBeforeSelection: Bool
     
     let speciesColors: [Color]
     
@@ -171,6 +159,8 @@ struct MatrixGrid: View {
                 .frame(width: cellSize * circleScale * 0.7, height: cellSize * circleScale * 0.7)
                 .foregroundColor(.white)
                 .shadow(color: .black.opacity(0.6), radius: 2, x: 0, y: 1)
+                .help("Use Page Up and Down to cycle through colors in this palette")  // Native macOS tooltip
+
         }
     }
     
@@ -288,9 +278,6 @@ struct MatrixGrid: View {
         guard !renderer.isPaused else { return }
         
         if selectedCell == nil {
-            wasPinnedBeforeSelection = isPinned
-            isPinned = true // Temporarily pin while slider is open
-            
             DispatchQueue.main.async {
                 selectedCell = SelectedCell(row: row, col: col)
                 sliderValue = value
@@ -360,8 +347,6 @@ extension MatrixGrid {
 struct MatrixPreviewWrapper: View {
     @State private var n: Int
     @State private var matrix: [[Float]]
-    @State private var isVisible: Bool = true
-    @State var isPinned = false
 
     let speciesColors: [Color]
     
@@ -378,8 +363,6 @@ struct MatrixPreviewWrapper: View {
         
         MatrixView(
             matrix: $matrix,
-            isVisible: $isVisible,
-            isPinned: $isPinned,
             renderer: Renderer(),
             speciesColors: speciesColors
         )

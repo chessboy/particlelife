@@ -7,58 +7,63 @@
 
 import Cocoa
 import SwiftUI
-import Metal
 import MetalKit
 
-class ViewController: NSViewController  {
+class ViewController: NSViewController {
     private var metalView: MTKView!
     private var renderer: Renderer!
     private var actionTimer: Timer?
-    private var hostingView: NSHostingView<SimulationSettingsView>!
     
+    private var settingsButton: NSHostingView<SettingsButtonView>?
+    private var settingsButtonFadeTimer: Timer?
+    private var settingsPanel: NSHostingView<SimulationSettingsView>!
+
     override func viewWillAppear() {
         super.viewWillAppear()
-        
+    
+        setupMetalView()
+
         self.view.window?.makeFirstResponder(self)
+        setupSettingsButton()
+        setupSettingsPanel()
+        showSettingsPanel()
+        setupMouseTracking()
+
         centerWindow()
         enforceWindowSizeConstraints()
         
         NotificationCenter.default.addObserver(self, selector: #selector(didExitFullScreen), name: NSWindow.didExitFullScreenNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(hideSettingsPanel), name: .closeSettingsPanel, object: nil)
         actionTimer = Timer.scheduledTimer(timeInterval: 0.016, target: self, selector: #selector(updateCamera), userInfo: nil, repeats: true)
         
         if Constants.startInFullScreen, let window = view.window {
             window.toggleFullScreen(nil)  // Make window fullscreen on launch
         }
     }
-    
+        
     override func viewWillDisappear() {
         super.viewWillDisappear()
         actionTimer?.invalidate()
         actionTimer = nil
     }
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
         
+    private func setupMetalView() {
         metalView = MTKView(frame: .zero, device: MTLCreateSystemDefaultDevice())
         metalView.clearColor = MTLClearColor(red: 0, green: 0, blue: 0, alpha: 1)
         metalView.autoresizingMask = [.width, .height]
         metalView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(metalView)
-        
+
         renderer = Renderer(mtkView: metalView)
-        addSettingsPanel()
-        
+
         NSLayoutConstraint.activate([
             metalView.topAnchor.constraint(equalTo: view.topAnchor),
             metalView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             metalView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             metalView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
         ])
-        
-        view.window?.isMovableByWindowBackground = false
     }
-    
+
     func centerWindow() {
         guard let window = view.window, let screen = window.screen else { return }
         
@@ -97,19 +102,164 @@ class ViewController: NSViewController  {
             self.enforceWindowSizeConstraints()
         }
     }
+}
+
+private var settingsButtonYConstraint: NSLayoutConstraint?
+private var initialSettingsButtonY: CGFloat?  // Store first Y entry, clear after hiding
+
+private let settingsButtonWidth: CGFloat = 120
+private let settingsButtonLeftOffset: CGFloat = 40
+private let settingsPanelWidth: CGFloat = 340
+private let triggerZoneX: CGFloat = 200
+private let settingsButtonTopPadding: CGFloat = 10
+private let settingsButtonBottomPadding: CGFloat = 50
+private let settingsButtonHeight: CGFloat = 44
+private let settingsButtonVerticalOffset: CGFloat = 60
+
+// handling of settings panel
+extension ViewController {
     
-    func addSettingsPanel() {
-        let settingsView = SimulationSettingsView(renderer: renderer)
-        let hostingView = NSHostingView(rootView: settingsView)
-        hostingView.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(hostingView)
+    private func setupMouseTracking() {
+        NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved]) { event in
+            self.handleMouseMove(event: event)
+            return event
+        }
+    }
+    
+    private func handleMouseMove(event: NSEvent) {
+        guard settingsPanel.isHidden else { return }
         
-        // Constrain to desired width and let height be flexible
+        let mouseX = event.locationInWindow.x
+        let mouseY = event.locationInWindow.y
+        
+        if mouseX < triggerZoneX {
+            if settingsButton?.isHidden ?? true {
+                let detectedY = initialSettingsButtonY ?? computeInitialY(from: mouseY)
+                showSettingsButton(at: detectedY)
+            }
+        } else {
+            hideSettingsButton()
+        }
+    }
+    
+    // Extracted Function: Computes Initial Y Position
+    private func computeInitialY(from mouseY: CGFloat) -> CGFloat {
+        guard let window = view.window else { return view.bounds.height / 2 }
+        return max(
+            settingsButtonTopPadding + settingsButtonHeight,
+            min(window.frame.height - mouseY - settingsButtonVerticalOffset, view.bounds.height - settingsButtonBottomPadding - settingsButtonHeight)
+        )
+    }
+    
+    private func setupSettingsButton() {
+        let settingsButtonView = SettingsButtonView(action: toggleSettingsPanel)
+        let hostingView = NSHostingView(rootView: settingsButtonView)
+        hostingView.translatesAutoresizingMaskIntoConstraints = false
+        hostingView.alphaValue = 0.0 // Start hidden
+        
+        view.addSubview(hostingView)
+        settingsButton = hostingView
+        
+        if let settingsButton = settingsButton {
+            
+            NSLayoutConstraint.activate([
+                settingsButton.widthAnchor.constraint(equalToConstant: settingsButtonWidth), // Adjust as needed
+                settingsButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: settingsButtonLeftOffset) // Slight offset from the edge
+            ])
+        }
+    }
+    
+    private func setupSettingsPanel() {
+        let settingsView = SimulationSettingsView(renderer: renderer)
+        
+        settingsPanel = NSHostingView(rootView: settingsView)
+        settingsPanel.translatesAutoresizingMaskIntoConstraints = false
+        settingsPanel.isHidden = false
+        
+        view.addSubview(settingsPanel)
+        
         NSLayoutConstraint.activate([
-            hostingView.widthAnchor.constraint(equalToConstant: 340),
-            hostingView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            hostingView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: -2)
+            settingsPanel.widthAnchor.constraint(equalToConstant: settingsPanelWidth),
+            settingsPanel.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            settingsPanel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: -2)
         ])
+    }
+    
+    @objc private func toggleSettingsPanel() {
+        if settingsPanel.isHidden {
+            showSettingsPanel()
+        } else {
+            hideSettingsPanel()
+        }
+    }
+    
+    func showSettingsPanel() {
+        guard settingsPanel.isHidden else { return }
+        
+        settingsPanel.isHidden = false
+        
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = 0.3
+            settingsPanel.animator().alphaValue = 1.0
+        } completionHandler: {
+            self.hideSettingsButton() // Hide button when panel is open
+        }
+    }
+    
+    @objc func hideSettingsPanel() {
+        guard !settingsPanel.isHidden else { return }
+        
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = 0.5
+            settingsPanel.animator().alphaValue = 0.0
+        } completionHandler: {
+            self.settingsPanel.isHidden = true
+        }
+    }
+    
+    private func showSettingsButton(at mouseY: CGFloat) {
+        guard let settingsButton = settingsButton else { return }
+
+        settingsButton.isHidden = false
+        settingsButton.alphaValue = 0.0
+
+        // Ensure we store Y **only once**
+        if initialSettingsButtonY == nil {
+            initialSettingsButtonY = mouseY
+        }
+
+        // Invert Y relative to screen height
+        let invertedY = view.bounds.height - initialSettingsButtonY!
+
+        let clampedY = computeInitialY(from: invertedY)
+
+        if let existingConstraint = settingsButtonYConstraint {
+            view.removeConstraint(existingConstraint)
+        }
+
+        let newYConstraint = settingsButton.topAnchor.constraint(equalTo: view.topAnchor, constant: clampedY)
+        settingsButtonYConstraint = newYConstraint
+
+        NSLayoutConstraint.activate([
+            settingsButton.widthAnchor.constraint(equalToConstant: settingsButtonWidth),
+            settingsButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: settingsButtonLeftOffset),
+            newYConstraint
+        ])
+
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = 0.3
+            settingsButton.animator().alphaValue = 1.0
+        }
+    }
+    
+    private func hideSettingsButton() {
+        initialSettingsButtonY = nil
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = 0.3
+            settingsButton?.animator().alphaValue = 0.0
+        } completionHandler: {
+            self.settingsButton?.isHidden = true
+        }
     }
 }
 
@@ -167,6 +317,8 @@ extension ViewController {
         }
         
         switch event.keyCode {
+        case 48: // Tab
+            toggleSettingsPanel()
         case 49: // Space bar
             renderer.isPaused.toggle()
         case 29: // Zero

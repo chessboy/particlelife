@@ -11,4 +11,6 @@ extension Notification.Name {
     static let respawn = Notification.Name("respawn")
     static let presetSelected = Notification.Name("presetSelected")
     static let saveTriggered = Notification.Name("saveTriggered")
+    static let closeSettingsPanel = Notification.Name("closeSettingsPanel")
+
 }
