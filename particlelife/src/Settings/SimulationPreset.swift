@@ -1,5 +1,5 @@
 //
-//  SettingsGenerator.swift
+//  SimulationPreset.swift
 //  particlelife
 //
 //  Created by Rob Silverman on 2/16/25.
@@ -163,47 +163,6 @@ extension SimulationPreset {
             ├─ Species Color Offset: \(speciesColorOffset)
             └─ Palette Index: \(paletteIndex)
             """
-    }
-    
-    /// Extracts the matrix from `MatrixType` if it's `.custom`
-    private var matrixString: String {
-        guard case .custom(let matrix) = matrixType else { return "[]" }
-        
-        return "[\n" + matrix
-            .map { "        [" + $0.map { String(format: "%.2f", $0) }.joined(separator: ", ") + "]" }
-            .joined(separator: ",\n") + "\n    ]"
-    }
-    
-    /// Returns a string representation of `MatrixType`, handling `.custom` separately
-    private var matrixTypeString: String {
-        if case .custom = matrixType {
-            return ".custom(\(matrixString))"
-        }
-        return ".\(matrixType)" // Converts the enum case to a string automatically
-    }
-    
-    /// Returns a string representation of the preset in Swift code format
-    var asCode: String {
-        return """
-        static let \(name.camelCase()) = SimulationPreset(
-            name: "\(name)",
-            speciesCount: \(speciesCount),
-            particleCount: .\(particleCount),
-            matrixType: \(matrixTypeString),
-            distributionType: .\(distributionType),
-            maxDistance: \(String(format: "%.2f", maxDistance)),
-            minDistance: \(String(format: "%.2f", minDistance)),
-            beta: \(String(format: "%.2f", beta)),
-            friction: \(String(format: "%.2f", friction)),
-            repulsion: \(String(format: "%.2f", repulsion)),
-            pointSize: \(Int(pointSize)),
-            worldSize: \(String(format: "%.2f", worldSize)),
-            isBuiltIn: \(isBuiltIn),
-            preservesUISettings: \(preservesUISettings),
-            speciesColorOffset: \(speciesColorOffset),
-            paletteIndex: \(paletteIndex)
-        )
-        """
     }
 }
 

@@ -161,7 +161,7 @@ class ParticleSystem: ObservableObject {
     }
     
     func dumpPresetAsCode() {
-        print(SimulationSettings.shared.selectedPreset.asCode)
+        print(asCode)
     }
     
     /// Updates delta time for particle movement
@@ -237,4 +237,52 @@ extension ParticleSystem {
         SimulationSettings.shared.decrementSpeciesColorOffset()
         updateSpeciesColorsFromSettings()
     }
+}
+
+extension ParticleSystem {
+    
+    /// Extracts the matrix from `MatrixType` if it's `.custom`
+    private func matrixString(matrix: [[Float]], matrixType: MatrixType) -> String {
+        guard case .custom(let matrix) = matrixType else { return "[]" }
+        
+        return "[\n" + matrix
+            .map { "        [" + $0.map { String(format: "%.2f", $0) }.joined(separator: ", ") + "]" }
+            .joined(separator: ",\n") + "\n    ]"
+    }
+    
+    /// Returns a string representation of `MatrixType`, handling `.custom` separately
+    private func matrixTypeString(matrix: [[Float]], matrixType: MatrixType) -> String {
+        if case .custom = matrixType {
+            return ".custom(\(matrixString(matrix: matrix, matrixType: matrixType))"
+        }
+        return ".\(matrixType)" // Converts the enum case to a string automatically
+    }
+    
+    /// Returns a string representation of the preset in Swift code format
+    var asCode: String {
+        let settings = SimulationSettings.shared
+        let preset = settings.selectedPreset
+        
+        return """
+        static let \(preset.name.camelCase()) = SimulationPreset(
+            name: "\(preset.name)",
+            speciesCount: \(preset.speciesCount),
+            particleCount: .\(preset.particleCount),
+            matrixType: \(matrixTypeString(matrix: matrix, matrixType: .custom(matrix))),
+            distributionType: \(preset.distributionType),
+            maxDistance: \(String(format: "%.2f", settings.maxDistance.value)),
+            minDistance: \(String(format: "%.2f", settings.minDistance.value)),
+            beta: \(String(format: "%.2f", settings.beta.value)),
+            friction: \(String(format: "%.2f", settings.friction.value)),
+            repulsion: \(String(format: "%.2f", settings.repulsion.value)),
+            pointSize: \(Int(settings.pointSize.value)),
+            worldSize: \(String(format: "%.2f", settings.worldSize.value)),
+            isBuiltIn: false,
+            preservesUISettings: true,
+            speciesColorOffset: \(settings.speciesColorOffset),
+            paletteIndex: \(settings.paletteIndex)
+        )
+        """
+    }
+
 }
