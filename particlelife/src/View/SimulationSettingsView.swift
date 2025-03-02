@@ -269,6 +269,7 @@ struct PalettePickerView: View {
                 set: { newIndex in
                     if newIndex != settings.paletteIndex {
                         settings.paletteIndex = newIndex
+                        UserSettings.shared.set(newIndex, forKey: UserSettingsKeys.colorPaletteIndex)
                         updateSpeciesColors()
                     }
                 }

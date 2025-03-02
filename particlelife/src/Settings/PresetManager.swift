@@ -8,18 +8,13 @@ import Foundation
 
 class PresetManager {
     static let shared = PresetManager()
+    
+    private init() {} // Prevent external instantiation
+
     private var userPresets: [SimulationPreset] = UserPresetStorage.loadUserPresets(checkMigration: true)
     
     func getUserPresets() -> [SimulationPreset] {
         return userPresets.sorted  { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
-    }
-    
-    func getAllPresets() -> [SimulationPreset] {
-        return PresetDefinitions.getAllBuiltInPresets() + userPresets
-    }
-
-    func getPreset(named name: String) -> SimulationPreset? {
-        return getAllPresets().first { $0.name == name }
     }
     
     func addUserPreset(_ preset: SimulationPreset) -> SimulationPreset {

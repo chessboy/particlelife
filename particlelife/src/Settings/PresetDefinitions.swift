@@ -21,6 +21,10 @@ class PresetDefinitions {
         return randomPreset
     }
     
+    static var storedPaletteIndex: Int {
+        return max(0, min(UserSettings.shared.int(forKey: UserSettingsKeys.colorPaletteIndex), SpeciesPalette.allCases.count - 1))
+    }
+    
     static func makeRandomPreset(speciesCount: Int) -> SimulationPreset {
         return SimulationPreset(
             name: "Random",
@@ -36,14 +40,15 @@ class PresetDefinitions {
             pointSize: 9,
             worldSize: 1.0,
             preservesUISettings: true,
-            speciesColorOffset: 0
+            speciesColorOffset: 0,
+            paletteIndex: storedPaletteIndex
         )
     }
     
     static func makeEmptyPreset(speciesCount: Int) -> SimulationPreset {
         
         let emptyMatrix = MatrixType.custom(Array(repeating: Array(repeating: 0.0, count: speciesCount), count: speciesCount))
-        
+
         return SimulationPreset(
             name: "New",
             speciesCount: speciesCount,
@@ -58,7 +63,8 @@ class PresetDefinitions {
             pointSize: 5,
             worldSize: 0.5,
             preservesUISettings: true,
-            speciesColorOffset: 0
+            speciesColorOffset: 0,
+            paletteIndex: storedPaletteIndex
         )
     }
 }

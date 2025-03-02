@@ -25,6 +25,8 @@ struct ConfigurableSetting {
 
 class SimulationSettings: ObservableObject {
     static let shared = SimulationSettings()
+    private init() {} // Prevent external instantiation
+
     @Published var userPresets: [SimulationPreset] = PresetManager.shared.getUserPresets()
     @Published var selectedPreset: SimulationPreset = PresetDefinitions.getDefaultPreset()
     

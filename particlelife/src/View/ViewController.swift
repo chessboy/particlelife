@@ -32,11 +32,12 @@ class ViewController: NSViewController {
         centerWindow()
         enforceWindowSizeConstraints()
         
+        NotificationCenter.default.addObserver(self, selector: #selector(didEnterFullScreen), name: NSWindow.didEnterFullScreenNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(didExitFullScreen), name: NSWindow.didExitFullScreenNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(hideSettingsPanel), name: .closeSettingsPanel, object: nil)
         actionTimer = Timer.scheduledTimer(timeInterval: 0.016, target: self, selector: #selector(updateCamera), userInfo: nil, repeats: true)
         
-        if Constants.startInFullScreen, let window = view.window {
+        if UserSettings.shared.bool(forKey: UserSettingsKeys.startupInFullScreen), let window = view.window {
             window.toggleFullScreen(nil)  // Make window fullscreen on launch
         }
     }
@@ -96,11 +97,18 @@ class ViewController: NSViewController {
         Logger.log("window size: \(window.frame.size) | content size: \(window.contentLayoutRect.size) | titleBarHeight: \(titleBarHeight)", level: .debug)
     }
     
+    @objc private func didEnterFullScreen() {
+        if !UserSettings.shared.bool(forKey: UserSettingsKeys.startupInFullScreen) {
+            UserSettings.shared.set(true, forKey: UserSettingsKeys.startupInFullScreen)
+        }
+    }
+    
     // Reapply aspect ratio when exiting full screen
     @objc private func didExitFullScreen() {
         DispatchQueue.main.async {
             self.enforceWindowSizeConstraints()
         }
+        UserSettings.shared.set(false, forKey: UserSettingsKeys.startupInFullScreen)
     }
 }
 
@@ -111,10 +119,7 @@ private let settingsButtonWidth: CGFloat = 120
 private let settingsButtonLeftOffset: CGFloat = 40
 private let settingsPanelWidth: CGFloat = 340
 private let triggerZoneX: CGFloat = 200
-private let settingsButtonTopPadding: CGFloat = 10
-private let settingsButtonBottomPadding: CGFloat = 50
 private let settingsButtonHeight: CGFloat = 44
-private let settingsButtonVerticalOffset: CGFloat = 60
 
 // handling of settings panel
 extension ViewController {
@@ -141,16 +146,7 @@ extension ViewController {
             hideSettingsButton()
         }
     }
-    
-    // Extracted Function: Computes Initial Y Position
-    private func computeInitialY(from mouseY: CGFloat) -> CGFloat {
-        guard let window = view.window else { return view.bounds.height / 2 }
-        return max(
-            settingsButtonTopPadding + settingsButtonHeight,
-            min(window.frame.height - mouseY - settingsButtonVerticalOffset, view.bounds.height - settingsButtonBottomPadding - settingsButtonHeight)
-        )
-    }
-    
+        
     private func setupSettingsButton() {
         let settingsButtonView = SettingsButtonView(action: toggleSettingsPanel)
         let hostingView = NSHostingView(rootView: settingsButtonView)
@@ -229,9 +225,12 @@ extension ViewController {
         }
 
         // Invert Y relative to screen height
-        let invertedY = view.bounds.height - initialSettingsButtonY!
+        let storedY = initialSettingsButtonY ?? view.bounds.height / 2
+        let invertedY = view.bounds.height - storedY
 
-        let clampedY = computeInitialY(from: invertedY)
+        var clampedY = computeInitialY(from: invertedY)
+        // nudge it down a bit so the cursor is in a good spot
+        clampedY -= 40
 
         if let existingConstraint = settingsButtonYConstraint {
             view.removeConstraint(existingConstraint)
@@ -252,6 +251,12 @@ extension ViewController {
         }
     }
     
+    // Computes Initial Y Position for settings button
+    private func computeInitialY(from mouseY: CGFloat) -> CGFloat {
+        guard let window = view.window else { return view.bounds.height / 2 }
+        return max(settingsButtonHeight, min(window.frame.height - mouseY, view.bounds.height))
+    }
+
     private func hideSettingsButton() {
         initialSettingsButtonY = nil
         NSAnimationContext.runAnimationGroup { context in

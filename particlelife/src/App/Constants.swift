@@ -19,6 +19,11 @@ struct Constants {
     static let startInFullScreen = false
 }
 
+struct UserSettingsKeys {
+    static let colorPaletteIndex = "colorPaletteIndex"
+    static let startupInFullScreen = "startupInFullScreen"
+}
+
 struct AppInfo {
     static var version: String {
         Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "Unknown"
@@ -36,6 +41,7 @@ struct SFSymbols {
         static let randomize = "shuffle"
         static let reset = "arrow.uturn.left.circle"
         static let respawn = "arrow.triangle.2.circlepath.circle.fill"
+        static let settings = "gearshape.fill"
     }
     
     struct Symbol {

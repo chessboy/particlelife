@@ -12,7 +12,7 @@ import Combine
 
 class ParticleSystem: ObservableObject {
     static let shared = ParticleSystem()
-    
+
     private var particles: [Particle] = []
     
     @Published var matrix: [[Float]] = []
@@ -27,7 +27,7 @@ class ParticleSystem: ObservableObject {
         
         SimulationSettings.shared.applyPreset(defaultPreset)
         generateParticles(preset: defaultPreset)
-        generateNewMatrix(preset: defaultPreset, speciesColorOffset: defaultPreset.speciesColorOffset, paletteIndex: 0)
+        generateNewMatrix(preset: defaultPreset, speciesColorOffset: defaultPreset.speciesColorOffset, paletteIndex: defaultPreset.paletteIndex)
         updatePhysicsAndBuffers(preset: defaultPreset)
         
         // listen for changes when a preset is applied
@@ -138,7 +138,7 @@ class ParticleSystem: ObservableObject {
     
     /// Generates colors for each species based on the selected palette
     private func generateSpeciesColors(speciesCount: Int, speciesColorOffset: Int, paletteIndex: Int) {
-        //Logger.log("updateSpeciesColors: speciesCount: \(speciesCount), speciesColorOffset: \(speciesColorOffset), paletteIndex: \(paletteIndex)", level: .debug)
+        Logger.log("updateSpeciesColors: speciesCount: \(speciesCount), speciesColorOffset: \(speciesColorOffset), paletteIndex: \(paletteIndex)", level: .debug)
         
         DispatchQueue.main.async {
             guard let selectedPalette = SpeciesPalette(rawValue: paletteIndex) else { return }
