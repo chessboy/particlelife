@@ -42,7 +42,7 @@ struct SimulationSettingsView: View {
                     Logger.log("Close button tapped", level: .debug)
                     NotificationCenter.default.post(name: .closeSettingsPanel, object: nil)
                 }) {
-                    Image(systemName: "xmark.circle.fill")
+                    Image(systemName: SFSymbols.Name.close)
                         .foregroundColor(isCloseButtonHovered ? .white : .gray)
                         .font(.system(size: 16))
                         .padding(6)
@@ -63,8 +63,8 @@ struct SimulationSettingsView: View {
             VStack(spacing: 12) {
                 PresetPickerView(settings: settings, renderer: renderer)
                 SpeciesPickerView(settings: settings, renderer: renderer)
-                ParticleCountPickerView(settings: settings, renderer: renderer)
                 MatrixPickerView(settings: settings, renderer: renderer)
+                ParticleCountPickerView(settings: settings, renderer: renderer)
                 DistributionPickerView(settings: settings, renderer: renderer)
                 PalettePickerView(settings: settings, renderer: renderer)
             }
@@ -72,7 +72,6 @@ struct SimulationSettingsView: View {
             
             // Controls: A little more room for clarity
             SimulationButtonsView(renderer: renderer)
-            
                 .padding(.top, 20)
                 .padding(.bottom, 8)
             
@@ -106,13 +105,13 @@ struct PresetPickerView: View {
                 .frame(width: pickerLabelWidth, alignment: .trailing)
             
             Menu {
-                // 📁 File Actions
-                Button("🌱 New") { ParticleSystem.shared.selectPreset(PresetDefinitions.emptyPreset) }
-                Button("🔀 Random") { ParticleSystem.shared.selectPreset(PresetDefinitions.randomPreset) }
+                // 􀚈 New and random
+                Button("\(SFSymbols.Symbol.new)  New") { ParticleSystem.shared.selectPreset(PresetDefinitions.emptyPreset) }
+                Button("\(SFSymbols.Symbol.random)  Random") { ParticleSystem.shared.selectPreset(PresetDefinitions.randomPreset) }
                 
-                // ⭐ Built-in Presets
+                // 􀋃 Built-in Presets
                 Divider()
-                Menu("⭐ Presets") {
+                Menu("\(SFSymbols.Symbol.presets)  Presets") {
                     if PresetDefinitions.specialPresets.isEmpty {
                         Text("None Stored").foregroundColor(.secondary) // Show placeholder
                     } else {
@@ -122,8 +121,8 @@ struct PresetPickerView: View {
                     }
                 }
                 
-                // 📂 User Presets
-                Menu("📂 Mine") {
+                // 􀈖 User Presets
+                Menu("\(SFSymbols.Symbol.stored)  Mine") {
                     if settings.userPresets.isEmpty {
                         Text("None Stored").foregroundColor(.secondary) // Show placeholder
                     } else {
@@ -133,12 +132,13 @@ struct PresetPickerView: View {
                     }
                 }
 
+                // 􀈸 File IO
                 Divider()
-                Button("💾 Save", action: {
+                Button("\(SFSymbols.Symbol.save)  Save  (􀆔-S)", action: {
                     isShowingSaveSheet = true
                 })
                 
-                Button("🗑 Delete", action: {
+                Button("\(SFSymbols.Symbol.delete)  Delete", action: {
                     if !settings.selectedPreset.isBuiltIn {
                         isShowingDeleteSheet = true
                     }
@@ -176,12 +176,37 @@ struct PresetPickerView: View {
 struct MatrixPickerView: View {
     @ObservedObject var settings: SimulationSettings
     @ObservedObject var renderer: Renderer
+    @State private var isHovered = false
     
     var body: some View {
         HStack(spacing: 0) {
+            
+            if settings.selectedPreset.matrixType.isRandom {
+                Button(action: {
+                    ParticleSystem.shared.respawn(shouldGenerateNewMatrix: true)
+                }) {
+                    Image(systemName: SFSymbols.Name.randomize)
+                        .foregroundColor(isHovered ? .white : Color(white: 0.8))
+                        .font(.system(size: 14))
+                        .padding(2)
+                        .background(isHovered ? Color.gray.opacity(0.3) : Color.clear)
+                        .clipShape(Circle())
+                }
+                .buttonStyle(PlainButtonStyle())
+                .onHover { hovering in
+                    withAnimation(.easeInOut(duration: 0.15)) {
+                        isHovered = hovering
+                    }
+                }
+            } else {
+                Rectangle()
+                    .foregroundColor(Color.clear)
+                    .frame(width: 23, height: 10)
+            }
+
             Text("Matrix:")
                 .foregroundColor(labelColor)
-                .frame(width: pickerLabelWidth, alignment: .trailing)
+                .frame(width: pickerLabelWidth - 23, alignment: .trailing)
             Picker("", selection: Binding(
                 get: { settings.selectedPreset.matrixType },
                 set: { newType in
@@ -273,8 +298,9 @@ struct SimulationButtonsView: View {
     @State private var isRespawnHovered = false
     
     var body: some View {
-        HStack(spacing: 20) {
-            Button("↩️  Reset") {
+        
+        HStack(spacing: 10) {
+            HoverButton(title: "Reset", systemImage: SFSymbols.Name.reset) {
                 let commandDown = NSEvent.modifierFlags.contains(.command)
                 if commandDown {
                     ParticleSystem.shared.dumpPresetAsCode()
@@ -283,28 +309,10 @@ struct SimulationButtonsView: View {
                     ParticleSystem.shared.selectPreset(SimulationSettings.shared.selectedPreset)
                 }
             }
-            .buttonStyle(SettingsButtonStyle())
-            .disabled(renderer.isPaused)
-            .onHover { hovering in
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    isResetHovered = hovering
-                }
-            }
-            .background(isResetHovered ? Color.white.opacity(0.5) : Color.clear)
-            .cornerRadius(6)
 
-            Button("♻️  Respawn") {
+            HoverButton(title: "Respawn", systemImage: SFSymbols.Name.respawn) {
                 renderer.respawnParticles()
             }
-            .buttonStyle(SettingsButtonStyle())
-            .disabled(renderer.isPaused)
-            .onHover { hovering in
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    isRespawnHovered = hovering
-                }
-            }
-            .background(isRespawnHovered ? Color.white.opacity(0.5) : Color.clear)
-            .cornerRadius(6)
         }
     }
 }
@@ -446,18 +454,20 @@ struct PhysicsSettingsView: View {
                         .animation(.easeInOut(duration: 0.2), value: isExpanded)
                         .font(.title2)
                 }
-                .padding(6)
-                .cornerRadius(8)
-                .contentShape(Rectangle())
+                .padding(.vertical, 8) // ✅ Extra vertical padding
+                .padding(.horizontal, 12) // ✅ Extra horizontal padding
+                .background(isButtonHovered ? Color.white.opacity(0.12) : Color.white.opacity(0.08)) // ✅ Consistent hover effect
+                .clipShape(RoundedRectangle(cornerRadius: 8))
             }
-            .frame(width: pickerViewWidth)
+            .buttonStyle(PlainButtonStyle()) // ✅ Prevents unwanted macOS button styling
             .onHover { hovering in
                 withAnimation(.easeInOut(duration: 0.2)) {
                     isButtonHovered = hovering
                 }
             }
-            .background(isButtonHovered ? Color.gray.opacity(0.2) : Color.clear)
-
+            .contentShape(Rectangle()) // ✅ Keeps full area clickable
+            .frame(width: pickerViewWidth)
+            
             if isExpanded {
                 SimulationSlidersView(settings: settings, renderer: renderer)
                     .padding(.top, 8)
@@ -484,7 +494,7 @@ struct FooterView: View {
             LogoView()
             Spacer()
             
-            Text("v\(AppInfo.version)")
+            Text("v\(AppInfo.version)ß")
                 .font(.system(size: 14, weight: .medium, design: .monospaced))
                 .foregroundColor(.gray)
         }
@@ -498,41 +508,54 @@ struct FooterView: View {
 struct SavePresetSheet: View {
     @Binding var isShowingSaveSheet: Bool
     @Binding var presetName: String
+    
     @State private var showOverwriteAlert = false
     @State private var tempPresetName: String = ""
     
+    @FocusState private var isTextFieldFocused: Bool
+    
     var body: some View {
-        VStack(spacing: 20) {
-            Text("Enter Preset Name")
-                .font(.title2)
-                .bold()
-            
-            TextField("Preset Name", text: $tempPresetName)
+        VStack(spacing: 16) {
+            Text("Save Preset")
+                .font(.title3)
+                .fontWeight(.semibold)
+                .padding(.top, 5)
+
+            TextField("Enter preset name", text: $tempPresetName)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
-                .frame(width: 200)
-                .padding(.horizontal, 10)
+                .frame(width: 220)
+                .padding(.horizontal, 8)
+                .focused($isTextFieldFocused)
                 .onSubmit {
                     handleSaveAttempt()
                 }
-            
-            HStack {
+            HStack(spacing: 12) {
                 Button("Cancel") {
                     isShowingSaveSheet = false
                 }
                 .buttonStyle(.bordered)
-                .frame(width: 120)
-                
+                .frame(width: 100)
+
                 Button("Save") {
                     handleSaveAttempt()
                 }
                 .buttonStyle(.borderedProminent)
-                .frame(width: 120)
+                .frame(width: 100)
                 .disabled(tempPresetName.isEmpty)
             }
-            .padding(.top, 5)
+            .padding(.top, 8)
         }
-        .padding(15)
-        .frame(width: 250)
+        .padding(16)
+        .frame(width: 260)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
+        .shadow(radius: 8)
+        .onAppear {
+            tempPresetName = presetName
+            isTextFieldFocused = true  // Autofocus
+        }
+        .onExitCommand {
+            isShowingSaveSheet = false  // Escape key to close
+        }
         .alert("Preset Exists", isPresented: $showOverwriteAlert) {
             Button("Cancel", role: .cancel) {
                 isShowingSaveSheet = true
@@ -545,6 +568,12 @@ struct SavePresetSheet: View {
         }
         .onAppear {
             tempPresetName = presetName
+            isTextFieldFocused = true  // Focus text field
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                // Select all text after a short delay to ensure the field is ready
+                isTextFieldFocused = true
+            }
         }
     }
     
@@ -578,22 +607,25 @@ struct DeletePresetSheet: View {
     let presetToDelete = SimulationSettings.shared.selectedPreset
     
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 16) {
             Text("Delete Preset")
-                .font(.title2)
-                .bold()
-            
+                .font(.title3)
+                .fontWeight(.semibold)
+                .padding(.top, 5)
+
             Text("Are you sure you want to delete **\(presetToDelete.name)**?")
                 .multilineTextAlignment(.center)
-                .font(.title3)
-            
-            HStack {
+                .font(.body)
+                .foregroundColor(.primary)
+                .padding(.horizontal, 12)
+
+            HStack(spacing: 12) {
                 Button("Cancel") {
                     isShowingDeleteSheet = false
                 }
                 .buttonStyle(.bordered)
-                .frame(width: 120)
-                
+                .frame(width: 100)
+
                 Button("Delete") {
                     PresetManager.shared.deleteUserPreset(named: presetToDelete.name)
                     SimulationSettings.shared.userPresets = PresetManager.shared.getUserPresets()
@@ -601,52 +633,54 @@ struct DeletePresetSheet: View {
                     isShowingDeleteSheet = false
                 }
                 .buttonStyle(.borderedProminent)
-                .frame(width: 120)
-                .foregroundColor(.red)
+                .tint(.red)
+                .frame(width: 100)
             }
         }
-        .padding()
-        .frame(width: 300)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-        .shadow(radius: 10)
-    }
-}
-
-struct SettingsButtonStyle: ButtonStyle {
-    @Environment(\.isEnabled) private var isEnabled
-    
-    func makeBody(configuration: Configuration) -> some View {
-        HStack {
-            configuration.label
-                .font(.system(size: 14, weight: .medium)) // Bigger, slightly bolder text
-                .foregroundColor(.white)
-            Spacer() // Push text/icons to the left
+        .padding(16)
+        .frame(width: 280)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
+        .shadow(radius: 8)
+        .onExitCommand {
+            isShowingDeleteSheet = false  // Escape key closes it
         }
-        .padding(.horizontal, 10) // More breathing room
-        .frame(width: 135, height: 30)
-        .background(Color(red: 0.3, green: 0.3, blue: 0.3).opacity(0.85)) // Darker background
-        .clipShape(RoundedRectangle(cornerRadius: 6))
-        .compositingGroup()
-        .drawingGroup()
-        .opacity(configuration.isPressed ? 0.7 : (isEnabled ? 1.0 : 0.6))
     }
 }
 
-struct CustomDivider: View {
+struct HoverButton: View {
+    let title: String
+    let systemImage: String
+    let action: () -> Void
+
+    @State private var isHovered = false
+
     var body: some View {
-        Divider()
-            .background(Color(white: 0.33))
-            .padding(.vertical, 4)
+        Button(action: action) {
+            Label(title, systemImage: systemImage)
+                .font(.system(size: 16, weight: .medium))
+                .padding(.horizontal, 14)
+                .padding(.vertical, 8)
+                .background(isHovered ? Color.white.opacity(0.12) : Color.white.opacity(0.08)) // Slight brightness increase on hover
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .scaleEffect(isHovered ? 1.05 : 1.0) // Slight scale-up effect on hover
+                .animation(.easeInOut(duration: 0.2), value: isHovered)
+        }
+        .buttonStyle(PlainButtonStyle())
+        .onHover { hovering in
+            withAnimation {
+                isHovered = hovering
+            }
+        }
     }
 }
 
-//#Preview {
-//    let mtkView = MTKView()
-//    let renderer = Renderer(mtkView: mtkView)
-//    
-//    NSHostingView(
-//        rootView: SimulationSettingsView(
-//            renderer: renderer, showSettings: .constant(true)
-//        )
-//    )
-//}
+#Preview {
+    let mtkView = MTKView()
+    let renderer = Renderer(mtkView: mtkView)
+    
+    NSHostingView(
+        rootView: SimulationSettingsView(
+            renderer: renderer
+        )
+    )
+}

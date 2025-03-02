@@ -10,17 +10,26 @@ import Foundation
 
 enum MatrixType: Codable, Hashable, CaseIterable {
     case random
+    case randomSymmetry
     case randomWeak
-    case symmetry
     case chains
     case chains2
     case chains3
     case snakes
-    case attractionRepulsionBands
+    case attractRepelBands
     case custom([[Float]])
     
+    var isRandom: Bool {
+        switch self {
+        case .random, .randomSymmetry, .randomWeak:
+            return true
+        default:
+            return false
+        }
+    }
+    
     static var allCases: [MatrixType] {
-        return [.random, .randomWeak, .symmetry, .chains, .chains2, .chains3, .snakes, .attractionRepulsionBands, .custom([[Float]]())]
+        return [.random, .randomSymmetry, .randomWeak, .chains, .chains2, .chains3, .snakes, .attractRepelBands, .custom([[Float]]())]
     }
     
     func hash(into hasher: inout Hasher) {
@@ -34,13 +43,13 @@ enum MatrixType: Codable, Hashable, CaseIterable {
     var name: String {
         switch self {
         case .random: return "Random"
+        case .randomSymmetry: return "Random Symmetry"
         case .randomWeak: return "Random Weak"
-        case .symmetry: return "Symmetry"
         case .chains: return "Chains"
         case .chains2: return "Chains 2"
         case .chains3: return "Chains 3"
         case .snakes: return "Snakes"
-        case .attractionRepulsionBands: return "Bands"
+        case .attractRepelBands: return "Bands"
         case .custom: return "Custom"
         }
     }
@@ -74,6 +83,14 @@ enum MatrixGenerator {
                 }
             }
             
+        case .randomSymmetry:
+            for i in 0..<speciesCount {
+                for j in i..<speciesCount {
+                    matrix[i][j] = Float.random(in: -1.0...1.0)
+                    matrix[j][i] = matrix[i][j]  // Make it symmetric
+                }
+            }
+            
         case .randomWeak:
             for i in 0..<speciesCount {
                 for j in 0..<speciesCount {
@@ -85,15 +102,6 @@ enum MatrixGenerator {
                 }
             }
 
-            
-        case .symmetry:
-            for i in 0..<speciesCount {
-                for j in i..<speciesCount {
-                    matrix[i][j] = Float.random(in: -1.0...1.0)
-                    matrix[j][i] = matrix[i][j]  // Make it symmetric
-                }
-            }
-            
         case .chains:
             for i in 0..<speciesCount {
                 for j in 0..<speciesCount {
@@ -138,7 +146,7 @@ enum MatrixGenerator {
             }
             
             // new ones
-        case .attractionRepulsionBands:
+        case .attractRepelBands:
             for i in 0..<speciesCount {
                 for j in 0..<speciesCount {
                     if i == j {
@@ -187,7 +195,7 @@ extension MatrixType {
             try container.encode("random", forKey: .type)
         case .randomWeak:
             try container.encode("randomWeak", forKey: .type)
-        case .symmetry:
+        case .randomSymmetry:
             try container.encode("symmetry", forKey: .type)
         case .chains:
             try container.encode("chains", forKey: .type)
@@ -197,7 +205,7 @@ extension MatrixType {
             try container.encode("chains3", forKey: .type)
         case .snakes:
             try container.encode("snakes", forKey: .type)
-        case .attractionRepulsionBands:
+        case .attractRepelBands:
             try container.encode("attractionRepulsionBands", forKey: .type)
         case .custom(let matrix):
             try container.encode("custom", forKey: .type)
@@ -216,7 +224,7 @@ extension MatrixType {
         case "randomWeak":
             self = .randomWeak
         case "symmetry":
-            self = .symmetry
+            self = .randomSymmetry
         case "chains":
             self = .chains
         case "chains2":
@@ -226,7 +234,7 @@ extension MatrixType {
         case "snakes":
             self = .snakes
         case "attractionRepulsionBands":
-            self = .attractionRepulsionBands
+            self = .attractRepelBands
         case "custom":
             let matrix = try container.decode([[Float]].self, forKey: .data)
             self = .custom(matrix)

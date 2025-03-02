@@ -26,7 +26,7 @@ class PresetDefinitions {
             name: "Random",
             speciesCount: speciesCount,
             particleCount: ParticleCount.particles(for: speciesCount),
-            matrixType: .random,
+            matrixType: .randomSymmetry,
             distributionType: .uniform,
             maxDistance: 0.65,
             minDistance: 0.04,

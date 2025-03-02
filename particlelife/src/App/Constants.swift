@@ -28,3 +28,22 @@ struct AppInfo {
         Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "Unknown"
     }
 }
+
+struct SFSymbols {
+    
+    struct Name {
+        static let close = "xmark.circle.fill"
+        static let randomize = "shuffle"
+        static let reset = "arrow.uturn.left.circle"
+        static let respawn = "arrow.triangle.2.circlepath.circle.fill"
+    }
+    
+    struct Symbol {
+        static let new = "􀚈"
+        static let random = "􀊝"
+        static let presets = "􀋃"
+        static let stored = "􀈖"
+        static let save = "􀈸"
+        static let delete = "􀈑"
+    }
+}
