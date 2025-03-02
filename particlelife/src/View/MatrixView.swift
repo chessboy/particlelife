@@ -180,10 +180,7 @@ struct MatrixGrid: View {
                 HStack(spacing: spacing) {
                     Color.clear.frame(width: cellSize, height: cellSize) // Placeholder for alignment
                     ForEach(speciesColors.indices, id: \.self) { index in
-                        speciesColors[index]
-                            .frame(width: cellSize * circleScale, height: cellSize * circleScale)
-                            .clipShape(Circle())
-                            .frame(width: cellSize, height: cellSize)
+                        ShadedCircleView(color: speciesColors[index], cellSize: cellSize, circleScale: circleScale)
                             .overlay(arrowOverlay(for: index, cellSize: cellSize))
                             .scaleEffect((index == 0 || index == speciesColors.count - 1) && hoverIndex == index ? 1.15 : 1.0) // Slight pop effect
                             .animation(.easeInOut(duration: 0.2), value: hoverIndex)
@@ -220,14 +217,10 @@ struct MatrixGrid: View {
         HStack(spacing: spacing) {
             // Species color indicator (aligned with header)
             if speciesColors.indices.contains(row) {
-                speciesColors[row]
-                    .frame(width: cellSize * circleScale, height: cellSize * circleScale)
-                    .clipShape(Circle())
-                    .frame(width: cellSize, height: cellSize)
+                ShadedCircleView(color: speciesColors[row], cellSize: cellSize, circleScale: circleScale)
             } else {
                 Color.clear.frame(width: cellSize, height: cellSize) // Placeholder for alignment
             }
-            
             // Matrix cells for this row
             ForEach(matrix[row].indices, id: \.self) { col in
                 cellView(row: row, col: col, totalWidth: totalWidth, cellSize: cellSize)
@@ -235,7 +228,7 @@ struct MatrixGrid: View {
         }
         .frame(height: cellSize)
     }
-    
+        
     private func strokedRectangle(color: Color, lineWidth: CGFloat, cornerRadius: CGFloat) -> some View {
         RoundedRectangle(cornerRadius: cornerRadius)
             .strokeBorder(color, lineWidth: lineWidth)
