@@ -25,6 +25,10 @@ class PresetDefinitions {
         return max(0, min(UserSettings.shared.int(forKey: UserSettingsKeys.colorPaletteIndex), SpeciesPalette.allCases.count - 1))
     }
     
+    static var storedSpeciesColorOffset: Int {
+        return max(0, min(UserSettings.shared.int(forKey: UserSettingsKeys.speciesColorOffset), SpeciesPalette.colorCount - 1))
+    }
+
     static func makeRandomPreset(speciesCount: Int) -> SimulationPreset {
         return SimulationPreset(
             name: "Random",
@@ -40,7 +44,7 @@ class PresetDefinitions {
             pointSize: 9,
             worldSize: 1.0,
             preservesUISettings: true,
-            speciesColorOffset: 0,
+            speciesColorOffset: storedSpeciesColorOffset,
             paletteIndex: storedPaletteIndex
         )
     }
@@ -63,7 +67,7 @@ class PresetDefinitions {
             pointSize: 5,
             worldSize: 0.5,
             preservesUISettings: true,
-            speciesColorOffset: 0,
+            speciesColorOffset: storedSpeciesColorOffset,
             paletteIndex: storedPaletteIndex
         )
     }

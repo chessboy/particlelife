@@ -21,7 +21,7 @@ final class UserSettings {
     }
 
     private func logAccess(_ key: String, value: Any) {
-        Logger.log("Accessed setting: '\(key)' = \(value)", level: .debug)
+        //Logger.log("Accessed setting: '\(key)' = \(value)", level: .debug)
     }
 
     // MARK: - Setters with Logging

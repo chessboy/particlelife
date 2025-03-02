@@ -21,6 +21,7 @@ struct Constants {
 
 struct UserSettingsKeys {
     static let colorPaletteIndex = "colorPaletteIndex"
+    static let speciesColorOffset = "speciesColorOffset"
     static let startupInFullScreen = "startupInFullScreen"
     static let showingPhysicsPane = "showingPhysicsPane"
 }

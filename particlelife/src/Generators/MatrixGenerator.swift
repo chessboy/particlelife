@@ -12,6 +12,7 @@ enum MatrixType: Codable, Hashable, CaseIterable {
     case random
     case randomSymmetry
     case randomWeak
+    case randomStrong
     case chains
     case chains2
     case chains3
@@ -21,7 +22,7 @@ enum MatrixType: Codable, Hashable, CaseIterable {
     
     var isRandom: Bool {
         switch self {
-        case .random, .randomSymmetry, .randomWeak:
+        case .random, .randomSymmetry, .randomWeak, .randomStrong:
             return true
         default:
             return false
@@ -29,7 +30,7 @@ enum MatrixType: Codable, Hashable, CaseIterable {
     }
     
     static var allCases: [MatrixType] {
-        return [.random, .randomSymmetry, .randomWeak, .chains, .chains2, .chains3, .snakes, .attractRepelBands, .custom([[Float]]())]
+        return [.random, .randomSymmetry, .randomWeak, .randomStrong, .chains, .chains2, .chains3, .snakes, .attractRepelBands, .custom([[Float]]())]
     }
     
     func hash(into hasher: inout Hasher) {
@@ -45,6 +46,7 @@ enum MatrixType: Codable, Hashable, CaseIterable {
         case .random: return "Random"
         case .randomSymmetry: return "Random Symmetry"
         case .randomWeak: return "Random Weak"
+        case .randomStrong: return "Random Strong"
         case .chains: return "Chains"
         case .chains2: return "Chains 2"
         case .chains3: return "Chains 3"
@@ -95,9 +97,22 @@ enum MatrixGenerator {
             for i in 0..<speciesCount {
                 for j in 0..<speciesCount {
                     if .oneIn(2) {
-                        matrix[i][j] = Float.random(in: -0.2...0.2)
-                    } else {
                         matrix[i][j] = 0.0
+                    } else {
+                        matrix[i][j] = Float.random(in: -0.2...0.2)
+                    }
+                }
+            }
+            
+        case .randomStrong:
+            for i in 0..<speciesCount {
+                for j in 0..<speciesCount {
+                    if .oneIn(3) {
+                        matrix[i][j] = 0.0
+                    } else if .oneIn(2) {
+                        matrix[i][j] = Float.random(in: 0.8 ... 1)
+                    } else {
+                        matrix[i][j] = Float.random(in: -1 ... -0.8)
                     }
                 }
             }
@@ -195,6 +210,8 @@ extension MatrixType {
             try container.encode("random", forKey: .type)
         case .randomWeak:
             try container.encode("randomWeak", forKey: .type)
+        case .randomStrong:
+            try container.encode("randomStrong", forKey: .type)
         case .randomSymmetry:
             try container.encode("symmetry", forKey: .type)
         case .chains:
@@ -223,6 +240,8 @@ extension MatrixType {
             self = .random
         case "randomWeak":
             self = .randomWeak
+        case "randomStrong":
+            self = .randomStrong
         case "symmetry":
             self = .randomSymmetry
         case "chains":

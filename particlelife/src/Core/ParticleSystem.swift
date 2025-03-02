@@ -230,11 +230,13 @@ extension ParticleSystem {
     
     func incrementSpeciesColorOffset() {
         SimulationSettings.shared.incrementSpeciesColorOffset()
+        UserSettings.shared.set(SimulationSettings.shared.speciesColorOffset, forKey: UserSettingsKeys.speciesColorOffset)
         updateSpeciesColorsFromSettings()
     }
     
     func decrementSpeciesColorOffset() {
         SimulationSettings.shared.decrementSpeciesColorOffset()
+        UserSettings.shared.set(SimulationSettings.shared.speciesColorOffset, forKey: UserSettingsKeys.speciesColorOffset)
         updateSpeciesColorsFromSettings()
     }
 }
