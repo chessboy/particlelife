@@ -300,7 +300,7 @@ struct SimulationButtonsView: View {
     
     var body: some View {
         
-        HStack(spacing: 10) {
+        HStack(spacing: 16) {
             HoverButton(title: "Reset", systemImage: SFSymbols.Name.reset) {
                 let commandDown = NSEvent.modifierFlags.contains(.command)
                 if commandDown {
@@ -397,6 +397,9 @@ struct SimulationSlidersView: View {
                 .font(.system(size: 14, weight: .bold, design: .monospaced))
                 .frame(width: 35, alignment: .leading)
                 .padding(.trailing, 3)
+                .onTapGesture {
+                    setting.wrappedValue.returnToDefault()
+                }
             Slider(value: setting.value, in: setting.wrappedValue.min...setting.wrappedValue.max, step: setting.wrappedValue.step)
                 .frame(width: 166)
         }
@@ -436,14 +439,21 @@ struct LogoView: View {
 struct PhysicsSettingsView: View {
     @ObservedObject var settings: SimulationSettings
     @ObservedObject var renderer: Renderer
-    @State private var isExpanded = true
+    @State private var isExpanded: Bool
     @State private var isButtonHovered = false
+
+    init(settings: SimulationSettings, renderer: Renderer) {
+        self.settings = settings
+        self.renderer = renderer
+        _isExpanded = State(initialValue: UserSettings.shared.bool(forKey: UserSettingsKeys.showingPhysicsPane, defaultValue: true))
+    }
 
     var body: some View {
         VStack {
             Button(action: {
                 withAnimation(.easeInOut(duration: 0.2)) {
                     isExpanded.toggle()
+                    UserSettings.shared.set(isExpanded, forKey: UserSettingsKeys.showingPhysicsPane)
                 }
             }) {
                 HStack {
@@ -455,18 +465,18 @@ struct PhysicsSettingsView: View {
                         .animation(.easeInOut(duration: 0.2), value: isExpanded)
                         .font(.title2)
                 }
-                .padding(.vertical, 8) // ✅ Extra vertical padding
-                .padding(.horizontal, 12) // ✅ Extra horizontal padding
-                .background(isButtonHovered ? Color.white.opacity(0.12) : Color.white.opacity(0.08)) // ✅ Consistent hover effect
+                .padding(.vertical, 8)
+                .padding(.horizontal, 12)
+                .background(isButtonHovered ? Color.white.opacity(0.12) : Color.white.opacity(0.08))
                 .clipShape(RoundedRectangle(cornerRadius: 8))
             }
-            .buttonStyle(PlainButtonStyle()) // ✅ Prevents unwanted macOS button styling
+            .buttonStyle(PlainButtonStyle())
             .onHover { hovering in
                 withAnimation(.easeInOut(duration: 0.2)) {
                     isButtonHovered = hovering
                 }
             }
-            .contentShape(Rectangle()) // ✅ Keeps full area clickable
+            .contentShape(Rectangle())
             .frame(width: pickerViewWidth)
             
             if isExpanded {
@@ -659,6 +669,7 @@ struct HoverButton: View {
         Button(action: action) {
             Label(title, systemImage: systemImage)
                 .font(.system(size: 16, weight: .medium))
+                .frame(minWidth: 100)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 8)
                 .background(isHovered ? Color.white.opacity(0.12) : Color.white.opacity(0.08)) // Slight brightness increase on hover
@@ -666,7 +677,9 @@ struct HoverButton: View {
                 .scaleEffect(isHovered ? 1.05 : 1.0) // Slight scale-up effect on hover
                 .animation(.easeInOut(duration: 0.2), value: isHovered)
         }
+        
         .buttonStyle(PlainButtonStyle())
+        
         .onHover { hovering in
             withAnimation {
                 isHovered = hovering

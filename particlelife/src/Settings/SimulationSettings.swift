@@ -21,6 +21,10 @@ struct ConfigurableSetting {
     let step: Float
     let format: String
     var onChange: ((Float) -> Void)?
+    
+    mutating func returnToDefault() {
+        value = defaultValue
+    }
 }
 
 class SimulationSettings: ObservableObject {
