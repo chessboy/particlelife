@@ -356,7 +356,7 @@ struct MatrixPreviewWrapper: View {
         
         MatrixView(
             matrix: $matrix,
-            renderer: Renderer(),
+            renderer: Renderer(fpsMonitor: FPSMonitor()),
             speciesColors: speciesColors
         )
         .frame(width: 300, height: 300)

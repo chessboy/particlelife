@@ -13,7 +13,8 @@ class ViewController: NSViewController {
     private var metalView: MTKView!
     private var renderer: Renderer!
     private var actionTimer: Timer?
-    
+    private var fpsMonitor = FPSMonitor()
+
     private var settingsButton: NSHostingView<SettingsButtonView>?
     private var settingsButtonFadeTimer: Timer?
     private var settingsPanel: NSHostingView<SimulationSettingsView>!
@@ -41,9 +42,14 @@ class ViewController: NSViewController {
             window.toggleFullScreen(nil)  // Make window fullscreen on launch
         }
     }
+    
+    override func viewDidAppear() {
+        fpsMonitor.startMonitoring()
+    }
         
     override func viewWillDisappear() {
         super.viewWillDisappear()
+        fpsMonitor.stopMonitoring()
         actionTimer?.invalidate()
         actionTimer = nil
     }
@@ -55,7 +61,7 @@ class ViewController: NSViewController {
         metalView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(metalView)
 
-        renderer = Renderer(mtkView: metalView)
+        renderer = Renderer(mtkView: metalView, fpsMonitor: fpsMonitor)
 
         NSLayoutConstraint.activate([
             metalView.topAnchor.constraint(equalTo: view.topAnchor),

@@ -14,10 +14,11 @@ private let pickerLabelWidth: CGFloat = 72
 private let labelColor = Color(white: 0.8)
 
 struct SimulationSettingsView: View {
+
     @ObservedObject var particleSystem = ParticleSystem.shared
     @ObservedObject var settings = SimulationSettings.shared
     @ObservedObject var renderer: Renderer
-    
+
     @State private var isShowingSaveSheet = false
     @State private var isShowingDeleteSheet = false
     @State private var presetName: String = "New Preset"
@@ -439,14 +440,8 @@ struct LogoView: View {
 struct PhysicsSettingsView: View {
     @ObservedObject var settings: SimulationSettings
     @ObservedObject var renderer: Renderer
-    @State private var isExpanded: Bool
+    @State private var isExpanded: Bool = UserSettings.shared.bool(forKey: UserSettingsKeys.showingPhysicsPane, defaultValue: true)
     @State private var isButtonHovered = false
-
-    init(settings: SimulationSettings, renderer: Renderer) {
-        self.settings = settings
-        self.renderer = renderer
-        _isExpanded = State(initialValue: UserSettings.shared.bool(forKey: UserSettingsKeys.showingPhysicsPane, defaultValue: true))
-    }
 
     var body: some View {
         VStack {
@@ -492,14 +487,15 @@ struct PhysicsSettingsView: View {
 }
 
 struct FooterView: View {
+    @State private var fps: Int = 0
     @ObservedObject var renderer: Renderer
-    
+
     var body: some View {
         HStack {
             
-            Text(renderer.isPaused ? "PAUSED" : "FPS: \(renderer.fps)")
+            Text(renderer.isPaused ? "PAUSED" : "FPS: \(fps)")
                 .font(.system(size: 14, weight: .bold, design: .monospaced))
-                .foregroundColor(renderer.isPaused || renderer.fps < 30 ? .red : .green)
+                .foregroundColor(renderer.isPaused || fps < 30 ? .red : .green)
             
             Spacer()
             LogoView()
@@ -513,6 +509,16 @@ struct FooterView: View {
         .padding(.bottom, 4)
         .padding(.horizontal, 8)
         .frame(width: 300)
+        .onAppear {
+            NotificationCenter.default.addObserver(forName: .fpsDidUpdate, object: nil, queue: .main) { notification in
+                if let newFPS = notification.userInfo?["fps"] as? Int {
+                    self.fps = newFPS
+                }
+            }
+        }
+        .onDisappear {
+            NotificationCenter.default.removeObserver(self, name: .fpsDidUpdate, object: nil)
+        }
     }
 }
 
@@ -690,7 +696,7 @@ struct HoverButton: View {
 
 #Preview {
     let mtkView = MTKView()
-    let renderer = Renderer(mtkView: mtkView)
+    let renderer = Renderer(mtkView: mtkView, fpsMonitor: FPSMonitor())
     
     NSHostingView(
         rootView: SimulationSettingsView(

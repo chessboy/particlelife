@@ -11,7 +11,8 @@ import Combine
 
 class Renderer: NSObject, MTKViewDelegate, ObservableObject {
     
-    @Published var fps: Int = 0
+    private weak var fpsMonitor: FPSMonitor?
+
     @Published var isPaused: Bool = false {
         didSet {
             if !isPaused {
@@ -40,7 +41,9 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
     
     var mtkView: MTKView?
     
-    init(mtkView: MTKView? = nil) {
+    init(mtkView: MTKView? = nil, fpsMonitor: FPSMonitor) {
+        self.fpsMonitor = fpsMonitor
+
         super.init()
         
         if let mtkView = mtkView {
@@ -129,21 +132,9 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
     
     // Handles FPS updates & buffer syncing
     private func updateSimulationState() {
-        let currentTime = Date().timeIntervalSince1970
-        frameCount += 1
-        
-        if currentTime - lastUpdateTime >= 1.0 {
-            let capturedFPS = frameCount
-            
-            DispatchQueue.main.async {
-                self.fps = capturedFPS
-                self.objectWillChange.send()
-            }
-            
-            frameCount = 0
-            lastUpdateTime = currentTime
+        DispatchQueue.main.async {
+            self.fpsMonitor?.frameRendered()
         }
-        
         particleSystem.update()
         
         BufferManager.shared.updateCameraBuffer(cameraPosition: cameraPosition)
