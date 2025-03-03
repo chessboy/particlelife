@@ -160,8 +160,8 @@ class ParticleSystem: ObservableObject {
         )
     }
     
-    func dumpCurrentPresetAsCode() {
-        print(asCode)
+    func dumpCurrentPresetAsJson() {
+        UserPresetStorage.printPresetsAsJSON([asPreset])
     }
         
     /// Updates delta time for particle movement
@@ -242,31 +242,31 @@ extension ParticleSystem {
 }
 
 extension ParticleSystem {
-    /// Returns a string representation of the preset in Swift code format
-    var asCode: String {
+    
+    // create a preset from the selected preset AND the current state of simulation settings 
+    var asPreset: SimulationPreset {
         let settings = SimulationSettings.shared
         let preset = settings.selectedPreset
         let matrixType = MatrixType.custom(matrix)
-        
-        return """
-        static let \(preset.name.camelCase()) = SimulationPreset(
-            name: "\(preset.name)",
-            speciesCount: \(preset.speciesCount),
-            particleCount: .\(preset.particleCount),
-            matrixType: \(matrixType.matrixTypeStringForCode),
-            distributionType: .\(preset.distributionType),
-            maxDistance: \(String(format: "%.2f", settings.maxDistance.value)),
-            minDistance: \(String(format: "%.2f", settings.minDistance.value)),
-            beta: \(String(format: "%.2f", settings.beta.value)),
-            friction: \(String(format: "%.2f", settings.friction.value)),
-            repulsion: \(String(format: "%.2f", settings.repulsion.value)),
-            pointSize: \(Int(settings.pointSize.value)),
-            worldSize: \(String(format: "%.2f", settings.worldSize.value)),
-            isBuiltIn: \(preset.isBuiltIn),
-            preservesUISettings: \(preset.preservesUISettings),
-            speciesColorOffset: \(settings.speciesColorOffset),
-            paletteIndex: \(settings.paletteIndex)
+
+        return SimulationPreset(
+            id: UUID(),
+            name: preset.name,
+            speciesCount: preset.speciesCount,
+            particleCount: preset.particleCount,
+            matrixType: matrixType,
+            distributionType: preset.distributionType,
+            maxDistance: settings.maxDistance.value,
+            minDistance: settings.minDistance.value,
+            beta: settings.beta.value,
+            friction: settings.friction.value,
+            repulsion: settings.repulsion.value,
+            pointSize: settings.pointSize.value,
+            worldSize: settings.worldSize.value,
+            isBuiltIn: preset.isBuiltIn,
+            preservesUISettings: preset.preservesUISettings,
+            speciesColorOffset: settings.speciesColorOffset,
+            paletteIndex: settings.paletteIndex
         )
-        """
     }
 }

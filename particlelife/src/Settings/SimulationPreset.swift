@@ -215,29 +215,3 @@ extension SimulationPreset {
         )
     }
 }
-
-extension SimulationPreset {
-    var asCode: String {
-        
-        return """
-        static let \(name.camelCase()) = SimulationPreset(
-            name: "\(name)",
-            speciesCount: \(speciesCount),
-            particleCount: .\(particleCount),
-            matrixType: \(matrixType.matrixTypeStringForCode),
-            distributionType: .\(distributionType),
-            maxDistance: \(String(format: "%.2f", maxDistance)),
-            minDistance: \(String(format: "%.2f", minDistance)),
-            beta: \(String(format: "%.2f", beta)),
-            friction: \(String(format: "%.2f", friction)),
-            repulsion: \(String(format: "%.2f", repulsion)),
-            pointSize: \(Int(pointSize)),
-            worldSize: \(String(format: "%.2f", worldSize)),
-            isBuiltIn: \(isBuiltIn),
-            preservesUISettings: \(preservesUISettings),
-            speciesColorOffset: \(speciesColorOffset),
-            paletteIndex: \(paletteIndex)
-        )
-        """
-    }
-}
