@@ -67,6 +67,23 @@ enum MatrixType: Codable, Hashable, CaseIterable {
         }
         return false
     }
+    
+    /// Extracts the matrix from `MatrixType` if it's `.custom`
+    var matrixString: String {
+        guard case .custom(let matrix) = self else { return "[]" }
+        
+        return "[\n" + matrix
+            .map { "        [" + $0.map { String(format: "%.2f", $0) }.joined(separator: ", ") + "]" }
+            .joined(separator: ",\n") + "\n    ]"
+    }
+    
+    /// Returns a string representation of `MatrixType`, handling `.custom` separately
+    var matrixTypeStringForCode: String {
+        if case .custom = self {
+            return ".custom(\(matrixString))"
+        }
+        return ".\(self)" // Converts the enum case to a string automatically
+    }
 }
 
 enum MatrixGenerator {
@@ -227,7 +244,6 @@ extension MatrixType {
         case .custom(let matrix):
             try container.encode("custom", forKey: .type)
             try container.encode(matrix, forKey: .data)
-            
         }
     }
     

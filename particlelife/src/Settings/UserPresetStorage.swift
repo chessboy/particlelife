@@ -11,7 +11,7 @@ class UserPresetStorage {
     private static let userPresetsKey = "userPresets"
     private static let migrationVersionKey = "userPresetsVersion"  // Track migrations
     static private var isMigrating = false  // Prevent infinite loops
-    
+        
     static func loadUserPresets(checkMigration: Bool = false) -> [SimulationPreset] {
         if checkMigration {
             migrateIfNeeded()  // Only runs when explicitly requested
@@ -29,11 +29,6 @@ class UserPresetStorage {
             Logger.log("Loaded \(sortedPresets.count) user preset\(sortedPresets.count == 1 ? "" : "s"):\n" +
                 sortedPresets.map { "  - \($0.name) (\($0.speciesCount) species, \($0.particleCount))" }.joined(separator: "\n")
             )
-            
-//            Logger.log("Loaded \(sortedPresets.count) user preset(s):")
-//            for preset in sortedPresets {
-//                Logger.log("  - \(preset.name) (ID: \(preset.id), \(preset.speciesCount) species, \(preset.particleCount))")
-//            }
 
             return sortedPresets
         } else {
@@ -181,5 +176,42 @@ class UserPresetStorage {
         }
         
         return uniqueName
+    }
+}
+
+extension UserPresetStorage {
+    
+    static func loadPresetsFromBundle() -> [SimulationPreset] {
+
+        guard let url = Bundle.main.url(forResource: "built-in-presets", withExtension: "json") else {
+            Logger.log("Missing presets.json in bundle", level: .error)
+            return []
+        }
+        
+        do {
+            let data = try Data(contentsOf: url)
+            let presets = try JSONDecoder().decode([SimulationPreset].self, from: data)
+            Logger.log("Loaded \(presets.count) presets", level: .debug)
+            return presets
+        } catch {
+            Logger.logWithError("Error loading presets", error: error)
+            return []
+        }
+    }
+    
+    static func printPresetsAsJSON(_ presets: [SimulationPreset]) {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys] // Pretty-print for readability
+
+        do {
+            let jsonData = try encoder.encode(presets)
+            if let jsonString = String(data: jsonData, encoding: .utf8) {
+                print("\n=== Simulation Presets JSON ===\n")
+                print(jsonString)
+                print("\n===============================\n")
+            }
+        } catch {
+            Logger.logWithError("Error encoding presets to JSON", error: error)
+        }
     }
 }

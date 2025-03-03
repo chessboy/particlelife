@@ -72,6 +72,26 @@ enum ParticleCount: Int, CaseIterable, Identifiable, Codable {
         case .k40: return "40K"
         }
     }
+    
+    init(rawValue: Int) {
+        self = ParticleCount.allCases.first(where: { $0.rawValue == rawValue }) ?? .k1
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let intValue = try container.decode(Int.self)
+        self = ParticleCount(rawValue: intValue)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(self.rawValue)
+    }
+    
+    static var allCases: [ParticleCount] {
+        return [.k1, .k2, .k5, .k10, .k20, .k30, .k35, .k40]
+    }
+
 }
 
 extension ParticleCount {
@@ -281,6 +301,73 @@ extension ParticleGenerator {
             let radius = 0.9 * f + spread * Float.random(in: -1...1)
             let position = SIMD2<Float>(radius * cos(angle), radius * sin(angle))
             return Particle(position: position, velocity: .zero, species: Int32(i % speciesCount))
+        }
+    }
+}
+
+extension DistributionType {
+    var rawValue: String {
+        switch self {
+        case .centered: return "centered"
+        case .uniform: return "uniform"
+        case .uniformCircle: return "uniformCircle"
+        case .centeredCircle: return "centeredCircle"
+        case .ring: return "ring"
+        case .rainbowRing: return "rainbowRing"
+        case .colorBattle: return "colorBattle"
+        case .colorWheel: return "colorWheel"
+        case .colorBands: return "colorBands"
+        case .line: return "line"
+        case .spiral: return "spiral"
+        case .rainbowSpiral: return "rainbowSpiral"
+        }
+    }
+
+    init?(rawValue: String) {
+        switch rawValue {
+        case "centered": self = .centered
+        case "uniform": self = .uniform
+        case "uniformCircle": self = .uniformCircle
+        case "centeredCircle": self = .centeredCircle
+        case "ring": self = .ring
+        case "rainbowRing": self = .rainbowRing
+        case "colorBattle": self = .colorBattle
+        case "colorWheel": self = .colorWheel
+        case "colorBands": self = .colorBands
+        case "line": self = .line
+        case "spiral": self = .spiral
+        case "rainbowSpiral": self = .rainbowSpiral
+        default: return nil
+        }
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case type
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue) // Always encode as a string
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+
+        // Attempt to decode as a string (correct format)
+        if let stringValue = try? container.decode(String.self),
+           let value = DistributionType(rawValue: stringValue) {
+            self = value
+            return
+        }
+
+        // If it's a dictionary (legacy format), extract key
+        let keyedContainer = try decoder.container(keyedBy: CodingKeys.self)
+        let typeString = try keyedContainer.decode(String.self, forKey: .type)
+
+        if let value = DistributionType(rawValue: typeString) {
+            self = value
+        } else {
+            throw DecodingError.dataCorruptedError(forKey: .type, in: keyedContainer, debugDescription: "Invalid DistributionType format")
         }
     }
 }

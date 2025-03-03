@@ -305,7 +305,7 @@ struct SimulationButtonsView: View {
             HoverButton(title: "Reset", systemImage: SFSymbols.Name.reset) {
                 let commandDown = NSEvent.modifierFlags.contains(.command)
                 if commandDown {
-                    ParticleSystem.shared.dumpPresetAsCode()
+                    ParticleSystem.shared.dumpCurrentPresetAsCode()
                 }
                 else {
                     ParticleSystem.shared.selectPreset(SimulationSettings.shared.selectedPreset)
