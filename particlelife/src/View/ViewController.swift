@@ -39,7 +39,7 @@ class ViewController: NSViewController {
         actionTimer = Timer.scheduledTimer(timeInterval: 0.016, target: self, selector: #selector(updateCamera), userInfo: nil, repeats: true)
         
         if UserSettings.shared.bool(forKey: UserSettingsKeys.startupInFullScreen), let window = view.window {
-            window.toggleFullScreen(nil)  // Make window fullscreen on launch
+            //window.toggleFullScreen(nil)  // Make window fullscreen on launch
         }
     }
     

@@ -4,6 +4,12 @@ using namespace metal;
 // todo: pass window size buffer to compute shader and remove this
 constant float ASPECT_RATIO = 1.7778;
 
+struct TrailVertex {
+    float4 position [[position]];
+    float pointSize [[point_size]];  // ✅ Ensure compatibility
+    float4 color;
+};
+
 struct Particle {
     float2 position;
     float2 velocity;
@@ -20,6 +26,12 @@ struct ClickData {
     float2 position;  // x, y of click
     float force;     // Effect force
 };
+
+struct QuadVertexOut {
+    float4 position [[position]];
+    float2 texCoord;
+};
+
 
 // Fast deterministic random function for Metal shaders
 float rand(int x, int y, int z) {
@@ -107,6 +119,55 @@ constant float3 colorPalettes[7][9] = {
         float3(0.1, 0.3, 0.5)    // 🌑 Midnight Tide
     }
 };
+
+fragment float4 fragment_trail(TrailVertex in [[stage_in]]) {
+    return float4(1.0, 0.0, 0.0, 1.0); // 🔴 Bright red
+}
+
+fragment float4 fragment_blend(QuadVertexOut in [[stage_in]],
+                               texture2d<float> trailTexture [[texture(0)]]) {
+    constexpr sampler texSampler(mag_filter::linear, min_filter::linear);
+    return trailTexture.sample(texSampler, in.texCoord); // ✅ Read from texture
+}
+
+vertex QuadVertexOut vertex_quad(uint vertexID [[vertex_id]]) {
+    float2 quadVertices[4] = {
+        float2(-1.0, -1.0), // Bottom-left
+        float2( 1.0, -1.0), // Bottom-right
+        float2(-1.0,  1.0), // Top-left
+        float2( 1.0,  1.0)  // Top-right
+    };
+
+    float2 texCoords[4] = {
+        float2(0.0, 1.0), // Bottom-left
+        float2(1.0, 1.0), // Bottom-right
+        float2(0.0, 0.0), // Top-left
+        float2(1.0, 0.0)  // Top-right
+    };
+
+    QuadVertexOut out;
+    out.position = float4(quadVertices[vertexID], 0.0, 1.0);
+    out.texCoord = texCoords[vertexID];  // ✅ Output texture coordinate
+    return out;
+}
+
+vertex TrailVertex vertex_trail(
+    const device Particle* particles [[buffer(0)]],
+    const device float2* prevPositions [[buffer(1)]],
+    uint id [[vertex_id]]
+) {
+    TrailVertex out;
+    float2 newPos = particles[id].position;
+    float2 oldPos = prevPositions[id];
+
+    float2 interpolatedPos = mix(oldPos, newPos, 0.7);
+    out.position = float4(interpolatedPos, 0.0, 1.0);
+
+    // 🔥 DEBUG: Force a bright color to see if anything renders
+    out.color = float4(1.0, 0.0, 0.0, 1.0); // Full red, full alpha
+
+    return out;
+}
 
 float3 speciesColor(int species, int offset, int paletteIndex) {
     int adjustedSpecies = (species + offset) % 9; // Ensure within bounds

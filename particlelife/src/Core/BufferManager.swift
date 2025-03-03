@@ -41,6 +41,7 @@ class BufferManager {
     private var particleBuffers: [MTLBuffer?] = [nil, nil]  // Double buffering for particles
     private var matrixBuffers: [MTLBuffer?] = [nil, nil]  // Double buffering for the matrix
     private var activeBufferIndex = 0  // Tracks which buffer is in use
+    private(set) var prevPositionsBuffer: MTLBuffer? // Buffer for previous positions
 
     private(set) var speciesCountBuffer: MTLBuffer?
     private(set) var speciesColorOffsetBuffer: MTLBuffer?
@@ -54,7 +55,7 @@ class BufferManager {
             particleBuffer, matrixBuffer, speciesCountBuffer, deltaTimeBuffer,
             maxDistanceBuffer, minDistanceBuffer, betaBuffer, frictionBuffer, repulsionBuffer,
             pointSizeBuffer, worldSizeBuffer, windowSizeBuffer, cameraBuffer, zoomBuffer,
-            clickBuffer, speciesColorOffsetBuffer, paletteIndexBuffer
+            clickBuffer, speciesColorOffsetBuffer, paletteIndexBuffer, prevPositionsBuffer
         ]
         return requiredBuffers.allSatisfy { $0 != nil }
     }
@@ -117,6 +118,29 @@ class BufferManager {
             matrixBuffers[1] = device.makeBuffer(length: matrixSize, options: .storageModeShared)
         }
 
+        let prevParticleSize = MemoryLayout<SIMD2<Float>>.stride * particles.count
+        // Ensure both prev position buffer is created or resized
+        if prevPositionsBuffer == nil || prevPositionsBuffer!.length != prevParticleSize {
+            Logger.log("🆕 Resizing prevPositionsBuffer: \(prevParticleSize) bytes (was: \(prevPositionsBuffer?.length ?? -1))", level: .debug)
+            prevPositionsBuffer = device.makeBuffer(length: prevParticleSize, options: .storageModeShared)
+        } else {
+            Logger.log("✅ prevPositionsBuffer already allocated with size: \(prevPositionsBuffer!.length)", level: .debug)
+        }
+
+        // Copy only particle positions into prevPositionsBuffer
+        if let prevBufferPointer = prevPositionsBuffer?.contents().assumingMemoryBound(to: SIMD2<Float>.self) {
+            for i in 0..<particles.count {
+                prevBufferPointer[i] = particles[i].position  // Only copy positions
+            }
+            
+            // 🧐 Pick a random particle to debug
+            let debugIndex = min(100, particles.count - 1)  // Pick a safe index
+            Logger.log("🔄 Copied particle \(debugIndex) position: \(particles[debugIndex].position)", level: .debug)
+        } else {
+            Logger.log("❌ prevPositionsBuffer contents() is nil!", level: .error)
+        }
+        
+        
         // Write to the inactive buffers
         let inactiveParticleBuffer = particleBuffers[1 - activeBufferIndex]!
         inactiveParticleBuffer.contents().copyMemory(from: particles, byteCount: particleSize)
