@@ -24,6 +24,7 @@ struct UserSettingsKeys {
     static let speciesColorOffset = "speciesColorOffset"
     static let startupInFullScreen = "startupInFullScreen"
     static let showingPhysicsPane = "showingPhysicsPane"
+    static let colorEffectIndex = "colorEffectIndex"
 }
 
 struct AppInfo {

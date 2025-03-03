@@ -29,7 +29,10 @@ struct ConfigurableSetting {
 
 class SimulationSettings: ObservableObject {
     static let shared = SimulationSettings()
-    private init() {} // Prevent external instantiation
+    
+    private init() {
+        self.colorEffectIndex = UserSettings.shared.int(forKey: UserSettingsKeys.colorEffectIndex)
+    }
 
     @Published var userPresets: [SimulationPreset] = PresetManager.shared.getUserPresets()
     @Published var selectedPreset: SimulationPreset = PresetDefinitions.getDefaultPreset()
@@ -92,9 +95,20 @@ class SimulationSettings: ObservableObject {
         }
     }
     
-    @Published var colorEffectIndex: Int = 0 {
+    func toggleColorEffect() {
+        colorEffectIndex = colorEffectIndex == 0 ? 1 : 0
+    }
+    
+    @Published var colorEffectIndex: Int {
         didSet {
-            SimulationSettings.shared.scheduleBufferUpdate()
+            // Batch updates to prevent excessive writes
+            if colorEffectIndex != oldValue {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                    guard let self = self else { return }
+                    UserSettings.shared.set(self.colorEffectIndex, forKey: UserSettingsKeys.colorEffectIndex)
+                }
+                SimulationSettings.shared.scheduleBufferUpdate()
+            }
         }
     }
     
