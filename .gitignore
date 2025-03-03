@@ -3,21 +3,22 @@
 .AppleDouble
 .LSOverride
 
-# Xcode & Build Artifacts
+# Xcode workspace & project files that should be ignored
 *.xcworkspace/
 *.xcodeproj/project.xcworkspace/
 *.xcodeproj/xcuserdata/
-*.xcodeproj/project.xcworkspace/xcuserdata/
-*.xcodeproj/xcuserdata/
+*.xcuserdatad/
 *.xcuserstate
 *.xcscmblueprint
-*.xcuserdatad/
+
+# Derived data and build artifacts
 DerivedData/
 archives/
 Build/
 *.ipa
 *.dSYM.zip
 *.dSYM
+
 
 # Swift Package Manager
 .swiftpm/
