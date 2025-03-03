@@ -14,11 +14,11 @@ private let pickerLabelWidth: CGFloat = 72
 private let labelColor = Color(white: 0.8)
 
 struct SimulationSettingsView: View {
-
+    
     @ObservedObject var particleSystem = ParticleSystem.shared
     @ObservedObject var settings = SimulationSettings.shared
     @ObservedObject var renderer: Renderer
-
+    
     @State private var isShowingSaveSheet = false
     @State private var isShowingDeleteSheet = false
     @State private var presetName: String = "New Preset"
@@ -98,7 +98,7 @@ struct PresetPickerView: View {
     
     @State private var isShowingSaveSheet = false
     @State private var isShowingDeleteSheet = false
-        
+    
     var body: some View {
         HStack(spacing: 8) {
             Text("File:")
@@ -132,12 +132,12 @@ struct PresetPickerView: View {
                         }
                     }
                 }
-
+                
                 // 􀈸 File IO
                 Divider()
-                Button("\(SFSymbols.Symbol.save)  Save  (􀆔-S)", action: {
+                Button("\(SFSymbols.Symbol.save)  Save", action: {
                     isShowingSaveSheet = true
-                })
+                }).keyboardShortcut("s", modifiers: .command)
                 
                 Button("\(SFSymbols.Symbol.delete)  Delete", action: {
                     if !settings.selectedPreset.isBuiltIn {
@@ -204,7 +204,7 @@ struct MatrixPickerView: View {
                     .foregroundColor(Color.clear)
                     .frame(width: 23, height: 10)
             }
-
+            
             Text("Matrix:")
                 .foregroundColor(labelColor)
                 .frame(width: pickerLabelWidth - 23, alignment: .trailing)
@@ -258,12 +258,32 @@ struct DistributionPickerView: View {
 struct PalettePickerView: View {
     @ObservedObject var settings: SimulationSettings
     @ObservedObject var renderer: Renderer
+    @State private var isHovered = false
     
     var body: some View {
         HStack(spacing: 0) {
+            
+            Button(action: {
+                // for now we only support 0 (no effect) & 1 (texturizing effect)
+                SimulationSettings.shared.colorEffectIndex = SimulationSettings.shared.colorEffectIndex == 0 ? 1 : 0
+            }) {
+                Image(systemName: SFSymbols.Name.colorEffect)
+                    .foregroundColor(SimulationSettings.shared.colorEffectIndex == 0 ? .white : .yellow)
+                    .font(.system(size: 14))
+                    .padding(2)
+                    .background(isHovered ? Color.gray.opacity(0.3) : Color.clear)
+                    .clipShape(Circle())
+            }
+            .buttonStyle(PlainButtonStyle())
+            .onHover { hovering in
+                withAnimation(.easeInOut(duration: 0.15)) {
+                    isHovered = hovering
+                }
+            }
+            
             Text("Palette:")
                 .foregroundColor(labelColor)
-                .frame(width: pickerLabelWidth, alignment: .trailing)
+                .frame(width: pickerLabelWidth - 23, alignment: .trailing)
             
             Picker("", selection: Binding(
                 get: { settings.paletteIndex },
@@ -311,7 +331,7 @@ struct SimulationButtonsView: View {
                     ParticleSystem.shared.selectPreset(SimulationSettings.shared.selectedPreset)
                 }
             }
-
+            
             HoverButton(title: "Respawn", systemImage: SFSymbols.Name.respawn) {
                 renderer.respawnParticles()
             }
@@ -442,7 +462,7 @@ struct PhysicsSettingsView: View {
     @ObservedObject var renderer: Renderer
     @State private var isExpanded: Bool = UserSettings.shared.bool(forKey: UserSettingsKeys.showingPhysicsPane, defaultValue: true)
     @State private var isButtonHovered = false
-
+    
     var body: some View {
         VStack {
             Button(action: {
@@ -489,7 +509,7 @@ struct PhysicsSettingsView: View {
 struct FooterView: View {
     @State private var fps: Int = 0
     @ObservedObject var renderer: Renderer
-
+    
     var body: some View {
         HStack {
             
@@ -537,7 +557,7 @@ struct SavePresetSheet: View {
                 .font(.title3)
                 .fontWeight(.semibold)
                 .padding(.top, 5)
-
+            
             TextField("Enter preset name", text: $tempPresetName)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .frame(width: 220)
@@ -552,7 +572,7 @@ struct SavePresetSheet: View {
                 }
                 .buttonStyle(.bordered)
                 .frame(width: 100)
-
+                
                 Button("Save") {
                     handleSaveAttempt()
                 }
@@ -629,20 +649,20 @@ struct DeletePresetSheet: View {
                 .font(.title3)
                 .fontWeight(.semibold)
                 .padding(.top, 5)
-
+            
             Text("Are you sure you want to delete **\(presetToDelete.name)**?")
                 .multilineTextAlignment(.center)
                 .font(.body)
                 .foregroundColor(.primary)
                 .padding(.horizontal, 12)
-
+            
             HStack(spacing: 12) {
                 Button("Cancel") {
                     isShowingDeleteSheet = false
                 }
                 .buttonStyle(.bordered)
                 .frame(width: 100)
-
+                
                 Button("Delete") {
                     PresetManager.shared.deleteUserPreset(named: presetToDelete.name)
                     SimulationSettings.shared.userPresets = PresetManager.shared.getUserPresets()
@@ -668,9 +688,9 @@ struct HoverButton: View {
     let title: String
     let systemImage: String
     let action: () -> Void
-
+    
     @State private var isHovered = false
-
+    
     var body: some View {
         Button(action: action) {
             Label(title, systemImage: systemImage)

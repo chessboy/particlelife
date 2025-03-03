@@ -44,6 +44,7 @@ struct SFSymbols {
         static let reset = "arrow.uturn.left.circle"
         static let respawn = "arrow.triangle.2.circlepath.circle.fill"
         static let settings = "gearshape.fill"
+        static let colorEffect = "circle.bottomrighthalf.pattern.checkered"
     }
     
     struct Symbol {

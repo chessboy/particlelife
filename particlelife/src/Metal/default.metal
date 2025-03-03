@@ -1,6 +1,10 @@
 #include <metal_stdlib>
 using namespace metal;
 
+#include "ColorUtils.metal"
+#include "ColorPalettes.metal"
+#include "Random.metal"
+
 // todo: pass window size buffer to compute shader and remove this
 constant float ASPECT_RATIO = 1.7778;
 
@@ -21,107 +25,46 @@ struct ClickData {
     float force;     // Effect force
 };
 
-// Fast deterministic random function for Metal shaders
-float rand(int x, int y, int z) {
-    int seed = x + y * 57 + z * 241;
-    seed = (seed << 13) ^ seed;
-    return ((1.0 - ((seed * (seed * seed * 15731 + 789221) + 1376312589) & 2147483647) / 1073741824.0f) + 1.0f) / 2.0f;
-}
-
-constant float3 colorPalettes[7][9] = {
-    {   // Default Bright Palette
-        float3(1.0, 0.2, 0.2),   // 🔴 Soft Red
-        float3(1.0, 0.6, 0.0),   // 🟠 Orange
-        float3(0.95, 0.95, 0.0), // 🟡 Warm Yellow
-        float3(0.0, 0.8, 0.2),   // 🟢 Green
-        float3(0.0, 0.4, 1.0),   // 🔵 Bright Blue
-        float3(0.6, 0.2, 1.0),   // 🟣 Purple
-        float3(0.0, 1.0, 1.0),   // 🔵 Cyan
-        float3(1.0, 0.0, 0.6),   // 💖 Hot Pink
-        float3(0.2, 0.8, 0.6)    // 🌊 Teal
-    },
-    {   // Muted Nature-Inspired Palette
-        float3(0.9, 0.5, 0.4),   // 🍂 Rust
-        float3(0.8, 0.7, 0.5),   // 🌾 Wheat
-        float3(0.4, 0.6, 0.3),   // 🌲 Forest Green
-        float3(0.2, 0.5, 0.7),   // 🌊 Deep Teal
-        float3(0.8, 0.3, 0.4),   // 🍓 Soft Berry
-        float3(0.6, 0.4, 0.2),   // 🪵 Walnut Brown
-        float3(0.7, 0.7, 0.5),   // 🌰 Olive
-        float3(0.4, 0.3, 0.6),   // 🍇 Plum
-        float3(0.3, 0.4, 0.5)    // ⛈ Stormy Blue
-    },
-    {   // Dark Cosmic Palette
-        float3(0.2, 0.5, 0.3),    // 🍞 Moldy Green-Blue
-        float3(0.25, 0.05, 0.5),  // 🔮 Dark Purple (slightly brighter, more visible)
-        float3(0.4, 0.05, 0.75),  // 🟣 Electric Violet (enhanced separation)
-        float3(0.0, 0.4, 0.8),    // 🔵 Deep Ocean Blue
-        float3(0.1, 0.6, 0.3),    // 🌿 Muted Teal Green
-        float3(0.6, 0.8, 0.2),    // 💛 Vibrant Chartreuse
-        float3(0.9, 0.9, 0.2),    // ⚡ Soft Glow Yellow
-        float3(0.6, 0.3, 0.7),    // 🔮 Dim Lavender
-        float3(0.2, 0.2, 0.2)     // ⚫ Charcoal Grey
-    },
-    {   // **SpeciesColorAlt Palette**
-        float3(0.95, 0.35, 0.35),  // 🍓 Soft Strawberry
-        float3(1.0, 0.55, 0.15),   // 🍊 Sunset Orange
-        float3(1.0, 0.85, 0.3),    // 🍋 Lemon Gold
-        float3(0.3, 0.8, 0.4),     // 🌿 Leaf Green
-        float3(0.3, 0.6, 1.0),     // 🌊 Sky Blue
-        float3(0.7, 0.4, 1.0),     // 🎆 Soft Lavender
-        float3(0.2, 0.9, 0.9),     // 🌴 Aqua Green
-        float3(1.0, 0.3, 0.7),     // 🌸 Cherry Blossom
-        float3(0.3, 0.85, 0.7)     // 🦜 Mint Teal
-    },
-    {   // **SpeciesColorWild Palette**
-        float3(1.0, 0.0, 0.0),   // 🔥 Pure Red
-        float3(1.0, 0.5, 0.0),   // 🧡 Neon Orange
-        float3(1.0, 1.0, 0.0),   // ⚡ Electric Yellow
-        float3(0.0, 1.0, 0.0),   // 🍀 Vivid Green
-        float3(0.0, 1.0, 1.0),   // 💎 Neon Cyan
-        float3(0.0, 0.0, 1.0),   // 🔵 Ultra Blue
-        float3(0.6, 0.0, 1.0),   // 🔮 Deep Violet
-        float3(1.0, 0.0, 1.0),   // 💜 Hyper Magenta
-        float3(1.0, 0.0, 0.5)    // 💖 Hot Raspberry
-    },
-    {   // **Sunset Palette 🌅**
-        float3(1.0, 0.5, 0.2),   // 🌅 Warm Tangerine
-        float3(1.0, 0.3, 0.3),   // 🍓 Deep Strawberry Red
-        float3(1.0, 0.75, 0.3),  // 🍑 Golden Peach
-        float3(0.8, 0.5, 0.2),   // 🌄 Burnt Sienna
-        float3(0.6, 0.3, 0.6),   // 🌌 Dusk Purple
-        float3(0.3, 0.3, 0.7),   // 🌃 Twilight Blue
-        float3(0.15, 0.15, 0.5), // 🌙 Deep Night Indigo
-        float3(1.0, 0.85, 0.4),  // ☀️ Soft Golden Glow
-        float3(0.8, 0.6, 0.2)    // 🌾 Earthy Amber
-    },
-    {   // **Ocean Palette 🌊**
-        float3(0.0, 0.2, 0.6),   // 🌊 Deep Ocean Blue
-        float3(0.0, 0.5, 0.8),   // 🟦 Bright Cerulean
-        float3(0.0, 0.7, 1.0),   // 💎 Electric Aqua
-        float3(0.0, 0.4, 0.3),   // 🦑 Deep Sea Green
-        float3(0.2, 0.8, 0.6),   // 🐬 Turquoise
-        float3(0.6, 1.0, 0.8),   // 🏝️ Soft Mint Green
-        float3(0.8, 0.9, 1.0),   // ☁️ Pale Sky Blue
-        float3(1.0, 1.0, 1.0),   // 🌊 Foam White
-        float3(0.1, 0.3, 0.5)    // 🌑 Midnight Tide
-    }
-};
-
-float3 speciesColor(int species, int offset, int paletteIndex) {
-    int adjustedSpecies = (species + offset) % 9; // Ensure within bounds
+// species colors are tweaked by blending its color with the neighboring colors from its species
+float3 speciesColor(Particle particle, int speciesColorOffset, int paletteIndex, int colorEffectIndex, uint frameCount, uint id, int speciesCount) {
+    int adjustedSpecies = (particle.species % speciesCount) + speciesColorOffset; // Ensure within active species range
     int palette = clamp(paletteIndex, 0, int(sizeof(colorPalettes) / sizeof(colorPalettes[0])) - 1);
-    return colorPalettes[palette][adjustedSpecies];
+
+    if (colorEffectIndex == 0) {
+        return colorPalettes[palette][adjustedSpecies];
+    }
+    
+    // Get primary color
+    float3 baseColor = colorPalettes[palette][adjustedSpecies];
+
+    // Pick a neighboring species **within the active range**
+    int neighborOffset = (rand(particle.species, speciesColorOffset, id) > 0.5 ? 1 : -1);
+    int neighborSpecies = (adjustedSpecies + neighborOffset - speciesColorOffset + speciesCount) % speciesCount + speciesColorOffset;
+
+    float3 neighborColor = colorPalettes[palette][neighborSpecies];
+
+    // Generate blend factor between 0.0 and 0.25
+    float blendFactor = rand(particle.species, speciesColorOffset, id) * 0.25;
+    float3 blendedColor = mix(baseColor, neighborColor, blendFactor);
+
+    // Apply subtle brightness variation (from 0.9 to 1.1)
+    float brightnessFactor = 0.9 + rand(id, speciesColorOffset, particle.species) * 0.2;
+    
+    return blendedColor * brightnessFactor;
 }
+
 
 // draw particles
 vertex VertexOut vertex_main(const device Particle* particles [[buffer(0)]],
                              const device float2* cameraPosition [[buffer(1)]],
                              const device float* zoomLevel [[buffer(2)]],
                              constant float* pointSize [[buffer(3)]],
-                             constant int* speciesColorOffset [[buffer(4)]],
-                             constant int* paletteIndex [[buffer(5)]],
+                             constant uint &speciesColorOffset [[buffer(4)]],
+                             constant uint &paletteIndex [[buffer(5)]],
                              constant float2* windowSize [[buffer(6)]],
+                             constant uint &frameCount [[buffer(7)]],
+                             constant uint &colorEffectIndex [[buffer(8)]],
+                             constant uint &speciesCount [[buffer(9)]],
                              uint id [[vertex_id]]) {
     VertexOut out;
 
@@ -151,8 +94,7 @@ vertex VertexOut vertex_main(const device Particle* particles [[buffer(0)]],
     out.position = float4(worldPosition, 0.0, 1.0);
     out.pointSize = scaledPointSize;
     
-    out.color = float4(speciesColor(particles[id].species, *speciesColorOffset, *paletteIndex), 1.0);
-    
+    out.color = float4(speciesColor(particles[id], speciesColorOffset, paletteIndex, colorEffectIndex, frameCount, id, speciesCount), fmod(frameCount * 0.01, 1.0));
     return out;
 }
 
@@ -196,19 +138,21 @@ float2 computeWrappedDistance(float2 posA, float2 posB, float worldSize) {
 }
 
 kernel void compute_particle_movement(
-    device Particle *particles [[buffer(0)]],
-    constant float *interactionMatrix [[buffer(1)]],
-    constant int *speciesCount [[buffer(2)]],
-    constant float *dt [[buffer(3)]],
-    constant float *maxDistance [[buffer(4)]],
-    constant float *minDistance [[buffer(5)]],
-    constant float *beta [[buffer(6)]],
-    constant float *friction [[buffer(7)]],
-    constant float *repulsion [[buffer(8)]],
-    constant float2 *cameraPosition [[buffer(9)]],
-    constant float *zoomLevel [[buffer(10)]],
-    constant float *worldSize [[buffer(11)]],
-    constant ClickData *clickData [[buffer(12)]],
+    device Particle* particles [[buffer(0)]],
+    constant float* interactionMatrix [[buffer(1)]],
+    constant uint* speciesCount [[buffer(2)]],
+    constant float* dt [[buffer(3)]],
+    constant float* maxDistance [[buffer(4)]],
+    constant float* minDistance [[buffer(5)]],
+    constant float* beta [[buffer(6)]],
+    constant float* friction [[buffer(7)]],
+    constant float* repulsion [[buffer(8)]],
+    constant float2* cameraPosition [[buffer(9)]],
+    constant float* zoomLevel [[buffer(10)]],
+    constant float* worldSize [[buffer(11)]],
+    constant ClickData* clickData [[buffer(12)]],
+    constant uint &frameCount [[buffer(13)]],
+
     uint id [[thread_position_in_grid]],
     uint totalParticles [[threads_per_grid]]) {
 
@@ -217,9 +161,10 @@ kernel void compute_particle_movement(
     float2 force = float2(0.0, 0.0);
     Particle selfParticle = particles[id];
     
-    if (selfParticle.species < 0 || selfParticle.species >= *speciesCount) {
+    if (selfParticle.species < 0 || selfParticle.species >= int(*speciesCount)) {
         selfParticle.species = 0;  // Debug: Prevent invalid species values
     }
+    
     particles[id] = selfParticle;
 
     for (uint i = 0; i < totalParticles; i++) {

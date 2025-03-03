@@ -11,6 +11,7 @@
 *.xcodeproj/xcuserdata/
 *.xcuserstate
 *.xcscmblueprint
+*.xcuserdatad/
 DerivedData/
 archives/
 Build/
@@ -24,9 +25,9 @@ Package.resolved
 .build/
 
 # Metal Shader Compiler Cache
-default.metallib
 *.air
 *.metalmap
+*.metallib
 
 # Logs & Debugging
 *.log

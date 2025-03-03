@@ -92,6 +92,12 @@ class SimulationSettings: ObservableObject {
         }
     }
     
+    @Published var colorEffectIndex: Int = 0 {
+        didSet {
+            SimulationSettings.shared.scheduleBufferUpdate()
+        }
+    }
+    
     func incrementSpeciesColorOffset() {
         speciesColorOffset = (speciesColorOffset + 1) % SpeciesPalette.colorCount
     }

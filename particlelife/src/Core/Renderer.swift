@@ -13,20 +13,12 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
     
     private weak var fpsMonitor: FPSMonitor?
 
-    @Published var isPaused: Bool = false {
-        didSet {
-            if !isPaused {
-                lastUpdateTime = Date().timeIntervalSince1970
-                frameCount = 0
-            }
-        }
-    }
+    @Published var isPaused: Bool = false
     
     var cameraPosition: simd_float2 = .zero
     var zoomLevel: Float = 1.0
     
-    private var lastUpdateTime: TimeInterval = Date().timeIntervalSince1970
-    private var frameCount = 0
+    private var frameCount: UInt32 = 0
     private var clickPersistenceFrames: Int = 0
     
     private var device: MTLDevice?
@@ -124,6 +116,10 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         let commandBuffer = commandQueue?.makeCommandBuffer()
         
         updateSimulationState()
+        
+        frameCount &+= 1 // will wrap when hits UInt32.max
+        BufferManager.shared.updateFrameCountBuffer(frameCount: frameCount)
+        
         runComputePass(commandBuffer: commandBuffer)
         runRenderPass(commandBuffer: commandBuffer, view: view)
         
@@ -174,6 +170,8 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         computeEncoder.setBuffer(bufferManager.zoomBuffer, offset: 0, index: 10)
         computeEncoder.setBuffer(bufferManager.worldSizeBuffer, offset: 0, index: 11)
         computeEncoder.setBuffer(bufferManager.clickBuffer, offset: 0, index: 12)
+        computeEncoder.setBuffer(bufferManager.frameCountBuffer, offset: 0, index: 13)
+
         
         let threadGroupSize = 256
         let particleCount = SimulationSettings.shared.selectedPreset.particleCount.rawValue
@@ -203,7 +201,10 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         renderEncoder.setVertexBuffer(bufferManager.speciesColorOffsetBuffer, offset: 0, index: 4)
         renderEncoder.setVertexBuffer(bufferManager.paletteIndexBuffer, offset: 0, index: 5)
         renderEncoder.setVertexBuffer(bufferManager.windowSizeBuffer, offset: 0, index: 6)
-        
+        renderEncoder.setVertexBuffer(bufferManager.frameCountBuffer, offset: 0, index: 7)
+        renderEncoder.setVertexBuffer(bufferManager.colorEffectIndexBuffer, offset: 0, index: 8)
+        renderEncoder.setVertexBuffer(bufferManager.speciesCountBuffer, offset: 0, index: 9)
+
         let particleCount = SimulationSettings.shared.selectedPreset.particleCount.rawValue
         renderEncoder.drawPrimitives(type: .point, vertexStart: 0, vertexCount: particleCount)
         

@@ -13,6 +13,10 @@ struct ClickData {
     var force: Float
 }
 
+struct Uniforms {
+    var frameCount: UInt32
+}
+
 class BufferManager {
     static let shared = BufferManager()
     
@@ -25,6 +29,7 @@ class BufferManager {
     private(set) var zoomBuffer: MTLBuffer?
     private(set) var clickBuffer: MTLBuffer?
     private(set) var windowSizeBuffer: MTLBuffer?
+    private(set) var frameCountBuffer: MTLBuffer?
 
     // Physics Settings Buffers
     private(set) var maxDistanceBuffer: MTLBuffer?
@@ -45,16 +50,17 @@ class BufferManager {
     private(set) var speciesCountBuffer: MTLBuffer?
     private(set) var speciesColorOffsetBuffer: MTLBuffer?
     private(set) var paletteIndexBuffer: MTLBuffer?
+    private(set) var colorEffectIndexBuffer: MTLBuffer?
 
     // prevent unecessary buffer copy if nothing's changed
     private var lastPhysicsSettings: PhysicsSettingsSnapshot?
 
     var areBuffersInitialized: Bool {
         let requiredBuffers: [MTLBuffer?] = [
-            particleBuffer, matrixBuffer, speciesCountBuffer, deltaTimeBuffer,
+            frameCountBuffer, particleBuffer, matrixBuffer, speciesCountBuffer, deltaTimeBuffer,
             maxDistanceBuffer, minDistanceBuffer, betaBuffer, frictionBuffer, repulsionBuffer,
             pointSizeBuffer, worldSizeBuffer, windowSizeBuffer, cameraBuffer, zoomBuffer,
-            clickBuffer, speciesColorOffsetBuffer, paletteIndexBuffer
+            clickBuffer, speciesColorOffsetBuffer, paletteIndexBuffer, colorEffectIndexBuffer
         ]
         return requiredBuffers.allSatisfy { $0 != nil }
     }
@@ -70,8 +76,9 @@ class BufferManager {
         initializeBuffers()
     }
     
-    // Initialize all physics-related buffers
+    // Initialize all buffers
     private func initializeBuffers() {
+        frameCountBuffer = createBuffer(type: UInt32.self)
         deltaTimeBuffer = createBuffer(type: Float.self)
         maxDistanceBuffer = createBuffer(type: Float.self)
         minDistanceBuffer = createBuffer(type: Float.self)
@@ -81,11 +88,12 @@ class BufferManager {
         cameraBuffer = createBuffer(type: SIMD2<Float>.self)
         zoomBuffer = createBuffer(type: Float.self)
         pointSizeBuffer = createBuffer(type: Float.self)
-        speciesColorOffsetBuffer = createBuffer(type: Int.self)
-        paletteIndexBuffer = createBuffer(type: Int.self)
+        speciesColorOffsetBuffer = createBuffer(type: UInt32.self)
+        paletteIndexBuffer = createBuffer(type: UInt32.self)
+        colorEffectIndexBuffer = createBuffer(type: UInt32.self)
         worldSizeBuffer = createBuffer(type: Float.self)
-        windowSizeBuffer = createBuffer(type: Float.self, count: 2)
-        speciesCountBuffer = createBuffer(type: Int.self)
+        windowSizeBuffer = createBuffer(type: SIMD2<Float>.self)
+        speciesCountBuffer = createBuffer(type: UInt32.self)
         initializeClickBuffer()
     }
     
@@ -151,7 +159,14 @@ extension BufferManager {
         
         memcpy(buffer.contents(), &clickData, MemoryLayout<ClickData>.stride)
     }
-    
+
+    func updateFrameCountBuffer(frameCount: UInt32) {
+        guard let frameBuffer = frameCountBuffer else { return }
+        
+        var mutableFrameCount = frameCount // Create a mutable copy
+        memcpy(frameBuffer.contents(), &mutableFrameCount, MemoryLayout<UInt32>.stride)
+    }
+
     func updateCameraBuffer(cameraPosition: SIMD2<Float>) {
         updateBuffer(cameraBuffer, with: cameraPosition)
     }
@@ -171,7 +186,8 @@ extension BufferManager {
             pointSize: settings.pointSize.value,
             worldSize: settings.worldSize.value,
             speciesColorOffset: settings.speciesColorOffset,
-            paletteIndex: settings.paletteIndex
+            paletteIndex: settings.paletteIndex,
+            colorEffectIndex: settings.colorEffectIndex
         )
         
         if let last = lastPhysicsSettings, last.isEqual(to: currentSettings) {
@@ -191,6 +207,7 @@ extension BufferManager {
         updateBuffer(worldSizeBuffer, with: settings.worldSize)
         updateBuffer(speciesColorOffsetBuffer, with: settings.speciesColorOffset)
         updateBuffer(paletteIndexBuffer, with: settings.paletteIndex)
+        updateBuffer(colorEffectIndexBuffer, with: settings.colorEffectIndex)
     }
         
     func updateMatrixBuffer(matrix: [[Float]]) {
@@ -252,7 +269,8 @@ struct PhysicsSettingsSnapshot {
     let worldSize: Float
     let speciesColorOffset: Int
     let paletteIndex: Int
-    
+    let colorEffectIndex: Int
+
     /// Compare two snapshots
     func isEqual(to other: PhysicsSettingsSnapshot) -> Bool {
         return maxDistance == other.maxDistance &&
@@ -263,6 +281,7 @@ struct PhysicsSettingsSnapshot {
         pointSize == other.pointSize &&
         worldSize == other.worldSize &&
         speciesColorOffset == other.speciesColorOffset &&
-        paletteIndex == other.paletteIndex
+        paletteIndex == other.paletteIndex &&
+        colorEffectIndex == other.colorEffectIndex        
     }
 }

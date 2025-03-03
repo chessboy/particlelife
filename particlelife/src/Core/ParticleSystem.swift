@@ -23,12 +23,13 @@ class ParticleSystem: ObservableObject {
     private var lastDT: Float = 0.001
     
     init() {
-        let defaultPreset = PresetDefinitions.getDefaultPreset()
+        let initialPreset = PresetDefinitions.randomSpecialPreset()
         
-        SimulationSettings.shared.applyPreset(defaultPreset)
-        generateParticles(preset: defaultPreset)
-        generateNewMatrix(preset: defaultPreset, speciesColorOffset: defaultPreset.speciesColorOffset, paletteIndex: defaultPreset.paletteIndex)
-        updatePhysicsAndBuffers(preset: defaultPreset)
+        SimulationSettings.shared.selectedPreset = initialPreset
+        SimulationSettings.shared.applyPreset(initialPreset)
+        generateParticles(preset: initialPreset)
+        generateNewMatrix(preset: initialPreset, speciesColorOffset: initialPreset.speciesColorOffset, paletteIndex: initialPreset.paletteIndex)
+        updatePhysicsAndBuffers(preset: initialPreset)
         
         // listen for changes when a preset is applied
         NotificationCenter.default.addObserver(self, selector: #selector(presetApplied), name: Notification.Name.presetSelected, object: nil)

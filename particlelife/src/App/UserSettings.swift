@@ -7,8 +7,6 @@
 
 import Foundation
 
-import Foundation
-
 final class UserSettings {
     static let shared = UserSettings()
     private let defaults = UserDefaults.standard
