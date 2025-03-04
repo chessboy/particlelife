@@ -38,44 +38,6 @@
        "worldSize":0.5
    },
    {
-      "beta" : 0.3,
-      "distributionType" : "line",
-      "friction" : 0.1,
-      "id" : "59ECF3CC-F86B-4D37-8878-D17FAD5B2400",
-      "isBuiltIn" : true,
-      "matrixType" : {
-        "data" : [
-          [
-            -1,
-            -0.050000012,
-            1
-          ],
-          [
-            -0.050000012,
-            0.5,
-            -0.050000012
-          ],
-          [
-            1,
-            -0.050000012,
-            -1
-          ]
-        ],
-        "type" : "custom"
-      },
-      "maxDistance" : 0.8,
-      "minDistance" : 0.04,
-      "name" : "Biostrands",
-      "paletteIndex" : 4,
-      "particleCount" : 35840,
-      "pointSize" : 12,
-      "preservesUISettings" : false,
-      "repulsion" : 0.03,
-      "speciesColorOffset" : 2,
-      "speciesCount" : 3,
-      "worldSize" : 1.25
-    },
-    {
       "beta":0.3,
       "distributionType":"centeredCircle",
       "friction":0.1,
@@ -147,42 +109,42 @@
       "worldSize":0.5
    },
    {
-      "beta":0.3,
-      "distributionType":"centered",
-      "friction":0.14,
-      "id":"BEABC7BC-5D79-4D7F-8A4F-75B8A459F6E2",
-      "isBuiltIn":true,
-      "matrixType":{
-         "data":[
-            [
-               0,
-               -0,
-               -0.26
-            ],
-            [
-               -0,
-               -0.36,
-               0
-            ],
-            [
-               -0.26,
-               0,
-               0
-            ]
+     "beta" : 0.3,
+     "distributionType" : "uniformCircle",
+     "friction" : 0.17999999,
+     "id" : "26E08C90-C263-429E-BC40-F422E65D03E2",
+     "isBuiltIn" : true,
+     "matrixType" : {
+       "data" : [
+         [
+           0,
+           -0,
+           -0.26
          ],
-         "type":"custom"
-      },
-      "maxDistance":0.65,
-      "minDistance":0.04,
-      "name":"Chromosomes",
-      "paletteIndex":2,
-      "particleCount":35840,
-      "pointSize":11,
-      "preservesUISettings":false,
-      "repulsion":0.03,
-      "speciesColorOffset":6,
-      "speciesCount":3,
-      "worldSize":1.25
+         [
+           -0,
+           -0.36,
+           0
+         ],
+         [
+           -0.26,
+           0,
+           0
+         ]
+       ],
+       "type" : "custom"
+     },
+     "maxDistance" : 0.65,
+     "minDistance" : 0.04,
+     "name" : "Chromosomes",
+     "paletteIndex" : 2,
+     "particleCount" : 35840,
+     "pointSize" : 15,
+     "preservesUISettings" : false,
+     "repulsion" : 0.03,
+     "speciesColorOffset" : 6,
+     "speciesCount" : 3,
+     "worldSize" : 2
    },
    {
      "beta" : 0.3,
@@ -261,42 +223,42 @@
      "worldSize" : 0.5
    },
    {
-      "beta":0.3,
-      "distributionType":"perlinNoise",
-      "friction":0.1,
-      "id":"D62FCF11-6CED-4765-B838-7859908E3BD3",
-      "isBuiltIn":true,
-      "matrixType":{
-         "data":[
-            [
-               0,
-               0,
-               0.65
-            ],
-            [
-               0,
-               -0.7,
-               0.7
-            ],
-            [
-               -0.65,
-               0,
-               0
-            ]
+     "beta" : 0.3,
+     "distributionType" : "perlinNoise",
+     "friction" : 0.08,
+     "id" : "91362DD9-9AF7-47D9-AEE5-4766BD7C142F",
+     "isBuiltIn" : true,
+     "matrixType" : {
+       "data" : [
+         [
+           0,
+           0,
+           0.65
          ],
-         "type":"custom"
-      },
-      "maxDistance":0.65,
-      "minDistance":0.04,
-      "name":"Lava",
-      "paletteIndex":0,
-      "particleCount":30720,
-      "pointSize":11,
-      "preservesUISettings":false,
-      "repulsion":0.03,
-      "speciesColorOffset":0,
-      "speciesCount":3,
-      "worldSize":1
+         [
+           0,
+           -0.7,
+           0.7
+         ],
+         [
+           -0.65,
+           0,
+           0
+         ]
+       ],
+       "type" : "custom"
+     },
+     "maxDistance" : 0.65,
+     "minDistance" : 0.04,
+     "name" : "Lava",
+     "paletteIndex" : 0,
+     "particleCount" : 30720,
+     "pointSize" : 12,
+     "preservesUISettings" : false,
+     "repulsion" : 0.03,
+     "speciesColorOffset" : 0,
+     "speciesCount" : 3,
+     "worldSize" : 1.5
    },
    {
      "beta" : 0.3,
@@ -359,7 +321,7 @@
      },
      "maxDistance" : 0.65,
      "minDistance" : 0.04,
-     "name" : "Still Life",
+     "name" : "Microcosm",
      "paletteIndex" : 2,
      "particleCount" : 30720,
      "pointSize" : 9,

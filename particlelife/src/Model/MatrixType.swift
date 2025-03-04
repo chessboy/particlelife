@@ -41,7 +41,7 @@ enum MatrixType: Codable, Hashable, CaseIterable {
     var name: String {
         switch self {
         case .random: return "Random"
-        case .randomSymmetry: return "Random Symmetry"
+        case .randomSymmetry: return "Random Symmetrical"
         case .randomWeak: return "Random Weak"
         case .randomStrong: return "Random Strong"
         case .chains: return "Chains"

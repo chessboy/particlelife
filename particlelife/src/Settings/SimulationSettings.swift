@@ -31,7 +31,7 @@ class SimulationSettings: ObservableObject {
     static let shared = SimulationSettings()
     
     private init() {
-        self.colorEffectIndex = UserSettings.shared.int(forKey: UserSettingsKeys.colorEffectIndex)
+        self.colorEffectIndex = UserSettings.shared.int(forKey: UserSettingsKeys.colorEffectIndex, defaultValue: 1)
     }
 
     @Published var userPresets: [SimulationPreset] = PresetManager.shared.getUserPresets()
@@ -74,7 +74,7 @@ class SimulationSettings: ObservableObject {
     )
     
     @Published var pointSize = ConfigurableSetting(
-        value: 11.0, defaultValue: 5, min: 1.0, max: 15.0, step: 1.0, format: "%.0f",
+        value: 11.0, defaultValue: 5, min: 1.0, max: 25.0, step: 1.0, format: "%.0f",
         onChange:{ newValue in handlePointSizeChange(newValue) }
     )
     
