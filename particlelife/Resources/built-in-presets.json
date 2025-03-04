@@ -41,23 +41,23 @@
       "beta" : 0.3,
       "distributionType" : "line",
       "friction" : 0.1,
-      "id" : "98D2F616-C484-41C0-A23A-38C669330443",
+      "id" : "59ECF3CC-F86B-4D37-8878-D17FAD5B2400",
       "isBuiltIn" : true,
       "matrixType" : {
         "data" : [
           [
             -1,
-            -0.05,
+            -0.050000012,
             1
           ],
           [
-            -0.05,
+            -0.050000012,
             0.5,
-            -0.05
+            -0.050000012
           ],
           [
             1,
-            -0.05,
+            -0.050000012,
             -1
           ]
         ],
@@ -65,17 +65,17 @@
       },
       "maxDistance" : 0.8,
       "minDistance" : 0.04,
-      "name" : "Seuss",
-      "paletteIndex" : 0,
+      "name" : "Biostrands",
+      "paletteIndex" : 4,
       "particleCount" : 35840,
       "pointSize" : 12,
       "preservesUISettings" : false,
       "repulsion" : 0.03,
-      "speciesColorOffset" : 3,
+      "speciesColorOffset" : 2,
       "speciesCount" : 3,
       "worldSize" : 1.25
     },
-   {
+    {
       "beta":0.3,
       "distributionType":"centeredCircle",
       "friction":0.1,
@@ -148,7 +148,7 @@
    },
    {
       "beta":0.3,
-      "distributionType":"uniform",
+      "distributionType":"centered",
       "friction":0.14,
       "id":"BEABC7BC-5D79-4D7F-8A4F-75B8A459F6E2",
       "isBuiltIn":true,
@@ -186,7 +186,7 @@
    },
    {
      "beta" : 0.3,
-     "distributionType" : "uniform",
+     "distributionType" : "perlinNoise",
      "friction" : 0.1,
      "id" : "2D1DFBD5-5EE8-4D3B-B6E3-544F6F0F1D03",
      "isBuiltIn" : true,
@@ -223,8 +223,46 @@
      "worldSize" : 1.25
    },
    {
+     "beta" : 0.3,
+     "distributionType" : "centeredCircle",
+     "friction" : 0.26,
+     "id" : "28F562C7-1A8D-4950-8C03-3F487E1122E3",
+     "isBuiltIn" : true,
+     "matrixType" : {
+       "data" : [
+         [
+           0,
+           0,
+           -0.5
+         ],
+         [
+           0,
+           0.5,
+           0
+         ],
+         [
+           0,
+           0,
+           0
+         ]
+       ],
+       "type" : "custom"
+     },
+     "maxDistance" : 0.65,
+     "minDistance" : 0.04,
+     "name" : "Boom",
+     "paletteIndex" : 2,
+     "particleCount" : 35840,
+     "pointSize" : 5,
+     "preservesUISettings" : false,
+     "repulsion" : 0.03,
+     "speciesColorOffset" : 6,
+     "speciesCount" : 3,
+     "worldSize" : 0.5
+   },
+   {
       "beta":0.3,
-      "distributionType":"uniformCircle",
+      "distributionType":"perlinNoise",
       "friction":0.1,
       "id":"D62FCF11-6CED-4765-B838-7859908E3BD3",
       "isBuiltIn":true,
@@ -333,7 +371,7 @@
    },
    {
       "beta":0.3,
-      "distributionType":"line",
+      "distributionType":"perlinNoise",
       "friction":0.14,
       "id":"C03779AE-C5AF-41BD-8670-4C40DAB22FFB",
       "isBuiltIn":true,
@@ -392,7 +430,7 @@
       },
       "maxDistance":0.6,
       "minDistance":0.02,
-      "name":"Sand Art",
+      "name":"Stained Glass",
       "paletteIndex":0,
       "particleCount":30720,
       "pointSize":5,
@@ -404,7 +442,7 @@
    },
    {
       "beta":0.15,
-      "distributionType":"ring",
+      "distributionType":"centered",
       "friction":0.2,
       "id":"B2AEE359-C386-4F4D-8DCE-033FF8053364",
       "isBuiltIn":true,
@@ -526,7 +564,7 @@
    },
    {
       "beta":0.3,
-      "distributionType":"line",
+      "distributionType":"perlinNoise",
       "friction":0.1,
       "id":"B7DB6919-B7FD-4A15-821A-67EAC480F741",
       "isBuiltIn":true,
@@ -647,75 +685,75 @@
       "worldSize":3
    },
    {
-      "beta":0.3,
-      "distributionType":"uniform",
-      "friction":0.08,
-      "id":"10027309-593E-4350-BE8B-F038DB16A293",
-      "isBuiltIn":true,
-      "matrixType":{
-         "data":[
-            [
-               -0,
-               -0.98,
-               0.46,
-               -0.1,
-               0.15,
-               -0.86
-            ],
-            [
-               -0.54,
-               0.01,
-               0.86,
-               -0.53,
-               -0.99,
-               0.65
-            ],
-            [
-               -0.56,
-               0.24,
-               -0.73,
-               -0.19,
-               0.39,
-               0.54
-            ],
-            [
-               0.92,
-               0.78,
-               0.33,
-               -0.48,
-               -0.6,
-               0.56
-            ],
-            [
-               -0.22,
-               0.94,
-               -0.67,
-               0.72,
-               0.86,
-               0.57
-            ],
-            [
-               -0.39,
-               -0.94,
-               0.99,
-               0.15,
-               0.91,
-               -0.46
-            ]
+     "beta" : 0.3,
+     "distributionType" : "centered",
+     "friction" : 0.21999998,
+     "id" : "DBECCB3D-454D-43E4-8F7A-215EC22FF8E8",
+     "isBuiltIn" : true,
+     "matrixType" : {
+       "data" : [
+         [
+           -0,
+           -0.98,
+           0.46,
+           -0.1,
+           0.15,
+           -0.86
          ],
-         "type":"custom"
-      },
-      "maxDistance":0.65,
-      "minDistance":0.04,
-      "name":"Spinner",
-      "paletteIndex":6,
-      "particleCount":40960,
-      "pointSize":9,
-      "preservesUISettings":false,
-      "repulsion":0.03,
-      "speciesColorOffset":4,
-      "speciesCount":6,
-      "worldSize":1
+         [
+           -0.54,
+           0.01,
+           0.86,
+           -0.53,
+           -0.99,
+           0.65
+         ],
+         [
+           -0.56,
+           0.5,
+           -0.73,
+           -0.19,
+           0.39,
+           0.54
+         ],
+         [
+           0.92,
+           0.78,
+           0.33,
+           -0.48,
+           -0.6,
+           0.56
+         ],
+         [
+           -0.22,
+           0.94,
+           0,
+           0.72,
+           0.86,
+           0.57
+         ],
+         [
+           -0.39,
+           -0.94,
+           0.99,
+           0.15,
+           0.91,
+           -0.46
+         ]
+       ],
+       "type" : "custom"
+     },
+     "maxDistance" : 0.65,
+     "minDistance" : 0.04,
+     "name" : "Oscillations",
+     "paletteIndex" : 6,
+     "particleCount" : 40960,
+     "pointSize" : 9,
+     "preservesUISettings" : false,
+     "repulsion" : 0.03,
+     "speciesColorOffset" : 3,
+     "speciesCount" : 6,
+     "worldSize" : 1
    },
    {
       "beta":0.3,

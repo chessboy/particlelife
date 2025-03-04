@@ -202,7 +202,7 @@ kernel void compute_particle_movement(
 
             // Normalize force and apply safely to avoid extreme values
             force += normalize(direction) * forceValue;
-            float maxForce = 50.0;
+            float maxForce = 30.0;
             force = clamp(force, -maxForce, maxForce);
         }
         

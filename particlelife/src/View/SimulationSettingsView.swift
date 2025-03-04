@@ -284,7 +284,7 @@ struct PalettePickerView: View {
             
             Text("Palette:")
                 .foregroundColor(labelColor)
-                .frame(width: pickerLabelWidth - 23, alignment: .trailing)
+                .frame(width: pickerLabelWidth - 20, alignment: .trailing)
             
             Picker("", selection: Binding(
                 get: { settings.paletteIndex },

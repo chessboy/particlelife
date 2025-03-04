@@ -8,13 +8,14 @@
 import Foundation
 
 enum DistributionType: Codable, CaseIterable {
-    case centered, uniform, uniformCircle, centeredCircle, ring, rainbowRing,
-         colorBattle, colorWheel, colorBands, line, spiral, rainbowSpiral
+    case perlinNoise, centered, uniform, uniformCircle,
+         centeredCircle, ring, rainbowRing, line,
+         colorBattle, colorWheel, colorBands, spiral, rainbowSpiral
     
     /// Determines if the distribution should be recentered after generation
     var shouldRecenter: Bool {
         switch self {
-        case .centered, .uniform, .colorBands, .line:
+        case .centered, .uniform, .colorBands, .line, .perlinNoise:
             return true
         default:
             return false
@@ -24,7 +25,7 @@ enum DistributionType: Codable, CaseIterable {
     /// Determines if the distribution should scale to maintain aspect ratio
     var shouldScaleToAspectRatio: Bool {
         switch self {
-        case .uniform, .line, .colorBands:
+        case .uniform, .line, .colorBands, .perlinNoise:
             return true
         default:
             return false
@@ -45,6 +46,7 @@ enum DistributionType: Codable, CaseIterable {
         case .line: return "Line"
         case .spiral: return "Spiral"
         case .rainbowSpiral: return "Rainbow Spiral"
+        case .perlinNoise: return "Perlin Noise"
         }
     }
 }
@@ -64,6 +66,7 @@ extension DistributionType {
         case .line: return "line"
         case .spiral: return "spiral"
         case .rainbowSpiral: return "rainbowSpiral"
+        case .perlinNoise: return "perlinNoise"
         }
     }
 
@@ -81,6 +84,7 @@ extension DistributionType {
         case "line": self = .line
         case "spiral": self = .spiral
         case "rainbowSpiral": self = .rainbowSpiral
+        case "perlinNoise": self = .perlinNoise
         default: return nil
         }
     }

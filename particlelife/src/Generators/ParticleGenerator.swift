@@ -1,7 +1,8 @@
 import simd
+import GameplayKit
 
 struct ParticleGenerator {
-    
+
     static func generate(distribution: DistributionType, particleCount: ParticleCount, speciesCount: Int) -> [Particle] {
         
         Logger.log("Distribution: \(distribution), count: \(particleCount.displayString), speciesCount: \(speciesCount)", level: .debug)
@@ -33,7 +34,40 @@ struct ParticleGenerator {
             return spiral(count: count, speciesCount: speciesCount)
         case .rainbowSpiral:
             return rainbowSpiral(count: count, speciesCount: speciesCount)
+        case .perlinNoise:
+            return generatePerlinNoiseParticles(count: count, speciesCount: speciesCount)
         }
+    }
+}
+
+extension ParticleGenerator {
+    
+    static func generatePerlinNoiseParticles(count: Int, speciesCount: Int) -> [Particle] {
+        let rng = GKRandomSource.sharedRandom()
+        
+        var particles: [Particle] = []
+        let perlin = GKPerlinNoiseSource(frequency: 1.0, octaveCount: 4, persistence: 0.5, lacunarity: 2.0, seed: Int32(Int(rng.nextInt())))
+        let noiseMap = GKNoiseMap(GKNoise(perlin), size: vector_double2(2, 2), origin: vector_double2(-1, -1), sampleCount: vector_int2(100, 100), seamless: false)
+        
+        for _ in 0..<count {
+            var position: SIMD2<Float>
+            repeat {
+                let x = Float(rng.nextUniform()) * 2.0 - 1.0 // Convert [0,1] → [-1,1]
+                let y = Float(rng.nextUniform()) * 2.0 - 1.0 // Convert [0,1] → [-1,1]
+                
+                let noiseValue = noiseMap.value(at: vector_int2(Int32((x + 1) * 50), Int32((y + 1) * 50))) // Scale to noise grid
+                let remappedNoise = noiseValue * 2.0 - 1.0 // Convert Perlin output from [0,1] → [-1,1]
+                
+                if remappedNoise > -0.2 { // Threshold to create voids
+                    position = SIMD2<Float>(x, y)
+                    break
+                }
+            } while true
+            
+            let particle = Particle(position: position, velocity: .zero, species: Int32(rng.nextInt(upperBound: speciesCount)))
+            particles.append(particle)
+        }
+        return particles
     }
 }
 
