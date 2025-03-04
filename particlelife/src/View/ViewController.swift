@@ -38,7 +38,7 @@ class ViewController: NSViewController {
         NotificationCenter.default.addObserver(self, selector: #selector(hideSettingsPanel), name: .closeSettingsPanel, object: nil)
         actionTimer = Timer.scheduledTimer(timeInterval: 0.016, target: self, selector: #selector(updateCamera), userInfo: nil, repeats: true)
         
-        if UserSettings.shared.bool(forKey: UserSettingsKeys.startupInFullScreen), let window = view.window {
+        if UserSettings.shared.bool(forKey: UserSettingsKeys.startupInFullScreen, defaultValue: true), let window = view.window {
             window.toggleFullScreen(nil)  // Make window fullscreen on launch
         }
     }
@@ -61,7 +61,7 @@ class ViewController: NSViewController {
         metalView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(metalView)
 
-        renderer = Renderer(mtkView: metalView, fpsMonitor: fpsMonitor)
+        renderer = Renderer(metalView: metalView, fpsMonitor: fpsMonitor)
 
         NSLayoutConstraint.activate([
             metalView.topAnchor.constraint(equalTo: view.topAnchor),

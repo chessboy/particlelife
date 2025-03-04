@@ -30,17 +30,17 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
     
     private var cancellables = Set<AnyCancellable>()
     private var worldSizeObserver: AnyCancellable?
-    
-    var mtkView: MTKView?
-    
-    init(mtkView: MTKView? = nil, fpsMonitor: FPSMonitor) {
+        
+    init(metalView: MTKView? = nil, fpsMonitor: FPSMonitor) {
         self.fpsMonitor = fpsMonitor
 
         super.init()
         
-        if let mtkView = mtkView {
-            self.device = mtkView.device
-            mtkView.delegate = self
+        if let metalView = metalView {
+            self.device = metalView.device
+            metalView.delegate = self
+            metalView.enableSetNeedsDisplay = false
+            metalView.preferredFramesPerSecond = 120
             Logger.log("Running on Metal device")
         } else {
             Logger.log("Running in Preview Mode - Metal Rendering Disabled", level: .warning)
@@ -221,6 +221,8 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
     }
     
     func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {
+        guard size.width > 0 && size.height > 0 else { return }
+
         let expectedAspectRatio: CGFloat = Constants.ASPECT_RATIO
         var correctedSize = size
         
@@ -229,12 +231,14 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
             ? CGSize(width: size.height * expectedAspectRatio, height: size.height)
             : CGSize(width: size.width, height: size.width / expectedAspectRatio)
             
-//            Logger.log("Drawable size corrected: Original: \(size.width)x\(size.height), "
-//                       + "Corrected: \(correctedSize.width)x\(correctedSize.height), "
-//                       + "Computed Aspect Ratio: \(correctedSize.width / correctedSize.height)",
-//                       level: .debug)
+            Logger.log("Drawable size corrected: "
+                       + "Original: \(size.width)x\(size.height), "
+                       + "View Bounds: \(view.bounds.size), "
+                       + "Corrected: \(correctedSize.width)x\(correctedSize.height), "
+                       + "Computed Aspect Ratio: \(correctedSize.width / correctedSize.height), "
+                       + "FPS Check: \(view.preferredFramesPerSecond)",
+                       level: .debug)
         }
-        
         BufferManager.shared.updateWindowSizeBuffer(width: Float(correctedSize.width), height: Float(correctedSize.height))
     }
 }

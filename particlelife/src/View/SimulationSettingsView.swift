@@ -718,7 +718,7 @@ struct HoverButton: View {
 
 #Preview {
     let mtkView = MTKView()
-    let renderer = Renderer(mtkView: mtkView, fpsMonitor: FPSMonitor())
+    let renderer = Renderer(metalView: mtkView, fpsMonitor: FPSMonitor())
     
     NSHostingView(
         rootView: SimulationSettingsView(
