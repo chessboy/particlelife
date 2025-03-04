@@ -194,6 +194,7 @@ struct MatrixPickerView: View {
                         .clipShape(Circle())
                 }
                 .buttonStyle(PlainButtonStyle())
+                .help("Use M key to generate a new random matrix")
                 .onHover { hovering in
                     withAnimation(.easeInOut(duration: 0.15)) {
                         isHovered = hovering

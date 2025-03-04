@@ -338,8 +338,12 @@ extension ViewController {
             ParticleSystem.shared.decrementSpeciesColorOffset()
         case 121: // page down
             ParticleSystem.shared.incrementSpeciesColorOffset()
-        case 17: // 'T'
+        case 17: // T key
             SimulationSettings.shared.toggleColorEffect()
+        case 46: // M key
+            if SimulationSettings.shared.selectedPreset.matrixType.isRandom {
+                ParticleSystem.shared.respawn(shouldGenerateNewMatrix: true)
+            }
         default:
             return // Do NOT call super.keyDown(with: event) to prevent beep
         }

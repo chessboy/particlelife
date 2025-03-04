@@ -16,7 +16,9 @@ enum ParticleCount: Int, CaseIterable, Identifiable, Codable {
     case k30 = 30720
     case k35 = 35840
     case k40 = 40960
-
+    case k45 = 46080
+    case k50 = 51200
+    
     var id: Int { self.rawValue }
 
     var displayString: String {
@@ -29,6 +31,8 @@ enum ParticleCount: Int, CaseIterable, Identifiable, Codable {
         case .k30: return "30K"
         case .k35: return "35K"
         case .k40: return "40K"
+        case .k45: return "45K"
+        case .k50: return "50K"
         }
     }
     
@@ -48,7 +52,7 @@ enum ParticleCount: Int, CaseIterable, Identifiable, Codable {
     }
     
     static var allCases: [ParticleCount] {
-        return [.k1, .k2, .k5, .k10, .k20, .k30, .k35, .k40]
+        return [.k1, .k2, .k5, .k10, .k20, .k30, .k35, .k40, .k45, .k50]
     }
 
     /// Returns the particle count for a given species count (1-9).

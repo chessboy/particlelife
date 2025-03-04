@@ -49,7 +49,7 @@ class SimulationSettings: ObservableObject {
     }
 
     @Published var maxDistance = ConfigurableSetting(
-        value: 0.65, defaultValue: 0.65, min: 0.5, max: 1.5, step: 0.05, format: "%.2f",
+        value: 0.65, defaultValue: 0.65, min: 0.25, max: 1.5, step: 0.05, format: "%.2f",
         onChange: { _ in SimulationSettings.shared.scheduleBufferUpdate() }
     )
     
