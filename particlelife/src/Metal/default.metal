@@ -7,6 +7,7 @@ using namespace metal;
 
 // todo: pass window size buffer to compute shader and remove this
 constant float ASPECT_RATIO = 1.7778;
+constant int TOTAL_SPECIES = 9;
 
 struct Particle {
     float2 position;
@@ -25,34 +26,37 @@ struct ClickData {
     float force;     // Effect force
 };
 
-// species colors are tweaked by blending its color with the neighboring colors from its species
-float3 speciesColor(Particle particle, int speciesColorOffset, int paletteIndex, int colorEffectIndex, uint frameCount, uint id, int speciesCount) {
-    int adjustedSpecies = (particle.species % speciesCount) + speciesColorOffset; // Ensure within active species range
+// Species colors are tweaked by blending its color with neighboring colors
+float3 speciesColor(Particle particle, int speciesColorOffset, int paletteIndex, int colorEffectIndex,
+                    uint frameCount, uint id, int speciesCount) {
+    
+    int adjustedSpecies = ((particle.species % speciesCount) + speciesColorOffset) % TOTAL_SPECIES;
     int palette = clamp(paletteIndex, 0, int(sizeof(colorPalettes) / sizeof(colorPalettes[0])) - 1);
-
+    
     if (colorEffectIndex == 0) {
+        // No texturing
         return colorPalettes[palette][adjustedSpecies];
     }
     
     // Get primary color
     float3 baseColor = colorPalettes[palette][adjustedSpecies];
-
+    
     // Pick a neighboring species **within the active range**
     int neighborOffset = (rand(particle.species, speciesColorOffset, id) > 0.5 ? 1 : -1);
-    int neighborSpecies = (adjustedSpecies + neighborOffset - speciesColorOffset + speciesCount) % speciesCount + speciesColorOffset;
-
+    int neighborSpecies = ((particle.species + neighborOffset) % speciesCount + speciesCount) % speciesCount;
+    neighborSpecies = (neighborSpecies + speciesColorOffset) % TOTAL_SPECIES;
+    
     float3 neighborColor = colorPalettes[palette][neighborSpecies];
-
-    // Generate blend factor between 0.0 and 0.25
-    float blendFactor = rand(particle.species, speciesColorOffset, id) * 0.25;
-    float3 blendedColor = mix(baseColor, neighborColor, blendFactor);
-
+    
+    // Blend base & neighbor between 0 and 20%
+    float blendAmount = rand(id, speciesColorOffset, particle.species) * 0.2;
+    float3 blendedColor = mix(baseColor, neighborColor, blendAmount);
+    
     // Apply subtle brightness variation (from 0.9 to 1.1)
     float brightnessFactor = 0.9 + rand(id, speciesColorOffset, particle.species) * 0.2;
     
     return blendedColor * brightnessFactor;
 }
-
 
 // draw particles
 vertex VertexOut vertex_main(const device Particle* particles [[buffer(0)]],

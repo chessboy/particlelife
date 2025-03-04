@@ -275,6 +275,7 @@ struct PalettePickerView: View {
                     .clipShape(Circle())
             }
             .buttonStyle(PlainButtonStyle())
+            .help("Use T key to toggle color effect")
             .onHover { hovering in
                 withAnimation(.easeInOut(duration: 0.15)) {
                     isHovered = hovering
@@ -521,7 +522,7 @@ struct FooterView: View {
             LogoView()
             Spacer()
             
-            Text("v\(AppInfo.version)ß")
+            Text("v\(AppInfo.version)(\(AppInfo.build))")
                 .font(.system(size: 14, weight: .medium, design: .monospaced))
                 .foregroundColor(.gray)
         }

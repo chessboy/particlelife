@@ -36,83 +36,45 @@
        "speciesColorOffset":0,
        "speciesCount":3,
        "worldSize":0.5
+   },
+   {
+      "beta" : 0.3,
+      "distributionType" : "line",
+      "friction" : 0.1,
+      "id" : "98D2F616-C484-41C0-A23A-38C669330443",
+      "isBuiltIn" : true,
+      "matrixType" : {
+        "data" : [
+          [
+            -1,
+            -0.05,
+            1
+          ],
+          [
+            -0.05,
+            0.5,
+            -0.05
+          ],
+          [
+            1,
+            -0.05,
+            -1
+          ]
+        ],
+        "type" : "custom"
+      },
+      "maxDistance" : 0.8,
+      "minDistance" : 0.04,
+      "name" : "Seuss",
+      "paletteIndex" : 0,
+      "particleCount" : 35840,
+      "pointSize" : 12,
+      "preservesUISettings" : false,
+      "repulsion" : 0.03,
+      "speciesColorOffset" : 3,
+      "speciesCount" : 3,
+      "worldSize" : 1.25
     },
-   {
-      "beta":0.3,
-      "distributionType":"uniform",
-      "friction":0.14,
-      "id":"4F43FE9A-7620-4F96-B0EA-4B5F6B15C792",
-      "isBuiltIn":true,
-      "matrixType":{
-         "data":[
-            [
-               0,
-               0,
-               1
-            ],
-            [
-               0,
-               -1,
-               0
-            ],
-            [
-               0,
-               0,
-               0
-            ]
-         ],
-         "type":"custom"
-      },
-      "maxDistance":0.65,
-      "minDistance":0.04,
-      "name":"Breathing",
-      "paletteIndex":2,
-      "particleCount":20480,
-      "pointSize":6,
-      "preservesUISettings":false,
-      "repulsion":0.03,
-      "speciesColorOffset":3,
-      "speciesCount":3,
-      "worldSize":0.5
-   },
-   {
-      "beta":0.3,
-      "distributionType":"line",
-      "friction":0.1,
-      "id":"1230808A-D257-491C-ACA3-E64532AD2B70",
-      "isBuiltIn":true,
-      "matrixType":{
-         "data":[
-            [
-               -1,
-               -0.05,
-               1
-            ],
-            [
-               -0.05,
-               0.5,
-               -0.05
-            ],
-            [
-               1,
-               -0.05,
-               -1
-            ]
-         ],
-         "type":"custom"
-      },
-      "maxDistance":0.8,
-      "minDistance":0.04,
-      "name":"Cells",
-      "paletteIndex":0,
-      "particleCount":35840,
-      "pointSize":12,
-      "preservesUISettings":false,
-      "repulsion":0.03,
-      "speciesColorOffset":8,
-      "speciesCount":3,
-      "worldSize":1.25
-   },
    {
       "beta":0.3,
       "distributionType":"centeredCircle",
@@ -223,222 +185,42 @@
       "worldSize":1.25
    },
    {
-      "beta":0.3,
-      "distributionType":"uniform",
-      "friction":0.1,
-      "id":"E09AC9DD-6D79-4E6B-8AC3-C9DFA86D8174",
-      "isBuiltIn":true,
-      "matrixType":{
-         "data":[
-            [
-               -1,
-               1,
-               -0.25
-            ],
-            [
-               1,
-               -1,
-               0.5
-            ],
-            [
-               -0.25,
-               -0.25,
-               0.5
-            ]
+     "beta" : 0.3,
+     "distributionType" : "uniform",
+     "friction" : 0.1,
+     "id" : "2D1DFBD5-5EE8-4D3B-B6E3-544F6F0F1D03",
+     "isBuiltIn" : true,
+     "matrixType" : {
+       "data" : [
+         [
+           -0.7,
+           0.11,
+           0.38
          ],
-         "type":"custom"
-      },
-      "maxDistance":1.5,
-      "minDistance":0.04,
-      "name":"Comet",
-      "paletteIndex":0,
-      "particleCount":30720,
-      "pointSize":12,
-      "preservesUISettings":false,
-      "repulsion":0.03,
-      "speciesColorOffset":0,
-      "speciesCount":3,
-      "worldSize":2
-   },
-   {
-      "beta":0.3,
-      "distributionType":"uniform",
-      "friction":0.1,
-      "id":"883B3BC6-5BF6-4BB8-A7ED-A18248838E09",
-      "isBuiltIn":true,
-      "matrixType":{
-         "data":[
-            [
-               -0.78,
-               0.11,
-               0.38
-            ],
-            [
-               0.66,
-               0.11,
-               -0.49
-            ],
-            [
-               -0.71,
-               0.91,
-               0.74
-            ]
+         [
+           0.66,
+           0.11,
+           -0.49
          ],
-         "type":"custom"
-      },
-      "maxDistance":0.65,
-      "minDistance":0.04,
-      "name":"Comet 2",
-      "paletteIndex":0,
-      "particleCount":30720,
-      "pointSize":14,
-      "preservesUISettings":false,
-      "repulsion":0.03,
-      "speciesColorOffset":0,
-      "speciesCount":3,
-      "worldSize":1.25
-   },
-   {
-      "beta":0.3,
-      "distributionType":"uniform",
-      "friction":0.14,
-      "id":"FDFC453E-7A0C-4F92-918A-DFB5FFB1E456",
-      "isBuiltIn":true,
-      "matrixType":{
-         "data":[
-            [
-               0.86,
-               0.94,
-               0.11,
-               0.43,
-               -0.04,
-               -0.96
-            ],
-            [
-               -0.74,
-               0.01,
-               -0.66,
-               -0.5,
-               0.5,
-               0.09
-            ],
-            [
-               0.95,
-               -0.01,
-               0.22,
-               -0.23,
-               -0.61,
-               -0.12
-            ],
-            [
-               -0.89,
-               0.19,
-               -0.49,
-               -0.42,
-               0.79,
-               -0.58
-            ],
-            [
-               0.93,
-               0.16,
-               0.74,
-               0.44,
-               -0.62,
-               0.37
-            ],
-            [
-               0.87,
-               -0.77,
-               -0.41,
-               0.99,
-               0.44,
-               -0.7
-            ]
-         ],
-         "type":"custom"
-      },
-      "maxDistance":0.65,
-      "minDistance":0.04,
-      "name":"Cosmic",
-      "paletteIndex":3,
-      "particleCount":30720,
-      "pointSize":9,
-      "preservesUISettings":false,
-      "repulsion":0.03,
-      "speciesColorOffset":0,
-      "speciesCount":6,
-      "worldSize":1
-   },
-   {
-      "beta":0.3,
-      "distributionType":"uniform",
-      "friction":0.14,
-      "id":"848727F3-2E3D-4819-BB37-F0D51FEE4DB0",
-      "isBuiltIn":true,
-      "matrixType":{
-         "data":[
-            [
-               0.86,
-               0.94,
-               0.11,
-               0.43,
-               -0.04,
-               -0.96
-            ],
-            [
-               -0.74,
-               0.01,
-               -0.66,
-               -0.5,
-               0.5,
-               0.09
-            ],
-            [
-               0.95,
-               -0.01,
-               0.22,
-               -0.23,
-               -0.61,
-               -0.12
-            ],
-            [
-               -0.89,
-               0.19,
-               -0.49,
-               -0.42,
-               0.79,
-               -0.58
-            ],
-            [
-               0.93,
-               0.16,
-               0.74,
-               0.44,
-               -0.62,
-               0.37
-            ],
-            [
-               0.87,
-               -0.77,
-               -0.41,
-               0.99,
-               0.44,
-               -0.7
-            ]
-         ],
-         "type":"custom"
-      },
-      "maxDistance":0.65,
-      "minDistance":0.04,
-      "name":"Jellyfish",
-      "paletteIndex":6,
-      "particleCount":35840,
-      "pointSize":9,
-      "preservesUISettings":false,
-      "repulsion":0.03,
-      "speciesColorOffset":0,
-      "speciesCount":6,
-      "worldSize":1
+         [
+           -0.71,
+           0.91,
+           0.74
+         ]
+       ],
+       "type" : "custom"
+     },
+     "maxDistance" : 0.65,
+     "minDistance" : 0.04,
+     "name" : "Ravenous",
+     "paletteIndex" : 3,
+     "particleCount" : 30720,
+     "pointSize" : 14,
+     "preservesUISettings" : false,
+     "repulsion" : 0.03,
+     "speciesColorOffset" : 2,
+     "speciesCount" : 3,
+     "worldSize" : 1.25
    },
    {
       "beta":0.3,
@@ -479,75 +261,75 @@
       "worldSize":1
    },
    {
-      "beta":0.3,
-      "distributionType":"uniform",
-      "friction":0.14,
-      "id":"D66585F2-737F-4F23-AE92-10074C289B04",
-      "isBuiltIn":true,
-      "matrixType":{
-         "data":[
-            [
-               -0.58,
-               -0.96,
-               -0.55,
-               0.56,
-               0.65,
-               0.21
-            ],
-            [
-               -0.99,
-               -0.67,
-               0.51,
-               0.16,
-               0.58,
-               -0.1
-            ],
-            [
-               0.36,
-               0.79,
-               -0.04,
-               -0.58,
-               1,
-               0.51
-            ],
-            [
-               -0.61,
-               0.92,
-               0.85,
-               -0.24,
-               0.56,
-               0.55
-            ],
-            [
-               -0.85,
-               0.77,
-               0.84,
-               -0.2,
-               -0.79,
-               -0.05
-            ],
-            [
-               -0.68,
-               -0.07,
-               -0.78,
-               0.16,
-               -0.29,
-               -0.55
-            ]
+     "beta" : 0.3,
+     "distributionType" : "uniform",
+     "friction" : 0.14,
+     "id" : "A16DC84A-B38F-4F75-B913-82CF9C4F9708",
+     "isBuiltIn" : true,
+     "matrixType" : {
+       "data" : [
+         [
+           -0.58,
+           -0.96,
+           -0.55,
+           0.56,
+           0.65,
+           0.21
          ],
-         "type":"custom"
-      },
-      "maxDistance":0.65,
-      "minDistance":0.04,
-      "name":"More Cells",
-      "paletteIndex":5,
-      "particleCount":30720,
-      "pointSize":9,
-      "preservesUISettings":false,
-      "repulsion":0.03,
-      "speciesColorOffset":7,
-      "speciesCount":6,
-      "worldSize":1
+         [
+           -0.99,
+           -0.67,
+           0.51,
+           0.16,
+           0.58,
+           -0.1
+         ],
+         [
+           0.36,
+           0.79,
+           -0.04,
+           -0.58,
+           1,
+           0.51
+         ],
+         [
+           -0.61,
+           0.92,
+           0.85,
+           -0.24,
+           0.56,
+           0.55
+         ],
+         [
+           -0.85,
+           0.77,
+           0.84,
+           -0.2,
+           -0.79,
+           -0.05
+         ],
+         [
+           -0.68,
+           -0.07,
+           -0.78,
+           0.16,
+           -0.29,
+           -0.55
+         ]
+       ],
+       "type" : "custom"
+     },
+     "maxDistance" : 0.65,
+     "minDistance" : 0.04,
+     "name" : "Still Life",
+     "paletteIndex" : 2,
+     "particleCount" : 30720,
+     "pointSize" : 9,
+     "preservesUISettings" : false,
+     "repulsion" : 0.03,
+     "speciesColorOffset" : 0,
+     "speciesCount" : 6,
+     "worldSize" : 1
    },
    {
       "beta":0.3,
@@ -925,7 +707,7 @@
       },
       "maxDistance":0.65,
       "minDistance":0.04,
-      "name":"Spinning Eyes",
+      "name":"Spinner",
       "paletteIndex":6,
       "particleCount":40960,
       "pointSize":9,

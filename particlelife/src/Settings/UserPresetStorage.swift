@@ -192,7 +192,7 @@ extension UserPresetStorage {
             let data = try Data(contentsOf: url)
             let presets = try JSONDecoder().decode([SimulationPreset].self, from: data)
             Logger.log("Loaded \(presets.count) presets", level: .debug)
-            return presets
+            return presets.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
         } catch {
             Logger.logWithError("Error loading presets", error: error)
             return []
