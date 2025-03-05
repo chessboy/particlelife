@@ -119,6 +119,14 @@ class SimulationSettings: ObservableObject {
     func decrementSpeciesColorOffset() {
         speciesColorOffset = (speciesColorOffset - 1 + SpeciesPalette.colorCount) % SpeciesPalette.colorCount
     }
+    
+    func incrementPaletteIndex() {
+        paletteIndex = (paletteIndex + 1) % SpeciesPalette.allCases.count
+    }
+    
+    func decrementPaletteIndex() {
+        paletteIndex = (paletteIndex - 1 + SpeciesPalette.allCases.count) % SpeciesPalette.allCases.count
+    }
 }
 
 extension SimulationSettings {

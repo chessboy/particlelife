@@ -47,7 +47,7 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         } else {
             Logger.log("Running on CPU fallback – performance may be severely impacted.", level: .warning)
             // Alert user this will not be fun (delay 1 second)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                 NotificationCenter.default.post(name: .lowPerformanceWarning, object: nil)
             }
         }

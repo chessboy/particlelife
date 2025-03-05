@@ -18,36 +18,45 @@ class ViewController: NSViewController {
     private var settingsButton: NSHostingView<SettingsButtonView>?
     private var settingsButtonFadeTimer: Timer?
     private var settingsPanel: NSHostingView<SimulationSettingsView>!
+    private var splashScreen: NSHostingView<SplashScreenView>!
 
-    override func viewWillAppear() {
-        super.viewWillAppear()
-    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
         setupMetalView()
-
-        self.view.window?.makeFirstResponder(self)
         setupSettingsButton()
         setupSettingsPanel()
+        setupSplashScreen()
         setupMouseTracking()
-
-        centerWindow()
         enforceWindowSizeConstraints()
         
+        // Set up notifications
         NotificationCenter.default.addObserver(self, selector: #selector(didEnterFullScreen), name: NSWindow.didEnterFullScreenNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(didExitFullScreen), name: NSWindow.didExitFullScreenNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(hideSettingsPanel), name: .closeSettingsPanel, object: nil)
+        NotificationCenter.default.addObserver(forName: .lowPerformanceWarning, object: nil, queue: .main) { _ in
+            self.showAlert(title: "Performance Warning", message: "Your system does not have a compatible GPU. Expect reduced performance.")
+        }
+    }
+    
+    override func viewWillAppear() {
+        super.viewWillAppear()
+        
+        self.view.window?.makeFirstResponder(self) // Ensure proper input focus
         actionTimer = Timer.scheduledTimer(timeInterval: 0.016, target: self, selector: #selector(updateCamera), userInfo: nil, repeats: true)
         
+        fitWindowToScreen()
+
         // Always make window fullscreen on launch
         if let window = view.window {
             window.toggleFullScreen(nil)
+        } else {
+            Logger.log("Could not find window to make fullscreen", level: .error)
         }
         
+        // Delay settings panel appearance
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             self.showSettingsPanel()
-        }
-        
-        NotificationCenter.default.addObserver(forName: .lowPerformanceWarning, object: nil, queue: .main) { _ in
-            self.showAlert(title: "Performance Warning", message: "Your system does not have a compatible GPU. Expect reduced performance.")
         }
     }
     
@@ -90,19 +99,14 @@ class ViewController: NSViewController {
             metalView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
         ])
     }
-
-    func centerWindow() {
+    
+    func fitWindowToScreen() {
         guard let window = view.window, let screen = window.screen else { return }
         
-        let screenFrame = screen.visibleFrame
-        let windowSize = window.frame.size
-        let centeredOrigin = NSPoint(
-            x: screenFrame.midX - windowSize.width / 2,
-            y: screenFrame.midY - windowSize.height / 2
-        )
-        
-        window.setFrameOrigin(centeredOrigin)
-        Logger.log("Window centered on screen: windowSize: \(windowSize), screenFrame: \(screenFrame), origin: \(centeredOrigin)", level: .debug)
+        let screenFrame = screen.frame // Get full screen dimensions
+        window.setFrame(screenFrame, display: true)
+
+        Logger.log("Window resized to fit screen: \(screenFrame)", level: .debug)
     }
     
     private func enforceWindowSizeConstraints() {
@@ -123,10 +127,17 @@ class ViewController: NSViewController {
         Logger.log("window size: \(window.frame.size) | content size: \(window.contentLayoutRect.size) | titleBarHeight: \(titleBarHeight)", level: .debug)
     }
     
+    var didShowSplash = false
+    
     @objc private func didEnterFullScreen() {
         if !UserSettings.shared.bool(forKey: UserSettingsKeys.startupInFullScreen) {
             UserSettings.shared.set(true, forKey: UserSettingsKeys.startupInFullScreen)
         }
+        
+        if !didShowSplash {
+            didShowSplash = true
+        }
+
     }
     
     // Reapply aspect ratio when exiting full screen
@@ -375,6 +386,10 @@ extension ViewController {
     func handleOtherKeyDown(with event: NSEvent) {
         
         switch event.keyCode {
+        case 33: // [
+            ParticleSystem.shared.decrementPaletteIndex()
+        case 30: // ]
+            ParticleSystem.shared.incrementPaletteIndex()
         case 48: // Tab
             toggleSettingsPanel()
         case 49: // Space bar
@@ -416,6 +431,39 @@ extension ViewController {
         }
         if panningDown {
             renderer.panDown()  // Smooth panning down
+        }
+    }
+}
+
+extension ViewController {
+    
+    private func setupSplashScreen() {
+        
+        let spashView = SplashScreenView(onDismiss: {
+            self.removeSplashScreen()
+        })
+        
+        splashScreen = NSHostingView(rootView: spashView)
+        
+        splashScreen.translatesAutoresizingMaskIntoConstraints = false
+        splashScreen.alphaValue = 1.0 // Ensure it starts fully visible
+        view.addSubview(splashScreen)
+        
+        NSLayoutConstraint.activate([
+            splashScreen.topAnchor.constraint(equalTo: view.topAnchor),
+            splashScreen.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            splashScreen.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            splashScreen.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+        ])
+    }
+
+    private func removeSplashScreen() {
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = 1.0
+            splashScreen.animator().alphaValue = 0.0
+        } completionHandler: {
+            self.splashScreen.removeFromSuperview()
+            self.splashScreen = nil
         }
     }
 }

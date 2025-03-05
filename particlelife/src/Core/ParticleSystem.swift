@@ -28,11 +28,14 @@ class ParticleSystem: ObservableObject {
         
         let initialPreset = PresetDefinitions.randomSpecialPreset()
         
-        SimulationSettings.shared.selectedPreset = initialPreset
-        SimulationSettings.shared.applyPreset(initialPreset)
-        generateParticles(preset: initialPreset)
-        generateNewMatrix(preset: initialPreset, speciesColorOffset: initialPreset.speciesColorOffset, paletteIndex: initialPreset.paletteIndex)
-        updatePhysicsAndBuffers(preset: initialPreset)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+            
+            SimulationSettings.shared.selectedPreset = initialPreset
+            SimulationSettings.shared.applyPreset(initialPreset)
+            self.generateParticles(preset: initialPreset)
+            self.generateNewMatrix(preset: initialPreset, speciesColorOffset: initialPreset.speciesColorOffset, paletteIndex: initialPreset.paletteIndex)
+            self.updatePhysicsAndBuffers(preset: initialPreset)
+        }
         
         // listen for changes when a preset is applied
         NotificationCenter.default.addObserver(self, selector: #selector(presetApplied), name: Notification.Name.presetSelected, object: nil)
@@ -251,6 +254,18 @@ extension ParticleSystem {
     func decrementSpeciesColorOffset() {
         SimulationSettings.shared.decrementSpeciesColorOffset()
         UserSettings.shared.set(SimulationSettings.shared.speciesColorOffset, forKey: UserSettingsKeys.speciesColorOffset)
+        updateSpeciesColorsFromSettings()
+    }
+    
+    func incrementPaletteIndex() {
+        SimulationSettings.shared.incrementPaletteIndex()
+        UserSettings.shared.set(SimulationSettings.shared.paletteIndex, forKey: UserSettingsKeys.colorPaletteIndex)
+        updateSpeciesColorsFromSettings()
+    }
+    
+    func decrementPaletteIndex() {
+        SimulationSettings.shared.decrementPaletteIndex()
+        UserSettings.shared.set(SimulationSettings.shared.paletteIndex, forKey: UserSettingsKeys.colorPaletteIndex)
         updateSpeciesColorsFromSettings()
     }
 }
