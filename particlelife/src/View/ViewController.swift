@@ -115,7 +115,7 @@ class ViewController: NSViewController {
     private func enforceWindowSizeConstraints() {
         guard let window = view.window else { return }
         
-        let aspectRatio: CGFloat = Constants.ASPECT_RATIO
+        let aspectRatio: CGFloat = ASPECT_RATIO
         let minContentHeight: CGFloat = 940
         let minContentWidth: CGFloat = round(minContentHeight * aspectRatio)
         

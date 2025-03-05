@@ -112,7 +112,7 @@ class ParticleSystem: ObservableObject {
         //Logger.log("Unique species in new particles: \(uniqueSpecies)", level: .debug)
         
         let worldSize = SimulationSettings.shared.worldSize.value
-        let scaleFactorX = preset.distributionType.shouldScaleToAspectRatio ? worldSize * Float(Constants.ASPECT_RATIO) : worldSize
+        let scaleFactorX = preset.distributionType.shouldScaleToAspectRatio ? worldSize * Float(ASPECT_RATIO) : worldSize
         let scaleFactorY = worldSize
         
         if preset.distributionType.shouldRecenter {

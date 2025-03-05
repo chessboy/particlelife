@@ -38,7 +38,7 @@ class UserPresetStorage {
     }
     
     static func migrateIfNeeded() {
-        let currentVersion = 1
+        let currentVersion = 0
         let storedVersion = UserDefaults.standard.integer(forKey: migrationVersionKey)
         
         guard storedVersion < currentVersion else {

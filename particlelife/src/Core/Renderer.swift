@@ -9,6 +9,11 @@ import Foundation
 import MetalKit
 import Combine
 
+struct UIControlConstants {
+    static let zoomStep: Float = 1.01
+    static let panStep: Float = 0.01
+}
+
 class Renderer: NSObject, MTKViewDelegate, ObservableObject {
     
     private weak var fpsMonitor: FPSMonitor?
@@ -249,7 +254,7 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
     func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {
         guard size.width > 0 && size.height > 0 else { return }
 
-        let expectedAspectRatio: CGFloat = Constants.ASPECT_RATIO
+        let expectedAspectRatio: CGFloat = ASPECT_RATIO
         var correctedSize = size
         
         if abs((size.width / size.height) - expectedAspectRatio) > 0.01 {
@@ -295,38 +300,38 @@ extension Renderer {
     
     func zoomIn() {
         guard !isPaused else { return }
-        zoomLevel *= Constants.Controls.zoomStep
+        zoomLevel *= UIControlConstants.zoomStep
         BufferManager.shared.updateZoomBuffer(zoomLevel: zoomLevel)
     }
     
     func zoomOut() {
         guard !isPaused else { return }
-        zoomLevel /= Constants.Controls.zoomStep
+        zoomLevel /= UIControlConstants.zoomStep
         BufferManager.shared.updateZoomBuffer(zoomLevel: zoomLevel)
     }
     
     // Pan Controls
     func panLeft() {
         guard !isPaused else { return }
-        cameraPosition.x -= Constants.Controls.panStep / zoomLevel
+        cameraPosition.x -= UIControlConstants.panStep / zoomLevel
         BufferManager.shared.updateCameraBuffer(cameraPosition: cameraPosition)
     }
     
     func panRight() {
         guard !isPaused else { return }
-        cameraPosition.x += Constants.Controls.panStep / zoomLevel
+        cameraPosition.x += UIControlConstants.panStep / zoomLevel
         BufferManager.shared.updateCameraBuffer(cameraPosition: cameraPosition)
     }
     
     func panUp() {
         guard !isPaused else { return }
-        cameraPosition.y += Constants.Controls.panStep / zoomLevel
+        cameraPosition.y += UIControlConstants.panStep / zoomLevel
         BufferManager.shared.updateCameraBuffer(cameraPosition: cameraPosition)
     }
     
     func panDown() {
         guard !isPaused else { return }
-        cameraPosition.y -= Constants.Controls.panStep / zoomLevel
+        cameraPosition.y -= UIControlConstants.panStep / zoomLevel
         BufferManager.shared.updateCameraBuffer(cameraPosition: cameraPosition)
     }
     

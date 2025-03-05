@@ -5,7 +5,6 @@ using namespace metal;
 #include "ColorPalettes.metal"
 #include "Random.metal"
 
-// todo: pass window size buffer to compute shader and remove this
 constant float ASPECT_RATIO = 1.7778;
 constant float ASPECT_RATIO_INVERSE = 1.0 / 1.7778;
 constant int TOTAL_SPECIES = 9;

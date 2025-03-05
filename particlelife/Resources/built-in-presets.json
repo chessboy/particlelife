@@ -709,7 +709,7 @@
      "minDistance" : 0.04,
      "name" : "Oscillations",
      "paletteIndex" : 6,
-     "particleCount" : 40960,
+     "particleCount" : 35840,
      "pointSize" : 9,
      "preservesUISettings" : false,
      "repulsion" : 0.03,
