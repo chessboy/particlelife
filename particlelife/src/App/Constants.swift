@@ -47,6 +47,8 @@ struct SFSymbols {
         static let settings = "gearshape.fill"
         static let colorEffect = "circle.bottomrighthalf.pattern.checkered"
         static let presets = "star.fill"
+        static let dice = "dice"
+        static let warning = "exclamationmark.triangle.fill"
     }
     
     struct Symbol {

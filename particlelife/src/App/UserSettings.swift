@@ -15,7 +15,7 @@ final class UserSettings {
 
     // MARK: - Logging Helper
     private func logChange(_ key: String, value: Any) {
-        Logger.log("Updated setting: '\(key)' = \(value)", level: .debug)
+        //Logger.log("Updated setting: '\(key)' = \(value)", level: .debug)
     }
 
     private func logAccess(_ key: String, value: Any) {

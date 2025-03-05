@@ -17,7 +17,6 @@ enum ParticleCount: Int, CaseIterable, Identifiable, Codable, Comparable {
     case k35 = 35840
     case k40 = 40960
     case k45 = 46080
-    case k50 = 51200
     
     var id: Int { self.rawValue }
 
@@ -32,7 +31,6 @@ enum ParticleCount: Int, CaseIterable, Identifiable, Codable, Comparable {
         case .k35: return "35K"
         case .k40: return "40K"
         case .k45: return "45K"
-        case .k50: return "50K"
         }
     }
     
@@ -56,7 +54,7 @@ enum ParticleCount: Int, CaseIterable, Identifiable, Codable, Comparable {
     }
     
     static var allCases: [ParticleCount] {
-        return [.k1, .k2, .k5, .k10, .k20, .k30, .k35, .k40, .k45, .k50]
+        return [.k1, .k2, .k5, .k10, .k20, .k30, .k35, .k40, .k45]
     }
 
     /// Returns the particle count for a given species count (1-9).
@@ -89,7 +87,8 @@ enum ParticleCount: Int, CaseIterable, Identifiable, Codable, Comparable {
         case .k1, .k2: return self
         case .k5: return .k2
         case .k10: return .k5
-        case .k20, .k30, .k35, .k40, .k45, .k50: return .maxGimpedCount  // Cap at maxGimpedCount
+        case .k20, .k30: return .k10
+        case .k35, .k40, .k45: return .maxGimpedCount  // Cap at maxGimpedCount
         }
     }
 }

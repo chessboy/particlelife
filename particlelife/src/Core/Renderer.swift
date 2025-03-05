@@ -249,13 +249,13 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
             ? CGSize(width: size.height * expectedAspectRatio, height: size.height)
             : CGSize(width: size.width, height: size.width / expectedAspectRatio)
             
-            Logger.log("Drawable size corrected: "
-                       + "Original: \(size.width)x\(size.height), "
-                       + "View Bounds: \(view.bounds.size), "
-                       + "Corrected: \(correctedSize.width)x\(correctedSize.height), "
-                       + "Computed Aspect Ratio: \(correctedSize.width / correctedSize.height), "
-                       + "FPS Check: \(view.preferredFramesPerSecond)",
-                       level: .debug)
+//            Logger.log("Drawable size corrected: "
+//                       + "Original: \(size.width)x\(size.height), "
+//                       + "View Bounds: \(view.bounds.size), "
+//                       + "Corrected: \(correctedSize.width)x\(correctedSize.height), "
+//                       + "Computed Aspect Ratio: \(correctedSize.width / correctedSize.height), "
+//                       + "FPS Check: \(view.preferredFramesPerSecond)",
+//                       level: .debug)
         }
         BufferManager.shared.updateWindowSizeBuffer(width: Float(correctedSize.width), height: Float(correctedSize.height))
     }

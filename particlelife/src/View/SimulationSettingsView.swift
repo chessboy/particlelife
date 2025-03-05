@@ -105,7 +105,7 @@ struct PresetPickerView: View {
             Button(action: {
                 ParticleSystem.shared.selectRandomBuiltInPreset()
             }) {
-                Image(systemName: SFSymbols.Name.presets)
+                Image(systemName: SFSymbols.Name.randomize)
                     .foregroundColor(isHovered ? .white : Color(white: 0.8))
                     .font(.system(size: 14))
                     .padding(2)
@@ -204,7 +204,7 @@ struct MatrixPickerView: View {
                 Button(action: {
                     ParticleSystem.shared.respawn(shouldGenerateNewMatrix: true)
                 }) {
-                    Image(systemName: SFSymbols.Name.randomize)
+                    Image(systemName: SFSymbols.Name.dice)
                         .foregroundColor(isHovered ? .white : Color(white: 0.8))
                         .font(.system(size: 14))
                         .padding(2)
@@ -463,7 +463,7 @@ struct LogoView: View {
             .resizable()
             .scaledToFit()
             .opacity(hovering ? 1.0 : 0.7)
-            .frame(width: 120)
+            .frame(width: SystemCapabilities.isRunningOnProperGPU ? 120 : 100)
             .scaleEffect(hovering ? 1.15 : 1.0) // Scale on hover
             .animation(.easeInOut(duration: 0.15), value: hovering)
             .onTapGesture {
@@ -533,7 +533,8 @@ struct PhysicsSettingsView: View {
 struct FooterView: View {
     @State private var fps: Int = 0
     @ObservedObject var renderer: Renderer
-    
+    @State private var isHovered = false
+
     var body: some View {
         HStack {
             
@@ -548,6 +549,25 @@ struct FooterView: View {
             Text("v\(AppInfo.version)(\(AppInfo.build))")
                 .font(.system(size: 14, weight: .medium, design: .monospaced))
                 .foregroundColor(.gray)
+            
+            if !SystemCapabilities.isRunningOnProperGPU {
+                Button(action: {
+                    NotificationCenter.default.post(name: .lowPerformanceWarning, object: nil)
+                }) {
+                    Image(systemName: SFSymbols.Name.warning)
+                        .foregroundColor(SimulationSettings.shared.colorEffectIndex == 0 ? .white : .yellow)
+                        .font(.system(size: 14))
+                        .padding(2)
+                        .background(isHovered ? Color.gray.opacity(0.3) : Color.clear)
+                        .clipShape(Circle())
+                }
+                .buttonStyle(PlainButtonStyle())
+                .onHover { hovering in
+                    withAnimation(.easeInOut(duration: 0.15)) {
+                        isHovered = hovering
+                    }
+                }
+            }
         }
         .padding(.top, 8)
         .padding(.bottom, 4)
