@@ -24,7 +24,7 @@ class ParticleSystem: ObservableObject {
     
     init() {
         
-        PresetDefinitions.loadSpecialPresets(isGimped: !SystemCapabilities.isRunningOnProperGPU)
+        PresetDefinitions.loadSpecialPresets(isGimped: !SystemCapabilities.shared.isRunningOnProperGPU)
         
         let initialPreset = PresetDefinitions.randomSpecialPreset()
         
@@ -177,18 +177,19 @@ class ParticleSystem: ObservableObject {
         var dt = Float(currentTime - lastUpdateTime)
         dt = max(0.0001, min(dt, 0.0105)) // Clamp dt was 0.01
         
-        let smoothingFactor: Float = 0.05
+        let smoothingFactor = SystemCapabilities.shared.smoothingFactor
+        
         dt = (1.0 - smoothingFactor) * lastDT + smoothingFactor * dt
         
-        // Snap dt to avoid micro jitter
+        // Quantize dt to avoid micro jitter
         let quantizationStep: Float = 0.0004 // was 0.0005
         dt = round(dt / quantizationStep) * quantizationStep
         
         if abs(dt - lastDT) > 0.00005 {
-            BufferManager.shared.updateDeltaTimeBuffer(dt: &dt)  // Send RAW dt (not dtFactor!)
+            BufferManager.shared.updateDeltaTimeBuffer(dt: &dt)
             lastDT = dt
         }
-        
+                
         lastUpdateTime = currentTime
     }
 }
@@ -219,7 +220,7 @@ extension ParticleSystem {
         
         var presetToApply = storedPreset
 
-        if !SystemCapabilities.isRunningOnProperGPU, storedPreset.particleCount > ParticleCount.maxGimpedCount {
+        if !SystemCapabilities.shared.isRunningOnProperGPU, storedPreset.particleCount > ParticleCount.maxGimpedCount {
             Logger.log("Gimping particle count for \(preset.name)", level: .warning)
             presetToApply = storedPreset.copy(newParticleCount: ParticleCount.maxGimpedCount)
         }

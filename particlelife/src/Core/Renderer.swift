@@ -42,21 +42,29 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
 
         super.init()
         
-        if SystemCapabilities.isRunningOnProperGPU {
+        if SystemCapabilities.shared.isRunningOnProperGPU {
             Logger.log("Running on a dedicated GPU", level: .debug)
+        } else if SystemCapabilities.shared.isCPUOnly {
+            Logger.log("No compatible GPU found – running on CPU fallback. Performance will be severely impacted.", level: .warning)
+
+            // Notify user this will be a struggle
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                NotificationCenter.default.post(name: .lowPerformanceWarning, object: nil)
+            }
         } else {
-            Logger.log("Running on CPU fallback – performance may be severely impacted.", level: .warning)
-            // Alert user this will not be fun (delay 1 second)
+            Logger.log("Running on a low-power GPU – expect reduced performance.", level: .warning)
+
+            // Notify user low-power GPU might struggle
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                 NotificationCenter.default.post(name: .lowPerformanceWarning, object: nil)
             }
         }
-
+        
         if let metalView = metalView {
             self.device = metalView.device
             metalView.delegate = self
             metalView.enableSetNeedsDisplay = false
-            metalView.preferredFramesPerSecond = 60
+            metalView.preferredFramesPerSecond = SystemCapabilities.shared.preferredFramesPerSecond
             Logger.log("Metal device initialized successfully", level: .debug)
         } else {
             Logger.log("Running in Preview Mode - Metal Rendering Disabled", level: .warning)

@@ -34,8 +34,11 @@ class ViewController: NSViewController {
         NotificationCenter.default.addObserver(self, selector: #selector(didEnterFullScreen), name: NSWindow.didEnterFullScreenNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(didExitFullScreen), name: NSWindow.didExitFullScreenNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(hideSettingsPanel), name: .closeSettingsPanel, object: nil)
+        
         NotificationCenter.default.addObserver(forName: .lowPerformanceWarning, object: nil, queue: .main) { _ in
-            self.showAlert(title: "Performance Warning", message: "Your system does not have a compatible GPU. Expect reduced performance.")
+            if let warning = SystemCapabilities.shared.performanceWarning() {
+                self.showAlert(title: warning.title, message: warning.message)
+            }
         }
     }
     

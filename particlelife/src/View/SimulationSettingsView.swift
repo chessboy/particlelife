@@ -403,12 +403,9 @@ struct ParticleCountPickerView: View {
                     ParticleSystem.shared.particleCountWillChange(newCount: newCount)
                 }
             )) {
-                ForEach(ParticleCount.allCases.filter { SystemCapabilities.isRunningOnProperGPU || $0 <= .maxGimpedCount }, id: \.self) { count in
+                ForEach(ParticleCount.allCases.filter { SystemCapabilities.shared.isRunningOnProperGPU || $0 <= .maxGimpedCount }, id: \.self) { count in
                     Text(count.displayString)
                         .tag(count)
-                        .foregroundColor(count.rawValue > ParticleCount.k20.rawValue && !SystemCapabilities.isRunningOnProperGPU ? .gray : .primary)
-                        .opacity(count.rawValue > ParticleCount.k20.rawValue && !SystemCapabilities.isRunningOnProperGPU ? 0.5 : 1.0)
-                        .disabled(count.rawValue > ParticleCount.k20.rawValue && !SystemCapabilities.isRunningOnProperGPU)
                 }
             }
             .pickerStyle(MenuPickerStyle())
@@ -463,7 +460,7 @@ struct LogoView: View {
             .resizable()
             .scaledToFit()
             .opacity(hovering ? 1.0 : 0.7)
-            .frame(width: SystemCapabilities.isRunningOnProperGPU ? 120 : 100)
+            .frame(width: SystemCapabilities.shared.isRunningOnProperGPU ? 120 : 100)
             .scaleEffect(hovering ? 1.15 : 1.0) // Scale on hover
             .animation(.easeInOut(duration: 0.15), value: hovering)
             .onTapGesture {
@@ -550,7 +547,7 @@ struct FooterView: View {
                 .font(.system(size: 14, weight: .medium, design: .monospaced))
                 .foregroundColor(.gray)
             
-            if !SystemCapabilities.isRunningOnProperGPU {
+            if !SystemCapabilities.shared.isRunningOnProperGPU {
                 Button(action: {
                     NotificationCenter.default.post(name: .lowPerformanceWarning, object: nil)
                 }) {
