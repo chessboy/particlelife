@@ -27,7 +27,6 @@ class ViewController: NSViewController {
         self.view.window?.makeFirstResponder(self)
         setupSettingsButton()
         setupSettingsPanel()
-        showSettingsPanel()
         setupMouseTracking()
 
         centerWindow()
@@ -38,8 +37,29 @@ class ViewController: NSViewController {
         NotificationCenter.default.addObserver(self, selector: #selector(hideSettingsPanel), name: .closeSettingsPanel, object: nil)
         actionTimer = Timer.scheduledTimer(timeInterval: 0.016, target: self, selector: #selector(updateCamera), userInfo: nil, repeats: true)
         
-        if UserSettings.shared.bool(forKey: UserSettingsKeys.startupInFullScreen, defaultValue: true), let window = view.window {
-            window.toggleFullScreen(nil)  // Make window fullscreen on launch
+        // Always make window fullscreen on launch
+        if let window = view.window {
+            window.toggleFullScreen(nil)
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            self.showSettingsPanel()
+        }
+        
+        NotificationCenter.default.addObserver(forName: .lowPerformanceWarning, object: nil, queue: .main) { _ in
+            self.showAlert(title: "Performance Warning", message: "Your system does not have a compatible GPU. Expect reduced performance.")
+        }
+    }
+    
+    func showAlert(title: String, message: String) {
+        let alert = NSAlert()
+        alert.messageText = title
+        alert.informativeText = message
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: "OK")
+        
+        DispatchQueue.main.async {
+            alert.runModal()
         }
     }
     
@@ -176,8 +196,9 @@ extension ViewController {
         
         settingsPanel = NSHostingView(rootView: settingsView)
         settingsPanel.translatesAutoresizingMaskIntoConstraints = false
-        settingsPanel.isHidden = false
-        
+        settingsPanel.isHidden = true
+        settingsPanel.alphaValue = 0.0  // Start at 0 so first-time animation works
+
         view.addSubview(settingsPanel)
         
         NSLayoutConstraint.activate([
@@ -199,7 +220,8 @@ extension ViewController {
         guard settingsPanel.isHidden else { return }
         
         settingsPanel.isHidden = false
-        
+        settingsPanel.alphaValue = 0.0  // Ensure it starts fully transparent
+
         NSAnimationContext.runAnimationGroup { context in
             context.duration = 0.3
             settingsPanel.animator().alphaValue = 1.0

@@ -30,18 +30,34 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
     
     private var cancellables = Set<AnyCancellable>()
     private var worldSizeObserver: AnyCancellable?
-        
+            
     init(metalView: MTKView? = nil, fpsMonitor: FPSMonitor) {
         self.fpsMonitor = fpsMonitor
 
+        #if arch(arm64)
+        Logger.log("Running on  Silicon")
+        #else
+        Logger.log("Running on Intel")
+        #endif
+
         super.init()
         
+        if SystemCapabilities.isRunningOnProperGPU {
+            Logger.log("Running on a dedicated GPU", level: .debug)
+        } else {
+            Logger.log("Running on CPU fallback – performance may be severely impacted.", level: .warning)
+            // Alert user this will not be fun (delay 1 second)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                NotificationCenter.default.post(name: .lowPerformanceWarning, object: nil)
+            }
+        }
+
         if let metalView = metalView {
             self.device = metalView.device
             metalView.delegate = self
             metalView.enableSetNeedsDisplay = false
             metalView.preferredFramesPerSecond = 60
-            Logger.log("Running on Metal device")
+            Logger.log("Metal device initialized successfully", level: .debug)
         } else {
             Logger.log("Running in Preview Mode - Metal Rendering Disabled", level: .warning)
         }

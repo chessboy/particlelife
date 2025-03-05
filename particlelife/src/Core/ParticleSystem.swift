@@ -23,6 +23,9 @@ class ParticleSystem: ObservableObject {
     private var lastDT: Float = 0.001
     
     init() {
+        
+        PresetDefinitions.loadSpecialPresets(isGimped: !SystemCapabilities.isRunningOnProperGPU)
+        
         let initialPreset = PresetDefinitions.randomSpecialPreset()
         
         SimulationSettings.shared.selectedPreset = initialPreset
@@ -40,7 +43,7 @@ class ParticleSystem: ObservableObject {
         Logger.log("Preset applied - updating Particle System with respawn")
         respawn(shouldGenerateNewMatrix: true)
     }
-    
+        
     /// Updates buffers and physics settings
     private func updatePhysicsAndBuffers(preset: SimulationPreset) {
         BufferManager.shared.updateParticleBuffers(
@@ -189,12 +192,9 @@ class ParticleSystem: ObservableObject {
 
 extension ParticleSystem {
     
-    // select one of the built-in or user-created presets that are not the current preset
+    // select one of the built-in presets that are not the current preset
     func selectRandomBuiltInPreset() {
-        let excludedPreset = SimulationSettings.shared.selectedPreset
-        let availablePresets = (PresetDefinitions.specialPresets + SimulationSettings.shared.userPresets).filter { $0 != excludedPreset }
-        let randomPreset = availablePresets.randomElement() ?? PresetDefinitions.randomPreset
-        selectPreset(randomPreset)
+        selectPreset(PresetDefinitions.randomSpecialPreset(excluding: SimulationSettings.shared.selectedPreset))
     }
     
     func selectPreset(_ preset: SimulationPreset) {
@@ -214,9 +214,14 @@ extension ParticleSystem {
             return
         }
         
-        Logger.log("Preset '\(preset.name)' found. Selecting it now.", level: .debug)
-        
         var presetToApply = storedPreset
+
+        if !SystemCapabilities.isRunningOnProperGPU, storedPreset.particleCount > ParticleCount.maxGimpedCount {
+            Logger.log("Gimping particle count for \(preset.name)", level: .warning)
+            presetToApply = storedPreset.copy(newParticleCount: ParticleCount.maxGimpedCount)
+        }
+        
+        Logger.log("Preset '\(preset.name)' found. Selecting it now.", level: .debug)
         
         if storedPreset.preservesUISettings {
             Logger.log("Preserving UI settings while selecting preset '\(preset.name)'", level: .debug)

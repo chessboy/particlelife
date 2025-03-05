@@ -390,21 +390,25 @@ struct SpeciesPickerView: View {
 struct ParticleCountPickerView: View {
     @ObservedObject var settings: SimulationSettings
     @ObservedObject var renderer: Renderer
-    
+
     var body: some View {
         HStack(spacing: 0) {
             Text("Particles:")
                 .foregroundColor(labelColor)
                 .frame(width: pickerLabelWidth, alignment: .trailing)
-            
+
             Picker("", selection: Binding(
                 get: { settings.selectedPreset.particleCount },
                 set: { newCount in
                     ParticleSystem.shared.particleCountWillChange(newCount: newCount)
                 }
             )) {
-                ForEach(ParticleCount.allCases, id: \.self) { count in
-                    Text(count.displayString).tag(count)
+                ForEach(ParticleCount.allCases.filter { SystemCapabilities.isRunningOnProperGPU || $0 <= .maxGimpedCount }, id: \.self) { count in
+                    Text(count.displayString)
+                        .tag(count)
+                        .foregroundColor(count.rawValue > ParticleCount.k20.rawValue && !SystemCapabilities.isRunningOnProperGPU ? .gray : .primary)
+                        .opacity(count.rawValue > ParticleCount.k20.rawValue && !SystemCapabilities.isRunningOnProperGPU ? 0.5 : 1.0)
+                        .disabled(count.rawValue > ParticleCount.k20.rawValue && !SystemCapabilities.isRunningOnProperGPU)
                 }
             }
             .pickerStyle(MenuPickerStyle())

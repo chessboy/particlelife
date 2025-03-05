@@ -11,7 +11,7 @@ struct SimulationPreset: Identifiable {
     let id: UUID
     let name: String
     let speciesCount: Int
-    let particleCount: ParticleCount
+    var particleCount: ParticleCount
     let matrixType: MatrixType
     let distributionType: DistributionType
     let maxDistance: Float
@@ -147,7 +147,7 @@ extension SimulationPreset: Codable {
 }
 
 extension SimulationPreset {
-    
+        
     var description: String {
             """
             Preset: \(name) (\(id))
@@ -167,6 +167,12 @@ extension SimulationPreset {
 }
 
 extension SimulationPreset {
+    
+    /// Returns a gimped version of the preset for low-power devices.
+    func gimped() -> SimulationPreset {
+        return copy(newParticleCount: particleCount.gimped)
+    }
+
     /// Creates a modified copy of the preset, with special handling for custom matrices
     func copy(
         id: UUID? = nil,  // Allow overriding the UUID (default = keep original)

@@ -12,5 +12,6 @@ extension Notification.Name {
     static let presetSelected = Notification.Name("presetSelected")
     static let saveTriggered = Notification.Name("saveTriggered")
     static let closeSettingsPanel = Notification.Name("closeSettingsPanel")
-
+    static let lowPerformanceWarning = Notification.Name("lowPerformanceWarning")
+    
 }

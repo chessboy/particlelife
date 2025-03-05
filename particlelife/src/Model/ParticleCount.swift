@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum ParticleCount: Int, CaseIterable, Identifiable, Codable {
+enum ParticleCount: Int, CaseIterable, Identifiable, Codable, Comparable {
     case k1 = 1024
     case k2 = 2048
     case k5 = 5120
@@ -46,6 +46,10 @@ enum ParticleCount: Int, CaseIterable, Identifiable, Codable {
         self = ParticleCount(rawValue: intValue)
     }
 
+    static func < (lhs: ParticleCount, rhs: ParticleCount) -> Bool {
+        lhs.rawValue < rhs.rawValue
+    }
+    
     func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
         try container.encode(self.rawValue)
@@ -73,5 +77,19 @@ enum ParticleCount: Int, CaseIterable, Identifiable, Codable {
         ]
 
         return mapping[speciesCount] ?? .k10
+    }
+    
+    static var maxGimpedCount: ParticleCount {
+        return .k20
+    }
+    
+    /// Returns a sensible gimp value for low-power devices (max 20K).
+    var gimped: ParticleCount {
+        switch self {
+        case .k1, .k2: return self
+        case .k5: return .k2
+        case .k10: return .k5
+        case .k20, .k30, .k35, .k40, .k45, .k50: return .maxGimpedCount  // Cap at maxGimpedCount
+        }
     }
 }

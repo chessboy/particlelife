@@ -12,7 +12,18 @@ class PresetDefinitions {
     static let randomPreset = makeRandomPreset(speciesCount: 3)
     static let emptyPreset = makeEmptyPreset(speciesCount: 3)
     static let testPreset = makeTestPreset()
-    static let specialPresets = UserPresetStorage.loadPresetsFromBundle()
+    static var specialPresets: [SimulationPreset] = []
+
+    static func loadSpecialPresets(isGimped: Bool) {
+        if isGimped {
+            Logger.log("Gimping special presets", level: .warning)
+        }
+
+        let presets = UserPresetStorage.loadPresetsFromBundle()
+        specialPresets = isGimped ? presets.map { $0.gimped() } : presets
+
+        Logger.log("\n" + specialPresets.map { "  - \($0.name) (\($0.speciesCount) species, \($0.particleCount))" }.joined(separator: "\n"))
+    }
     
     static func getAllBuiltInPresets() -> [SimulationPreset] {
         return [randomPreset] + [emptyPreset] + specialPresets
