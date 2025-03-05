@@ -441,7 +441,13 @@ struct ParticleCountPickerView: View {
                     ParticleSystem.shared.particleCountWillChange(newCount: newCount)
                 }
             )) {
-                ForEach(ParticleCount.allCases.filter { SystemCapabilities.shared.isRunningOnProperGPU || $0 <= .maxGimpedCount }, id: \.self) { count in
+                ForEach(ParticleCount.allCases.filter {
+                    let gpuCoreCount = SystemCapabilities.shared.gpuCoreCount
+                    let gpuType = SystemCapabilities.shared.gpuType
+                    let maxAllowed = ParticleCount.k45.optimizedParticleCount(for: gpuCoreCount, gpuType: gpuType)
+
+                    return $0 <= maxAllowed
+                }, id: \.self) { count in
                     Text(count.displayString)
                         .tag(count)
                 }
@@ -498,7 +504,7 @@ struct LogoView: View {
             .resizable()
             .scaledToFit()
             .opacity(hovering ? 1.0 : 0.7)
-            .frame(width: SystemCapabilities.shared.isRunningOnProperGPU ? 120 : 100)
+            .frame(width: SystemCapabilities.shared.gpuType == .dedicatedGPU ? 120 : 100)
             .scaleEffect(hovering ? 1.15 : 1.0) // Scale on hover
             .animation(.easeInOut(duration: 0.15), value: hovering)
             .onTapGesture {
@@ -585,7 +591,7 @@ struct FooterView: View {
                 .font(.system(size: 14, weight: .medium, design: .monospaced))
                 .foregroundColor(.gray)
             
-            if !SystemCapabilities.shared.isRunningOnProperGPU {
+            if SystemCapabilities.shared.gpuType != .dedicatedGPU {
                 Button(action: {
                     NotificationCenter.default.post(name: .lowPerformanceWarning, object: nil)
                 }) {

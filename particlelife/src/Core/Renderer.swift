@@ -47,9 +47,9 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
 
         super.init()
         
-        if SystemCapabilities.shared.isRunningOnProperGPU {
+        if SystemCapabilities.shared.gpuType == .dedicatedGPU {
             Logger.log("Running on a dedicated GPU", level: .debug)
-        } else if SystemCapabilities.shared.isCPUOnly {
+        } else if SystemCapabilities.shared.gpuType == .cpuOnly {
             Logger.log("No compatible GPU found – running on CPU fallback. Performance will be severely impacted.", level: .warning)
 
             // Notify user this will be a struggle

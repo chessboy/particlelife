@@ -14,15 +14,17 @@ class PresetDefinitions {
     static let testPreset = makeTestPreset()
     static var specialPresets: [SimulationPreset] = []
 
-    static func loadSpecialPresets(isGimped: Bool) {
-        if isGimped {
-            Logger.log("Gimping special presets", level: .warning)
+    static func loadSpecialPresets(isOptimized: Bool) {
+        let gpuCoreCount = SystemCapabilities.shared.gpuCoreCount
+
+        if isOptimized {
+            Logger.log("Optimizing special presets for \(gpuCoreCount)-core GPU", level: .warning)
         }
 
         let presets = UserPresetStorage.loadPresetsFromBundle()
-        specialPresets = isGimped ? presets.map { $0.gimped() } : presets
+        specialPresets = isOptimized ? presets.map { $0.optimized(for: gpuCoreCount) } : presets
 
-        Logger.log("\n" + specialPresets.map { "  - \($0.name) (\($0.speciesCount) species, \($0.particleCount))" }.joined(separator: "\n"))
+        Logger.log("\n" + specialPresets.map { "  - \($0.name) (\($0.speciesCount) species, \($0.particleCount.displayString))" }.joined(separator: "\n"))
     }
     
     static func getAllBuiltInPresets() -> [SimulationPreset] {
@@ -50,7 +52,7 @@ class PresetDefinitions {
         return SimulationPreset(
             name: "Random",
             speciesCount: speciesCount,
-            particleCount: ParticleCount.particles(for: speciesCount),
+            particleCount: ParticleCount.particles(for: speciesCount, gpuCoreCount: SystemCapabilities.shared.gpuCoreCount, gpuType: SystemCapabilities.shared.gpuType),
             matrixType: .randomSymmetry,
             distributionType: .perlinNoise,
             maxDistance: 0.65,
@@ -71,7 +73,7 @@ class PresetDefinitions {
         return SimulationPreset(
             name: "New",
             speciesCount: speciesCount,
-            particleCount: ParticleCount.particles(for: speciesCount),
+            particleCount: ParticleCount.particles(for: speciesCount, gpuCoreCount: SystemCapabilities.shared.gpuCoreCount, gpuType: SystemCapabilities.shared.gpuType),
             matrixType: emptyMatrix,
             distributionType: .perlinNoise,
             maxDistance: 0.65,

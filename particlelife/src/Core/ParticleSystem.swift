@@ -24,7 +24,7 @@ class ParticleSystem: ObservableObject {
     
     init() {
         
-        PresetDefinitions.loadSpecialPresets(isGimped: !SystemCapabilities.shared.isRunningOnProperGPU)
+        PresetDefinitions.loadSpecialPresets(isOptimized: SystemCapabilities.shared.gpuType != .dedicatedGPU)
         
         let initialPreset = PresetDefinitions.randomSpecialPreset()
         
@@ -220,9 +220,14 @@ extension ParticleSystem {
         
         var presetToApply = storedPreset
 
-        if !SystemCapabilities.shared.isRunningOnProperGPU, storedPreset.particleCount > ParticleCount.maxGimpedCount {
-            Logger.log("Gimping particle count for \(preset.name)", level: .warning)
-            presetToApply = storedPreset.copy(newParticleCount: ParticleCount.maxGimpedCount)
+        if SystemCapabilities.shared.gpuType != .dedicatedGPU {
+            let gpuCoreCount = SystemCapabilities.shared.gpuCoreCount
+            let optimizedCount = storedPreset.particleCount.optimizedParticleCount(for: gpuCoreCount, gpuType: SystemCapabilities.shared.gpuType)
+            
+            if storedPreset.particleCount > optimizedCount {
+                Logger.log("Optimizing particle count for \(storedPreset.name) → \(optimizedCount.displayString)", level: .warning)
+                presetToApply = storedPreset.copy(newParticleCount: optimizedCount)
+            }
         }
         
         Logger.log("Preset '\(preset.name)' found. Selecting it now.", level: .debug)

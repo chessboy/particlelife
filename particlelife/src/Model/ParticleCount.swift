@@ -19,7 +19,7 @@ enum ParticleCount: Int, CaseIterable, Identifiable, Codable, Comparable {
     case k45 = 46080
     
     var id: Int { self.rawValue }
-
+    
     var displayString: String {
         switch self {
         case .k1: return "1K"
@@ -37,13 +37,13 @@ enum ParticleCount: Int, CaseIterable, Identifiable, Codable, Comparable {
     init(rawValue: Int) {
         self = ParticleCount.allCases.first(where: { $0.rawValue == rawValue }) ?? .k1
     }
-
+    
     init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         let intValue = try container.decode(Int.self)
         self = ParticleCount(rawValue: intValue)
     }
-
+    
     static func < (lhs: ParticleCount, rhs: ParticleCount) -> Bool {
         lhs.rawValue < rhs.rawValue
     }
@@ -56,13 +56,13 @@ enum ParticleCount: Int, CaseIterable, Identifiable, Codable, Comparable {
     static var allCases: [ParticleCount] {
         return [.k1, .k2, .k5, .k10, .k20, .k30, .k35, .k40, .k45]
     }
-
-    /// Returns the particle count for a given species count (1-9).
-    static func particles(for speciesCount: Int) -> ParticleCount {
-        guard (1...9).contains(speciesCount) else { return k1 }
-
-        // Map species count to an increasing particle count
-        let mapping: [Int: ParticleCount] = [
+    
+    /// Returns the recommended particle count based on species count, **then optimizes it for the user's GPU**.
+    static func particles(for speciesCount: Int, gpuCoreCount: Int, gpuType: GPUType) -> ParticleCount {
+        guard (1...9).contains(speciesCount) else { return .k1 }
+        
+        // Initial species-based mapping
+        let baseMapping: [Int: ParticleCount] = [
             1: .k10,
             2: .k10,
             3: .k20,
@@ -73,22 +73,37 @@ enum ParticleCount: Int, CaseIterable, Identifiable, Codable, Comparable {
             8: .k35,
             9: .k40
         ]
-
-        return mapping[speciesCount] ?? .k10
+        
+        let baseCount = baseMapping[speciesCount] ?? .k10
+        return baseCount.optimizedParticleCount(for: gpuCoreCount, gpuType: gpuType)
     }
     
-    static var maxGimpedCount: ParticleCount {
-        return .k20
+    func optimizedParticleCount(for gpuCoreCount: Int, gpuType: GPUType) -> ParticleCount {
+        let maxAllowed: ParticleCount
+        
+        if gpuType == .dedicatedGPU {
+            maxAllowed = .k45  // Always allow full 45K for dedicated GPUs
+        } else if gpuCoreCount >= 30 {
+            maxAllowed = .k35  // High-end integrated GPUs → 35K
+        } else if gpuCoreCount >= 16 {
+            maxAllowed = .k30  // Mid-tier GPUs → 30K
+        } else if gpuCoreCount >= 10 {
+            maxAllowed = .k20  // Lower-end GPUs → 20K
+        } else {
+            maxAllowed = .k10  // Anything weaker → 10K
+        }
+        
+        return self.capped(at: maxAllowed)
     }
     
-    /// Returns a sensible gimp value for low-power devices (max 20K).
-    var gimped: ParticleCount {
+    /// Ensures particle count does not exceed `maxAllowed`.
+    func capped(at maxAllowed: ParticleCount) -> ParticleCount {
         switch self {
         case .k1, .k2: return self
         case .k5: return .k2
         case .k10: return .k5
         case .k20, .k30: return .k10
-        case .k35, .k40, .k45: return .maxGimpedCount  // Cap at maxGimpedCount
+        case .k35, .k40, .k45: return maxAllowed  // Apply GPU-based max cap
         }
     }
 }

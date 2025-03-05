@@ -168,9 +168,9 @@ extension SimulationPreset {
 
 extension SimulationPreset {
     
-    /// Returns a gimped version of the preset for low-power devices.
-    func gimped() -> SimulationPreset {
-        return copy(newParticleCount: particleCount.gimped)
+    /// Returns an optimized version of the preset based on GPU capabilities.
+    func optimized(for gpuCoreCount: Int) -> SimulationPreset {
+        return copy(newParticleCount: particleCount.optimizedParticleCount(for: gpuCoreCount, gpuType: SystemCapabilities.shared.gpuType))
     }
 
     /// Creates a modified copy of the preset, with special handling for custom matrices
