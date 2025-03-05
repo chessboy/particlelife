@@ -22,8 +22,9 @@ class PresetDefinitions {
         return randomPreset
     }
     
-    static func randomSpecialPreset() -> SimulationPreset {
-        return specialPresets.randomElement() ?? randomPreset
+    static func randomSpecialPreset(excluding excludedPreset: SimulationPreset? = nil) -> SimulationPreset {
+        let availablePresets = specialPresets.filter { $0 != excludedPreset }
+        return availablePresets.randomElement() ?? randomPreset
     }
     
     static var storedPaletteIndex: Int {

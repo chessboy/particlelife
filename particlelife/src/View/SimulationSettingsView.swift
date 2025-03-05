@@ -82,7 +82,7 @@ struct SimulationSettingsView: View {
             Spacer()
         }
         .frame(width: 340)
-        .background(renderer.isPaused ? Color(red: 0.2, green: 0, blue: 0).opacity(0.9) : Color(white: 0.07).opacity(0.9))
+        .background(renderer.isPaused ? Color(red: 0.2, green: 0, blue: 0)/*.opacity(0.9)*/ : Color(white: 0.07)/*.opacity(0.9)*/)
         .clipShape(RoundedCornerShape(corners: [.topRight, .bottomRight], radius: 20))
         .overlay(
             RoundedCornerShape(corners: [.topRight, .bottomRight], radius: 20)
@@ -98,12 +98,30 @@ struct PresetPickerView: View {
     
     @State private var isShowingSaveSheet = false
     @State private var isShowingDeleteSheet = false
-    
+    @State private var isHovered = false
+
     var body: some View {
         HStack(spacing: 8) {
+            Button(action: {
+                ParticleSystem.shared.selectRandomBuiltInPreset()
+            }) {
+                Image(systemName: SFSymbols.Name.presets)
+                    .foregroundColor(isHovered ? .white : Color(white: 0.8))
+                    .font(.system(size: 14))
+                    .padding(2)
+                    .background(isHovered ? Color.gray.opacity(0.3) : Color.clear)
+                    .clipShape(Circle())
+            }
+            .buttonStyle(PlainButtonStyle())
+            .help("Use P key to select a random built-in preset")
+            .onHover { hovering in
+                withAnimation(.easeInOut(duration: 0.15)) {
+                    isHovered = hovering
+                }
+            }
             Text("File:")
                 .foregroundColor(labelColor)
-                .frame(width: pickerLabelWidth, alignment: .trailing)
+                .frame(width: pickerLabelWidth - 31, alignment: .trailing)
             
             Menu {
                 // 􀚈 New and random

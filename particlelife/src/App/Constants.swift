@@ -42,10 +42,11 @@ struct SFSymbols {
     struct Name {
         static let close = "xmark.circle.fill"
         static let randomize = "shuffle"
-        static let reset = "arrow.uturn.left.circle"
-        static let respawn = "arrow.triangle.2.circlepath.circle.fill"
+        static let reset = "arrowshape.turn.up.backward.fill"
+        static let respawn = "arrow.trianglehead.2.clockwise.rotate.90"
         static let settings = "gearshape.fill"
         static let colorEffect = "circle.bottomrighthalf.pattern.checkered"
+        static let presets = "star.fill"
     }
     
     struct Symbol {

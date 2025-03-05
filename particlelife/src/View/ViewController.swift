@@ -298,6 +298,16 @@ extension ViewController {
         let convertedLocation = metalView.convert(location, from: nil)
         renderer.handleMouseClick(at: convertedLocation, in: metalView, isRightClick: isRightClick)
     }
+    
+    override func keyDown(with event: NSEvent) {
+        if handleMovementKey(event, isKeyDown: true) { return }
+        if handleCommandKey(event) { return }
+        handleOtherKeyDown(with: event)
+    }
+
+    override func keyUp(with event: NSEvent) {
+        _ = handleMovementKey(event, isKeyDown: false)
+    }
 
     private func handleMovementKey(_ event: NSEvent, isKeyDown: Bool) -> Bool {
         switch event.keyCode {
@@ -312,20 +322,35 @@ extension ViewController {
         return true // Return true if key was handled
     }
 
-    override func keyDown(with event: NSEvent) {
+    private func handleCommandKey(_ event: NSEvent) -> Bool {
+        // ⌘R Respawn
         if event.modifierFlags.contains(.command) && event.characters == "r" {
             renderer.respawnParticles()
-            return
+            return true
         }
         
+        // ⌘S Save the current settings to a preset
         if event.modifierFlags.contains(.command) && event.characters == "s" {
             NotificationCenter.default.post(name: .saveTriggered, object: nil)
-            return
+            return true
         }
         
-        if handleMovementKey(event, isKeyDown: true) {
-            return // Suppress system beep by returning early
+        // ⌘N New preset
+        if event.modifierFlags.contains(.command) && event.characters == "n" {
+            ParticleSystem.shared.selectPreset(PresetDefinitions.emptyPreset)
+           return true
         }
+        
+        // ⌘/ (? key) New random-mode preset
+        if event.modifierFlags.contains(.command) && event.characters == "/" {
+            ParticleSystem.shared.selectPreset(PresetDefinitions.randomPreset)
+            return true
+        }
+        
+        return false
+    }
+    
+    func handleOtherKeyDown(with event: NSEvent) {
         
         switch event.keyCode {
         case 48: // Tab
@@ -340,18 +365,14 @@ extension ViewController {
             ParticleSystem.shared.incrementSpeciesColorOffset()
         case 17: // T key
             SimulationSettings.shared.toggleColorEffect()
+        case 35: // P key
+            ParticleSystem.shared.selectRandomBuiltInPreset()
         case 46: // M key
             if SimulationSettings.shared.selectedPreset.matrixType.isRandom {
                 ParticleSystem.shared.respawn(shouldGenerateNewMatrix: true)
             }
         default:
             return // Do NOT call super.keyDown(with: event) to prevent beep
-        }
-    }
-
-    override func keyUp(with event: NSEvent) {
-        if handleMovementKey(event, isKeyDown: false) {
-            return // Suppress system beep by returning early
         }
     }
     

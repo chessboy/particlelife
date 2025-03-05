@@ -189,6 +189,14 @@ class ParticleSystem: ObservableObject {
 
 extension ParticleSystem {
     
+    // select one of the built-in or user-created presets that are not the current preset
+    func selectRandomBuiltInPreset() {
+        let excludedPreset = SimulationSettings.shared.selectedPreset
+        let availablePresets = (PresetDefinitions.specialPresets + SimulationSettings.shared.userPresets).filter { $0 != excludedPreset }
+        let randomPreset = availablePresets.randomElement() ?? PresetDefinitions.randomPreset
+        selectPreset(randomPreset)
+    }
+    
     func selectPreset(_ preset: SimulationPreset) {
         
         let settings = SimulationSettings.shared

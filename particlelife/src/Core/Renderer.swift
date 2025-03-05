@@ -40,7 +40,7 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
             self.device = metalView.device
             metalView.delegate = self
             metalView.enableSetNeedsDisplay = false
-            metalView.preferredFramesPerSecond = 120
+            metalView.preferredFramesPerSecond = 60
             Logger.log("Running on Metal device")
         } else {
             Logger.log("Running in Preview Mode - Metal Rendering Disabled", level: .warning)
@@ -54,7 +54,9 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         // NotificationCenter.default.addObserver(self, selector: #selector(handleAppWillResignActive), name: NSApplication.willResignActiveNotification, object: nil)
         
         worldSizeObserver = SimulationSettings.shared.$worldSize.sink { [weak self] newWorldSize in
-            self?.adjustZoomAndCameraForWorldSize(newWorldSize.value)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
+                self?.adjustZoomAndCameraForWorldSize(newWorldSize.value)
+            }
         }
         
         NotificationCenter.default.addObserver(self, selector: #selector(presetApplied), name: Notification.Name.presetSelected, object: nil)

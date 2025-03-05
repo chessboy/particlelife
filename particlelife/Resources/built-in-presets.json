@@ -332,75 +332,75 @@
      "worldSize" : 1
    },
    {
-      "beta":0.3,
-      "distributionType":"perlinNoise",
-      "friction":0.14,
-      "id":"C03779AE-C5AF-41BD-8670-4C40DAB22FFB",
-      "isBuiltIn":true,
-      "matrixType":{
-         "data":[
-            [
-               0,
-               -0.75,
-               0,
-               0,
-               0,
-               0
-            ],
-            [
-               0,
-               0,
-               -1,
-               0,
-               0,
-               0.25
-            ],
-            [
-               0,
-               0,
-               0,
-               0,
-               0,
-               0
-            ],
-            [
-               0.5,
-               0,
-               0,
-               -0.75,
-               0,
-               -0.75
-            ],
-            [
-               0,
-               0,
-               0,
-               0,
-               0,
-               0
-            ],
-            [
-               0,
-               0,
-               0.25,
-               -0.5,
-               0,
-               0
-            ]
+     "beta" : 0.3,
+     "distributionType" : "perlinNoise",
+     "friction" : 0.14,
+     "id" : "12F9F53D-EBCC-4A4D-A5BF-3D53C072F9D8",
+     "isBuiltIn" : true,
+     "matrixType" : {
+       "data" : [
+         [
+           0,
+           -0.75,
+           0,
+           0,
+           0,
+           0
          ],
-         "type":"custom"
-      },
-      "maxDistance":0.6,
-      "minDistance":0.02,
-      "name":"Stained Glass",
-      "paletteIndex":0,
-      "particleCount":30720,
-      "pointSize":5,
-      "preservesUISettings":false,
-      "repulsion":0.14,
-      "speciesColorOffset":0,
-      "speciesCount":6,
-      "worldSize":0.5
+         [
+           0,
+           0,
+           -1,
+           0,
+           0,
+           0.25
+         ],
+         [
+           0,
+           0,
+           0,
+           0,
+           0,
+           0
+         ],
+         [
+           0.5,
+           0,
+           0,
+           -0.75,
+           0,
+           -0.75
+         ],
+         [
+           0,
+           0,
+           0,
+           0,
+           0,
+           0
+         ],
+         [
+           0,
+           0,
+           0.25,
+           -0.5,
+           0,
+           0
+         ]
+       ],
+       "type" : "custom"
+     },
+     "maxDistance" : 0.45,
+     "minDistance" : 0.01,
+     "name" : "Flux",
+     "paletteIndex" : 5,
+     "particleCount" : 35840,
+     "pointSize" : 7,
+     "preservesUISettings" : false,
+     "repulsion" : 0.14,
+     "speciesColorOffset" : 2,
+     "speciesCount" : 6,
+     "worldSize" : 0.5
    },
    {
       "beta":0.15,
@@ -525,126 +525,126 @@
       "worldSize":0.75
    },
    {
-      "beta":0.3,
-      "distributionType":"perlinNoise",
-      "friction":0.1,
-      "id":"B7DB6919-B7FD-4A15-821A-67EAC480F741",
-      "isBuiltIn":true,
-      "matrixType":{
-         "data":[
-            [
-               0.99,
-               0.16,
-               -0.79,
-               0.89,
-               -0.13,
-               0.94,
-               0.94,
-               0.33,
-               0.18
-            ],
-            [
-               -0.68,
-               -0.99,
-               0.63,
-               0.3,
-               0.26,
-               0.32,
-               0.06,
-               0.63,
-               0.47
-            ],
-            [
-               -0.59,
-               -0.64,
-               0.81,
-               -0.17,
-               -0.97,
-               0.68,
-               0.9,
-               0.19,
-               0.31
-            ],
-            [
-               -0.4,
-               0.98,
-               0.74,
-               0.61,
-               0.08,
-               0.75,
-               0.82,
-               0.99,
-               0.8
-            ],
-            [
-               -0.41,
-               -0.7,
-               -0.36,
-               -0.34,
-               0.09,
-               0.58,
-               -0.29,
-               0.76,
-               -0.61
-            ],
-            [
-               0.27,
-               -0.7,
-               0.72,
-               -0.9,
-               -0.27,
-               0.45,
-               0.21,
-               0.61,
-               -0.7
-            ],
-            [
-               -0.37,
-               0.26,
-               0.98,
-               -0.66,
-               0.83,
-               -0.83,
-               -1,
-               0.88,
-               0.11
-            ],
-            [
-               0.66,
-               0.28,
-               0.3,
-               0.81,
-               -0.23,
-               -0.63,
-               0.59,
-               0.1,
-               -0.23
-            ],
-            [
-               0.94,
-               0.87,
-               -0.77,
-               -0.56,
-               -0.11,
-               -0.92,
-               0.4,
-               0.22,
-               -0.44
-            ]
+     "beta" : 0.3,
+     "distributionType" : "perlinNoise",
+     "friction" : 0.1,
+     "id" : "27D890AC-B3BD-4A9D-94C5-17864FF1E864",
+     "isBuiltIn" : true,
+     "matrixType" : {
+       "data" : [
+         [
+           0.99,
+           0.16,
+           -0.79,
+           0.89,
+           -0.13,
+           0.94,
+           0.94,
+           0.33,
+           0.18
          ],
-         "type":"custom"
-      },
-      "maxDistance":1.05,
-      "minDistance":0.02,
-      "name":"Space Wars",
-      "paletteIndex":0,
-      "particleCount":35840,
-      "pointSize":10,
-      "preservesUISettings":false,
-      "repulsion":0.03,
-      "speciesColorOffset":0,
-      "speciesCount":9,
-      "worldSize":3
+         [
+           -0.68,
+           -0.99,
+           0.63,
+           0.3,
+           0.26,
+           0.32,
+           0.06,
+           0.63,
+           0.47
+         ],
+         [
+           -0.59,
+           -0.64,
+           0.81,
+           -0.17,
+           -0.97,
+           0.68,
+           0.9,
+           0.19,
+           0.31
+         ],
+         [
+           -0.4,
+           0.98,
+           0.74,
+           0.61,
+           0.08,
+           0.75,
+           0.82,
+           0.99,
+           0.8
+         ],
+         [
+           -0.41,
+           -0.7,
+           -0.36,
+           -0.34,
+           0.09,
+           0.58,
+           -0.29,
+           0.76,
+           -0.61
+         ],
+         [
+           0.27,
+           -0.7,
+           0.72,
+           -0.9,
+           -0.27,
+           0.45,
+           0.21,
+           0.61,
+           -0.7
+         ],
+         [
+           -0.37,
+           0.26,
+           0.98,
+           -0.66,
+           0.83,
+           -0.83,
+           -1,
+           0.88,
+           0.11
+         ],
+         [
+           0.66,
+           0.28,
+           0.3,
+           0.81,
+           -0.23,
+           -0.63,
+           0.59,
+           0.1,
+           -0.23
+         ],
+         [
+           0.94,
+           0.87,
+           -0.77,
+           -0.56,
+           -0.11,
+           -0.92,
+           0.4,
+           0.22,
+           -0.44
+         ]
+       ],
+       "type" : "custom"
+     },
+     "maxDistance" : 1.05,
+     "minDistance" : 0.02,
+     "name" : "Space Wars",
+     "paletteIndex" : 2,
+     "particleCount" : 35840,
+     "pointSize" : 17,
+     "preservesUISettings" : false,
+     "repulsion" : 0.03,
+     "speciesColorOffset" : 5,
+     "speciesCount" : 9,
+     "worldSize" : 3
    },
    {
      "beta" : 0.3,
