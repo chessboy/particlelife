@@ -100,6 +100,7 @@ struct PresetPickerView: View {
     @State private var isShowingDeleteSheet = false
     @State private var isHovered = false
 
+
     var body: some View {
         HStack(spacing: 8) {
             Button(action: {
@@ -119,18 +120,34 @@ struct PresetPickerView: View {
                     isHovered = hovering
                 }
             }
+            
             Text("File:")
                 .foregroundColor(labelColor)
                 .frame(width: pickerLabelWidth - 31, alignment: .trailing)
             
             Menu {
-                // 􀚈 New and random
-                Button("\(SFSymbols.Symbol.new)  New") { ParticleSystem.shared.selectPreset(PresetDefinitions.emptyPreset) }
-                Button("\(SFSymbols.Symbol.random)  Random") { ParticleSystem.shared.selectPreset(PresetDefinitions.randomPreset) }
+                // New and Random
+                Button {
+                    ParticleSystem.shared.selectPreset(PresetDefinitions.emptyPreset)
+                } label: {
+                    HStack {
+                        Image(systemName: SFSymbols.Name.new)
+                        Text("New")
+                    }
+                }
                 
-                // 􀋃 Built-in Presets
+                Button {
+                    ParticleSystem.shared.selectPreset(PresetDefinitions.randomPreset)
+                } label: {
+                    HStack {
+                        Image(systemName: SFSymbols.Name.dice)
+                        Text("Random")
+                    }
+                }
+                
+                // Built-in Presets
                 Divider()
-                Menu("\(SFSymbols.Symbol.presets)  Presets") {
+                Menu {
                     if PresetDefinitions.specialPresets.isEmpty {
                         Text("None Stored").foregroundColor(.secondary) // Show placeholder
                     } else {
@@ -138,10 +155,15 @@ struct PresetPickerView: View {
                             Button(preset.name) { ParticleSystem.shared.selectPreset(preset) }
                         }
                     }
+                } label: {
+                    HStack {
+                        Image(systemName: SFSymbols.Name.presets)
+                        Text("Presets")
+                    }
                 }
                 
-                // 􀈖 User Presets
-                Menu("\(SFSymbols.Symbol.stored)  Mine") {
+                // User Presets
+                Menu {
                     if settings.userPresets.isEmpty {
                         Text("None Stored").foregroundColor(.secondary) // Show placeholder
                     } else {
@@ -149,19 +171,35 @@ struct PresetPickerView: View {
                             Button(preset.name) { ParticleSystem.shared.selectPreset(preset) }
                         }
                     }
+                } label: {
+                    HStack {
+                        Image(systemName: SFSymbols.Name.stored)
+                        Text("Mine")
+                    }
                 }
                 
-                // 􀈸 File IO
+                // File IO
                 Divider()
-                Button("\(SFSymbols.Symbol.save)  Save", action: {
+                Button(action: {
                     isShowingSaveSheet = true
-                }).keyboardShortcut("s", modifiers: .command)
+                }) {
+                    HStack {
+                        Image(systemName: SFSymbols.Name.save)
+                        Text("Save")
+                    }
+                }
+                .keyboardShortcut("s", modifiers: .command)
                 
-                Button("\(SFSymbols.Symbol.delete)  Delete", action: {
+                Button(action: {
                     if !settings.selectedPreset.isBuiltIn {
                         isShowingDeleteSheet = true
                     }
-                })
+                }) {
+                    HStack {
+                        Image(systemName: SFSymbols.Name.delete)
+                        Text("Delete")
+                    }
+                }
                 .disabled(settings.selectedPreset.isBuiltIn)
                 
             } label: {
