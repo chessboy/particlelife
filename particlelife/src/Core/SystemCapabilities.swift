@@ -19,7 +19,7 @@ class SystemCapabilities {
     
     // Debug overrides (set to `nil` for real detection)
     private let debugGPUType: GPUType? = nil // Set to `.cpuOnly`, `.integratedGPU`, or `.dedicatedGPU`
-    private let debugGPUCoreCount: Int? = 10 // Set to a custom core count (e.g., 10, 16, 30)
+    private let debugGPUCoreCount: Int? = nil // Set to a custom core count (e.g., 10, 16, 30)
     
     let device: MTLDevice?
     var deviceName: String
