@@ -444,7 +444,7 @@ struct ParticleCountPickerView: View {
                 ForEach(ParticleCount.allCases.filter {
                     let gpuCoreCount = SystemCapabilities.shared.gpuCoreCount
                     let gpuType = SystemCapabilities.shared.gpuType
-                    let maxAllowed = ParticleCount.k45.optimizedParticleCount(for: gpuCoreCount, gpuType: gpuType)
+                    let maxAllowed = ParticleCount.maxAllowedParticleCount(for: gpuCoreCount, gpuType: gpuType)
 
                     return $0 <= maxAllowed
                 }, id: \.self) { count in

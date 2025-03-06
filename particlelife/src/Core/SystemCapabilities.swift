@@ -52,7 +52,7 @@ class SystemCapabilities {
 
         Logger.log("SystemCapabilities: gpuType: \(gpuType) | GPU Cores: \(gpuCoreCount) | ThreadsPerGroup: \(maxThreadsPerGroup)", level: .debug)
         Logger.log("SystemCapabilities: preferredFramesPerSecond: \(preferredFramesPerSecond) | smoothingFactor: \(smoothingFactor)", level: .debug)
-        Logger.log("SystemCapabilities: max particle count: \(ParticleCount.k45.optimizedParticleCount(for: gpuCoreCount, gpuType: gpuType))", level: .debug)
+        Logger.log("SystemCapabilities: max particle count: \(ParticleCount.maxAllowedParticleCount(for: gpuCoreCount, gpuType: gpuType))", level: .debug)
     }
     
     /// Estimates GPU core count based on known Apple GPUs.

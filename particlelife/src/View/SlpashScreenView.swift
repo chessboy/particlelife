@@ -11,7 +11,7 @@ struct SplashScreenView: View {
     @State private var opacity = 0.0
     @State private var circleOpacities = [0.0, 0.0, 0.0] // Start circles fully transparent
     
-    var speciesColors: [Color] = Array(SpeciesPalette.classic.colors.prefix(3)) // Take first 3 colors
+    var speciesColors: [Color] = Array(SpeciesPalette.classic.colors.dropFirst(1).prefix(3))
     var onDismiss: () -> Void // Closure to notify VC when splash is done
 
     var body: some View {
