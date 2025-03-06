@@ -11,12 +11,14 @@ struct LoggerConfig {
     static let logLevelPadding = 8
     static let filenamePadding = 25
     static let logThreshold: LogLevel = .debug
-    
+
     // Automatically detect if in debug mode
     #if DEBUG
     static var isLoggingEnabled: Bool = true
+    static var enableFileLogging = true
     #else
     static var isLoggingEnabled: Bool = false
+    static var enableFileLogging = false
     #endif
 }
 
@@ -40,7 +42,30 @@ enum LogLevel: String {
     }
 }
 
-struct Logger {
+class Logger {
+    static let shared = Logger()
+    
+    private let logFileURL: URL?
+    
+    private init() {
+        if LoggerConfig.enableFileLogging {
+            let fileManager = FileManager.default
+            if let logsDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first {
+                logFileURL = logsDirectory.appendingPathComponent("particlelife.log")
+                
+                // Clear old logs on startup
+                if let logFileURL = logFileURL {
+                    try? fileManager.removeItem(at: logFileURL)
+                    writeToFile("=== Particle Life Log Started ===\n")
+                }
+            } else {
+                logFileURL = nil
+            }
+        } else {
+            logFileURL = nil
+        }
+    }
+
     static func log(_ message: String,
                     level: LogLevel = .info,
                     function: String = #function,
@@ -62,7 +87,26 @@ struct Logger {
             }
         }
         
+        shared.writeToFile(logMessage + "\n")
         print(logMessage)
+    }
+    
+    private func writeToFile(_ text: String) {
+        guard LoggerConfig.enableFileLogging, let logFileURL = logFileURL else { return }
+        if let handle = try? FileHandle(forWritingTo: logFileURL) {
+            handle.seekToEndOfFile()
+            if let data = text.data(using: .utf8) {
+                handle.write(data)
+            }
+            handle.closeFile()
+        } else {
+            try? text.write(to: logFileURL, atomically: true, encoding: .utf8)
+        }
+    }
+    
+    /// Returns the log file path for external retrieval
+    static func logFilePath() -> String? {
+        return shared.logFileURL?.path
     }
     
     /// Extracts function name from stack trace
