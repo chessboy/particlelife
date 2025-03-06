@@ -54,6 +54,7 @@ class ParticleSystem: ObservableObject {
     
     /// Resets the simulation and regenerates particles
     func respawn(shouldGenerateNewMatrix: Bool) {
+        
         let preset = SimulationSettings.shared.selectedPreset
         
         generateParticles(preset: preset)
@@ -64,6 +65,8 @@ class ParticleSystem: ObservableObject {
     }
     
     func speciesCountWillChange(newCount: Int) {
+        NotificationCenter.default.post(name: .particlesRespawned, object: nil)
+
         let settings = SimulationSettings.shared
         
         guard newCount != settings.selectedPreset.speciesCount else {
@@ -94,7 +97,8 @@ class ParticleSystem: ObservableObject {
     private func generateParticles(preset: SimulationPreset) {
         
         Logger.log("generateParticles: speciesCount: \(preset.speciesCount), particleCount: \(preset.particleCount), matrixType: \(preset.matrixType.shortString)")
-        
+        NotificationCenter.default.post(name: .particlesRespawned, object: nil)
+
         particles = ParticleGenerator.generate(
             distribution: preset.distributionType,
             particleCount: preset.particleCount,

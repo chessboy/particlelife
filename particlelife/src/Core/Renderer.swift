@@ -89,6 +89,7 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         }
         
         NotificationCenter.default.addObserver(self, selector: #selector(presetApplied), name: Notification.Name.presetSelected, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(particlesRespawned), name: Notification.Name.particlesRespawned, object: nil)
     }
     
     /// Called when a preset is applied
@@ -97,11 +98,13 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
             isPaused.toggle()
         }
     }
-        
-    @objc private func handleAppWillResignActive() {
-        isPaused = true
-    }
     
+    /// Called when a preset is applied
+    @objc private func particlesRespawned() {
+        frameCount = 0
+        print("particlesRespawned: frame count reset to 0")
+    }
+            
     // Combine compute + render pipeline setup into a single function
     private func setupPipelines() {
         guard let library = device?.makeDefaultLibrary() else {

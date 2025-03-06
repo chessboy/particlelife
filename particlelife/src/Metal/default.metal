@@ -54,8 +54,13 @@ float3 speciesColor(Particle particle, int speciesColorOffset, int paletteIndex,
     
     // Apply subtle brightness variation (from 0.9 to 1.1)
     float brightnessFactor = 0.9 + rand(id, speciesColorOffset, particle.species) * 0.2;
-    
-    return blendedColor * brightnessFactor;
+    float3 finalColor = blendedColor * brightnessFactor;
+
+    // --- FADE-IN EFFECT ---
+    const float fadeDuration = 60.0;  // Number of frames to reach full visibility
+    float fadeFactor = saturate(frameCount / fadeDuration); // Gradually increases from 0 to 1
+
+    return finalColor * fadeFactor;  // Darker at start, full color at fadeDuration
 }
 
 // draw particles
