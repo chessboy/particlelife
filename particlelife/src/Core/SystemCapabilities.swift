@@ -37,7 +37,7 @@ class SystemCapabilities {
         self.maxThreadsPerGroup = 0
         self.gpuCoreCount = 0
         self.gpuType = .cpuOnly  // Default before checking device
-                
+        
         if let debugGPUType = debugGPUType {
             self.gpuType = debugGPUType
         } else if let device = self.device {
@@ -49,13 +49,36 @@ class SystemCapabilities {
         if let debugGPUCoreCount = debugGPUCoreCount {
             self.gpuCoreCount = debugGPUCoreCount
         } else if gpuType != .cpuOnly {
-            // If we do have a Metal-compatible GPU, estimate its core count
-            self.gpuCoreCount = estimateCoreCountOnDevice()
+            self.gpuCoreCount = estimateCoreCount()
         }
         
-        Logger.log("SystemCapabilities: deviceName: \(deviceName) | gpuType: \(gpuType) | GPU Cores: \(gpuCoreCount) | ThreadsPerGroup: \(maxThreadsPerGroup)", level: .debug)
+        Logger.log("SystemCapabilities: deviceName: \(deviceName) | gpuType: \(gpuType) | Estimated GPU Cores: \(gpuCoreCount) | ThreadsPerGroup: \(maxThreadsPerGroup)", level: .debug)
         Logger.log("SystemCapabilities: preferredFramesPerSecond: \(preferredFramesPerSecond) | smoothingFactor: \(smoothingFactor)", level: .debug)
         Logger.log("SystemCapabilities: max particle count: \(ParticleCount.maxAllowedParticleCount(for: gpuCoreCount, gpuType: gpuType))", level: .debug)
+    }
+    
+    /// Estimates GPU core count based on known Apple GPUs.
+    private func estimateCoreCount() -> Int {
+        // M2 Series
+        if deviceName.contains("M2 Ultra") { return 60 }  // M2 Ultra: 60-core (lower tier) | 76-core (higher tier)
+        if deviceName.contains("M2 Max") { return 30 }    // M2 Max: 30-core (lower tier) | 38-core (higher tier)
+        if deviceName.contains("M2 Pro") { return 16 }    // M2 Pro: 16-core (lower tier) | 19-core (higher tier)
+        if deviceName.contains("M2") { return 10 }        // M2 Base: 10-core GPU
+        
+        // M1 Series
+        if deviceName.contains("M1 Ultra") { return 48 }  // M1 Ultra: 48-core (lower tier) | 64-core (higher tier)
+        if deviceName.contains("M1 Max") { return 24 }    // M1 Max: 24-core (lower tier) | 32-core (higher tier)
+        if deviceName.contains("M1 Pro") { return 14 }    // M1 Pro: 14-core (lower tier) | 16-core (higher tier)
+        if deviceName.contains("M1") { return 8 }         // M1 Base: 8-core GPU
+        
+        // Future-proofing for M3 series (based on trends)
+        if deviceName.contains("M3 Ultra") { return 76 }  // Placeholder: M3 Ultra
+        if deviceName.contains("M3 Max") { return 40 }    // Placeholder: M3 Max (likely 30/40)
+        if deviceName.contains("M3 Pro") { return 20 }    // Placeholder: M3 Pro (likely 18/20)
+        if deviceName.contains("M3") { return 12 }        // Placeholder: M3 Base (likely 10/12)
+        
+        Logger.log("Unknown GPU model '\(deviceName)', falling back to default core count.", level: .warning)
+        return 8 // Default fallback for unknown/Intel GPUs
     }
 }
 
@@ -77,15 +100,18 @@ extension SystemCapabilities {
         return baseSmoothingFactor * (60.0 / Float(preferredFramesPerSecond))
     }
     
+    /// Returns an appropriate warning title and message based on GPU capabilities
     func performanceWarning() -> (title: String, message: String)? {
         switch gpuType {
         case .dedicatedGPU:
             return nil // No warning needed
+            
         case .integratedGPU:
             return (
                 "Performance Warning",
                 "Your system has a low-power GPU. Performance may be reduced."
             )
+            
         case .cpuOnly:
             return (
                 "Severe Performance Warning",
@@ -95,51 +121,6 @@ extension SystemCapabilities {
     }
     
     var dtFactor: Float {
-        return 60.0 / Float(preferredFramesPerSecond) // Normalizes physics steps to 60 FPS baseline
-    }
-}
-
-// MARK: - Performance-Based Core Count Estimation
-
-extension SystemCapabilities {
-    
-    /// Estimates GPU core count purely via performance testing with a simple compute kernel.
-    private func estimateCoreCountOnDevice(iterations: Int = 500, numSamples: Int = 3) -> Int {
-        Logger.log("Estimating GPU core count via performance test: iterations: \(iterations) | samples: \(numSamples)", level: .debug)
-        
-        guard let device = self.device,
-              let tester = MetalPerformanceTester(device: device) else {
-            Logger.log("No Metal device found. Falling back to 8 cores.", level: .debug)
-            return 8
-        }
-
-        var totalTime = 0.0
-
-        for _ in 0..<numSamples {
-            totalTime += tester.measurePerformance(iterations: iterations)
-        }
-
-        let avgTimePerIteration = totalTime / Double(iterations * numSamples)
-
-        Logger.log("ave time: \(String(format: "%.3f", avgTimePerIteration * 1000))ms | total time: \(String(format: "%.3f", totalTime * 1000))ms", level: .debug)
-
-        // Adjust thresholds as you gather real data on each chip
-        switch avgTimePerIteration {
-        case ..<0.0002:
-            Logger.log("elapsed < 0.2ms => Assuming Ultra-level performance. Returning ~60 cores.", level: .debug)
-            return 60
-        case ..<0.0003:
-            Logger.log("elapsed < 0.3ms => Assuming Max-level performance (38-core). Returning ~38 cores.", level: .debug)
-            return 38
-        case ..<0.0004:
-            Logger.log("elapsed < 0.4ms => Assuming Max-level performance (30-core). Returning ~30 cores.", level: .debug)
-            return 30
-        case ..<0.0007:
-            Logger.log("elapsed < 0.7ms => Assuming Pro-level performance. Returning ~16 cores.", level: .debug)
-            return 16
-        default:
-            Logger.log("elapsed ≥ 0.7ms => Assuming base or lower performance. Returning ~10 cores.", level: .debug)
-            return 10
-        }
+        return 60.0 / Float(preferredFramesPerSecond) // Normalizes physics to match 60 FPS baseline
     }
 }

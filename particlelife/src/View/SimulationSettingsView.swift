@@ -504,29 +504,12 @@ struct SimulationSlidersView: View {
 }
 
 struct LogoView: View {
-    
-    @State private var hovering = false // Track hover state
-    
     var body: some View {
         Image("particle-life-logo")
             .resizable()
             .scaledToFit()
-            .opacity(hovering ? 1.0 : 0.7)
+            .opacity(0.7)
             .frame(width: SystemCapabilities.shared.gpuType == .dedicatedGPU ? 120 : 100)
-            .scaleEffect(hovering ? 1.15 : 1.0) // Scale on hover
-            .animation(.easeInOut(duration: 0.15), value: hovering)
-            .onTapGesture {
-                openGitHubRepo()
-            }
-            .onHover { isHovering in
-                hovering = isHovering
-            }
-    }
-    
-    private func openGitHubRepo() {
-        if let url = URL(string: "https://github.com/chessboy/particlelife") {
-            NSWorkspace.shared.open(url)
-        }
     }
 }
 
