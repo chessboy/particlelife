@@ -24,17 +24,10 @@ class ParticleSystem: ObservableObject {
     
     init() {
         
-        PresetDefinitions.loadSpecialPresets(isOptimized: SystemCapabilities.shared.gpuType != .dedicatedGPU)
-        
+        PresetDefinitions.loadSpecialPresets()
         let initialPreset = PresetDefinitions.randomSpecialPreset()
-        
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
-            
-            SimulationSettings.shared.selectedPreset = initialPreset
-            SimulationSettings.shared.applyPreset(initialPreset)
-            self.generateParticles(preset: initialPreset)
-            self.generateNewMatrix(preset: initialPreset, speciesColorOffset: initialPreset.speciesColorOffset, paletteIndex: initialPreset.paletteIndex)
-            self.updatePhysicsAndBuffers(preset: initialPreset)
+            self.selectPreset(initialPreset)
         }
         
         // listen for changes when a preset is applied
@@ -100,7 +93,7 @@ class ParticleSystem: ObservableObject {
     /// Generates a new set of particles
     private func generateParticles(preset: SimulationPreset) {
         
-        Logger.log("generateParticles: speciesCount: \(preset.speciesCount), particleCount: \(preset.particleCount), matrixType: \(preset.matrixType)")
+        Logger.log("generateParticles: speciesCount: \(preset.speciesCount), particleCount: \(preset.particleCount), matrixType: \(preset.matrixType.shortString)")
         
         particles = ParticleGenerator.generate(
             distribution: preset.distributionType,
@@ -220,17 +213,15 @@ extension ParticleSystem {
         
         var presetToApply = storedPreset
 
-        if SystemCapabilities.shared.gpuType != .dedicatedGPU {
-            let gpuCoreCount = SystemCapabilities.shared.gpuCoreCount
-            let optimizedCount = storedPreset.particleCount.optimizedParticleCount(for: gpuCoreCount, gpuType: SystemCapabilities.shared.gpuType)
-            
-            if storedPreset.particleCount > optimizedCount {
-                Logger.log("Optimizing particle count for \(storedPreset.name) → \(optimizedCount.displayString)", level: .warning)
-                presetToApply = storedPreset.copy(newParticleCount: optimizedCount)
-            }
+        // optimize particle count for current device
+        let gpuCoreCount = SystemCapabilities.shared.gpuCoreCount
+        let optimizedCount = storedPreset.particleCount.optimizedParticleCount(for: gpuCoreCount, gpuType: SystemCapabilities.shared.gpuType)
+        if storedPreset.particleCount > optimizedCount {
+            Logger.log("Optimizing particle count for \(storedPreset.name): \(storedPreset.particleCount.displayString) → \(optimizedCount.displayString)", level: .debug)
+            presetToApply = storedPreset.copy(newParticleCount: optimizedCount)
         }
         
-        Logger.log("Preset '\(preset.name)' found. Selecting it now.", level: .debug)
+        //Logger.log("Preset '\(preset.name)' found. Selecting it now.", level: .debug)
         
         if storedPreset.preservesUISettings {
             Logger.log("Preserving UI settings while selecting preset '\(preset.name)'", level: .debug)

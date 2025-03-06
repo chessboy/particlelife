@@ -26,7 +26,7 @@ class UserPresetStorage {
         if let presets = try? decoder.decode([SimulationPreset].self, from: data) {
             let sortedPresets = presets.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
 
-            Logger.log("Loaded \(sortedPresets.count) user preset\(sortedPresets.count == 1 ? "" : "s"):\n" +
+            Logger.log("Loaded \(sortedPresets.count) user preset\(sortedPresets.count == 1 ? "" : "s")\(sortedPresets.count == 0 ? "" : ":\n")" +
                 sortedPresets.map { "  - \($0.name) (\($0.speciesCount) species, \($0.particleCount))" }.joined(separator: "\n")
             )
 
@@ -192,7 +192,6 @@ extension UserPresetStorage {
             let data = try Data(contentsOf: url)
             let presets = try JSONDecoder().decode([SimulationPreset].self, from: data)
             Logger.log("Loaded \(presets.count) presets", level: .debug)
-
             return presets.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
         } catch {
             Logger.logWithError("Error loading presets", error: error)
@@ -207,9 +206,7 @@ extension UserPresetStorage {
         do {
             let jsonData = try encoder.encode(presets)
             if let jsonString = String(data: jsonData, encoding: .utf8) {
-                print("\n=== Simulation Presets JSON ===\n")
                 print(jsonString)
-                print("\n===============================\n")
             }
         } catch {
             Logger.logWithError("Error encoding presets to JSON", error: error)

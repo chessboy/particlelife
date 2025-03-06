@@ -1,889 +1,889 @@
 [
-    {
-       "beta":0.3,
-       "distributionType":"uniform",
-       "friction":0.06,
-       "id":"F1F9BBC0-FC3D-47A2-8495-B5EEBE941829",
-       "isBuiltIn":true,
-       "matrixType":{
-          "data":[
-             [
-                0,
-                0,
-                1
-             ],
-             [
-                0,
-                -1,
-                0
-             ],
-             [
-                0,
-                0,
-                0
-             ]
-          ],
-          "type":"custom"
-       },
-       "maxDistance":0.65,
-       "minDistance":0.04,
-       "name":"Sea Foam",
-       "paletteIndex":6,
-       "particleCount":20480,
-       "pointSize":6,
-       "preservesUISettings":false,
-       "repulsion":0.03,
-       "speciesColorOffset":0,
-       "speciesCount":3,
-       "worldSize":0.5
-   },
-   {
-      "beta":0.3,
-      "distributionType":"centeredCircle",
-      "friction":0.1,
-      "id":"C205B42E-E2A8-4800-AE58-916A6832763B",
-      "isBuiltIn":true,
-      "matrixType":{
-         "data":[
-            [
-               -1,
-               0,
-               0,
-               0,
-               0,
-               0
-            ],
-            [
-               0,
-               0,
-               0,
-               0.25,
-               0,
-               0
-            ],
-            [
-               0,
-               0,
-               -0.05,
-               0,
-               0,
-               0.3
-            ],
-            [
-               0,
-               0,
-               0.25,
-               0,
-               0,
-               0
-            ],
-            [
-               0,
-               0,
-               0,
-               0,
-               -1,
-               0
-            ],
-            [
-               0,
-               0.69,
-               0,
-               0.34,
-               0,
-               -0.65
-            ]
-         ],
-         "type":"custom"
-      },
-      "maxDistance":0.65,
-      "minDistance":0.04,
-      "name":"Chloroplast",
-      "paletteIndex":0,
-      "particleCount":30720,
-      "pointSize":3,
-      "preservesUISettings":false,
-      "repulsion":0.03,
-      "speciesColorOffset":1,
-      "speciesCount":6,
-      "worldSize":0.5
-   },
-   {
-     "beta" : 0.3,
-     "distributionType" : "uniformCircle",
-     "friction" : 0.17999999,
-     "id" : "26E08C90-C263-429E-BC40-F422E65D03E2",
-     "isBuiltIn" : true,
-     "matrixType" : {
-       "data" : [
-         [
-           0,
-           -0,
-           -0.26
-         ],
-         [
-           -0,
-           -0.36,
-           0
-         ],
-         [
-           -0.26,
-           0,
-           0
-         ]
-       ],
-       "type" : "custom"
-     },
-     "maxDistance" : 0.65,
-     "minDistance" : 0.04,
-     "name" : "Chromosomes",
-     "paletteIndex" : 2,
-     "particleCount" : 35840,
-     "pointSize" : 15,
-     "preservesUISettings" : false,
-     "repulsion" : 0.03,
-     "speciesColorOffset" : 6,
-     "speciesCount" : 3,
-     "worldSize" : 2
-   },
-   {
-     "beta" : 0.3,
-     "distributionType" : "perlinNoise",
-     "friction" : 0.1,
-     "id" : "2D1DFBD5-5EE8-4D3B-B6E3-544F6F0F1D03",
-     "isBuiltIn" : true,
-     "matrixType" : {
-       "data" : [
-         [
-           -0.7,
-           0.11,
-           0.38
-         ],
-         [
-           0.66,
-           0.11,
-           -0.49
-         ],
-         [
-           -0.71,
-           0.91,
-           0.74
-         ]
-       ],
-       "type" : "custom"
-     },
-     "maxDistance" : 0.65,
-     "minDistance" : 0.04,
-     "name" : "Ravenous",
-     "paletteIndex" : 3,
-     "particleCount" : 30720,
-     "pointSize" : 14,
-     "preservesUISettings" : false,
-     "repulsion" : 0.03,
-     "speciesColorOffset" : 2,
-     "speciesCount" : 3,
-     "worldSize" : 1.25
-   },
-   {
-     "beta" : 0.3,
-     "distributionType" : "centeredCircle",
-     "friction" : 0.26,
-     "id" : "28F562C7-1A8D-4950-8C03-3F487E1122E3",
-     "isBuiltIn" : true,
-     "matrixType" : {
-       "data" : [
-         [
-           0,
-           0,
-           -0.5
-         ],
-         [
-           0,
-           0.5,
-           0
-         ],
-         [
-           0,
-           0,
-           0
-         ]
-       ],
-       "type" : "custom"
-     },
-     "maxDistance" : 0.65,
-     "minDistance" : 0.04,
-     "name" : "Boom",
-     "paletteIndex" : 2,
-     "particleCount" : 35840,
-     "pointSize" : 5,
-     "preservesUISettings" : false,
-     "repulsion" : 0.03,
-     "speciesColorOffset" : 6,
-     "speciesCount" : 3,
-     "worldSize" : 0.5
-   },
-   {
-     "beta" : 0.3,
-     "distributionType" : "perlinNoise",
-     "friction" : 0.08,
-     "id" : "91362DD9-9AF7-47D9-AEE5-4766BD7C142F",
-     "isBuiltIn" : true,
-     "matrixType" : {
-       "data" : [
-         [
-           0,
-           0,
-           0.65
-         ],
-         [
-           0,
-           -0.7,
-           0.7
-         ],
-         [
-           -0.65,
-           0,
-           0
-         ]
-       ],
-       "type" : "custom"
-     },
-     "maxDistance" : 0.65,
-     "minDistance" : 0.04,
-     "name" : "Lava",
-     "paletteIndex" : 0,
-     "particleCount" : 30720,
-     "pointSize" : 12,
-     "preservesUISettings" : false,
-     "repulsion" : 0.03,
-     "speciesColorOffset" : 0,
-     "speciesCount" : 3,
-     "worldSize" : 1.5
-   },
-   {
-     "beta" : 0.3,
-     "distributionType" : "uniform",
-     "friction" : 0.14,
-     "id" : "A16DC84A-B38F-4F75-B913-82CF9C4F9708",
-     "isBuiltIn" : true,
-     "matrixType" : {
-       "data" : [
-         [
-           -0.58,
-           -0.96,
-           -0.55,
-           0.56,
-           0.65,
-           0.21
-         ],
-         [
-           -0.99,
-           -0.67,
-           0.51,
-           0.16,
-           0.58,
-           -0.1
-         ],
-         [
-           0.36,
-           0.79,
-           -0.04,
-           -0.58,
-           1,
-           0.51
-         ],
-         [
-           -0.61,
-           0.92,
-           0.85,
-           -0.24,
-           0.56,
-           0.55
-         ],
-         [
-           -0.85,
-           0.77,
-           0.84,
-           -0.2,
-           -0.79,
-           -0.05
-         ],
-         [
-           -0.68,
-           -0.07,
-           -0.78,
-           0.16,
-           -0.29,
-           -0.55
-         ]
-       ],
-       "type" : "custom"
-     },
-     "maxDistance" : 0.65,
-     "minDistance" : 0.04,
-     "name" : "Microcosm",
-     "paletteIndex" : 2,
-     "particleCount" : 30720,
-     "pointSize" : 9,
-     "preservesUISettings" : false,
-     "repulsion" : 0.03,
-     "speciesColorOffset" : 0,
-     "speciesCount" : 6,
-     "worldSize" : 1
-   },
-   {
-     "beta" : 0.3,
-     "distributionType" : "perlinNoise",
-     "friction" : 0.14,
-     "id" : "12F9F53D-EBCC-4A4D-A5BF-3D53C072F9D8",
-     "isBuiltIn" : true,
-     "matrixType" : {
-       "data" : [
-         [
-           0,
-           -0.75,
-           0,
-           0,
-           0,
-           0
-         ],
-         [
-           0,
-           0,
-           -1,
-           0,
-           0,
-           0.25
-         ],
-         [
-           0,
-           0,
-           0,
-           0,
-           0,
-           0
-         ],
-         [
-           0.5,
-           0,
-           0,
-           -0.75,
-           0,
-           -0.75
-         ],
-         [
-           0,
-           0,
-           0,
-           0,
-           0,
-           0
-         ],
-         [
-           0,
-           0,
-           0.25,
-           -0.5,
-           0,
-           0
-         ]
-       ],
-       "type" : "custom"
-     },
-     "maxDistance" : 0.45,
-     "minDistance" : 0.01,
-     "name" : "Flux",
-     "paletteIndex" : 5,
-     "particleCount" : 35840,
-     "pointSize" : 7,
-     "preservesUISettings" : false,
-     "repulsion" : 0.14,
-     "speciesColorOffset" : 2,
-     "speciesCount" : 6,
-     "worldSize" : 0.5
-   },
-   {
-      "beta":0.15,
-      "distributionType":"centered",
-      "friction":0.2,
-      "id":"B2AEE359-C386-4F4D-8DCE-033FF8053364",
-      "isBuiltIn":true,
-      "matrixType":{
-         "data":[
-            [
-               1,
-               0.25,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0
-            ],
-            [
-               0,
-               1,
-               0.25,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0
-            ],
-            [
-               0,
-               0,
-               1,
-               0.25,
-               0,
-               0,
-               0,
-               0,
-               0
-            ],
-            [
-               0,
-               0,
-               0,
-               1,
-               0.25,
-               0,
-               0,
-               0,
-               0
-            ],
-            [
-               0,
-               0,
-               0,
-               0,
-               1,
-               0,
-               0.015,
-               0,
-               0
-            ],
-            [
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               -0.25,
-               0
-            ],
-            [
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               1,
-               0,
-               0
-            ],
-            [
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               -0.25,
-               0
-            ],
-            [
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               0,
-               -0.25,
-               0
-            ]
-         ],
-         "type":"custom"
-      },
-      "maxDistance":0.6,
-      "minDistance":0.02,
-      "name":"Snake",
-      "paletteIndex":0,
-      "particleCount":35840,
-      "pointSize":7,
-      "preservesUISettings":false,
-      "repulsion":0.03,
-      "speciesColorOffset":0,
-      "speciesCount":9,
-      "worldSize":0.75
-   },
-   {
-     "beta" : 0.3,
-     "distributionType" : "perlinNoise",
-     "friction" : 0.1,
-     "id" : "27D890AC-B3BD-4A9D-94C5-17864FF1E864",
-     "isBuiltIn" : true,
-     "matrixType" : {
-       "data" : [
-         [
-           0.99,
-           0.16,
-           -0.79,
-           0.89,
-           -0.13,
-           0.94,
-           0.94,
-           0.33,
-           0.18
-         ],
-         [
-           -0.68,
-           -0.99,
-           0.63,
-           0.3,
-           0.26,
-           0.32,
-           0.06,
-           0.63,
-           0.47
-         ],
-         [
-           -0.59,
-           -0.64,
-           0.81,
-           -0.17,
-           -0.97,
-           0.68,
-           0.9,
-           0.19,
-           0.31
-         ],
-         [
-           -0.4,
-           0.98,
-           0.74,
-           0.61,
-           0.08,
-           0.75,
-           0.82,
-           0.99,
-           0.8
-         ],
-         [
-           -0.41,
-           -0.7,
-           -0.36,
-           -0.34,
-           0.09,
-           0.58,
-           -0.29,
-           0.76,
-           -0.61
-         ],
-         [
-           0.27,
-           -0.7,
-           0.72,
-           -0.9,
-           -0.27,
-           0.45,
-           0.21,
-           0.61,
-           -0.7
-         ],
-         [
-           -0.37,
-           0.26,
-           0.98,
-           -0.66,
-           0.83,
-           -0.83,
-           -1,
-           0.88,
-           0.11
-         ],
-         [
-           0.66,
-           0.28,
-           0.3,
-           0.81,
-           -0.23,
-           -0.63,
-           0.59,
-           0.1,
-           -0.23
-         ],
-         [
-           0.94,
-           0.87,
-           -0.77,
-           -0.56,
-           -0.11,
-           -0.92,
-           0.4,
-           0.22,
-           -0.44
-         ]
-       ],
-       "type" : "custom"
-     },
-     "maxDistance" : 1.05,
-     "minDistance" : 0.02,
-     "name" : "Space Wars",
-     "paletteIndex" : 2,
-     "particleCount" : 35840,
-     "pointSize" : 17,
-     "preservesUISettings" : false,
-     "repulsion" : 0.03,
-     "speciesColorOffset" : 5,
-     "speciesCount" : 9,
-     "worldSize" : 3
-   },
-   {
-     "beta" : 0.3,
-     "distributionType" : "centered",
-     "friction" : 0.21999998,
-     "id" : "DBECCB3D-454D-43E4-8F7A-215EC22FF8E8",
-     "isBuiltIn" : true,
-     "matrixType" : {
-       "data" : [
-         [
-           -0,
-           -0.98,
-           0.46,
-           -0.1,
-           0.15,
-           -0.86
-         ],
-         [
-           -0.54,
-           0.01,
-           0.86,
-           -0.53,
-           -0.99,
-           0.65
-         ],
-         [
-           -0.56,
-           0.5,
-           -0.73,
-           -0.19,
-           0.39,
-           0.54
-         ],
-         [
-           0.92,
-           0.78,
-           0.33,
-           -0.48,
-           -0.6,
-           0.56
-         ],
-         [
-           -0.22,
-           0.94,
-           0,
-           0.72,
-           0.86,
-           0.57
-         ],
-         [
-           -0.39,
-           -0.94,
-           0.99,
-           0.15,
-           0.91,
-           -0.46
-         ]
-       ],
-       "type" : "custom"
-     },
-     "maxDistance" : 0.65,
-     "minDistance" : 0.04,
-     "name" : "Oscillations",
-     "paletteIndex" : 6,
-     "particleCount" : 35840,
-     "pointSize" : 9,
-     "preservesUISettings" : false,
-     "repulsion" : 0.03,
-     "speciesColorOffset" : 3,
-     "speciesCount" : 6,
-     "worldSize" : 1
-   },
-   {
-      "beta":0.3,
-      "distributionType":"line",
-      "friction":0.14,
-      "id":"534F47CA-1D44-4AE7-87D0-4F85B770F7D9",
-      "isBuiltIn":true,
-      "matrixType":{
-         "data":[
-            [
-               -0.25,
-               -0.59,
-               -0.68,
-               0.87
-            ],
-            [
-               -0.17,
-               -0.38,
-               0.54,
-               0.76
-            ],
-            [
-               0.97,
-               0.39,
-               -0.32,
-               -0.33
-            ],
-            [
-               0.35,
-               0.79,
-               0.85,
-               0.54
-            ]
-         ],
-         "type":"custom"
-      },
-      "maxDistance":0.65,
-      "minDistance":0.04,
-      "name":"Underground",
-      "paletteIndex":2,
-      "particleCount":35840,
-      "pointSize":9,
-      "preservesUISettings":false,
-      "repulsion":0.03,
-      "speciesColorOffset":5,
-      "speciesCount":4,
-      "worldSize":1
-   },
-   {
-     "beta" : 0.3,
-     "distributionType" : "spiral",
-     "friction" : 0.2,
-     "id" : "C5CF0C65-C3BB-41AF-9E69-7C245B8E94CF",
-     "isBuiltIn" : true,
-     "matrixType" : {
-       "data" : [
-         [
-           1,
-           0.5,
-           0.2,
-           -0.8,
-           -0.8,
-           -0.8,
-           -0.8,
-           0.2,
-           0.5
-         ],
-         [
-           0.5,
-           1,
-           0.5,
-           0.2,
-           -0.8,
-           -0.8,
-           -0.8,
-           -0.8,
-           0.2
-         ],
-         [
-           0.2,
-           0.5,
-           1,
-           0.5,
-           0.2,
-           -0.8,
-           -0.8,
-           -0.8,
-           -0.8
-         ],
-         [
-           -0.8,
-           0.2,
-           0.5,
-           1,
-           0.5,
-           0.2,
-           -0.8,
-           -0.8,
-           -0.8
-         ],
-         [
-           -0.8,
-           -0.8,
-           0.2,
-           0.5,
-           1,
-           0.5,
-           0.2,
-           -0.8,
-           -0.8
-         ],
-         [
-           -0.8,
-           -0.8,
-           -0.8,
-           0.2,
-           0.5,
-           1,
-           0.5,
-           0.2,
-           -0.8
-         ],
-         [
-           -0.8,
-           -0.8,
-           -0.8,
-           -0.8,
-           0.2,
-           0.5,
-           1,
-           0.5,
-           0.2
-         ],
-         [
-           0.2,
-           -0.8,
-           -0.8,
-           -0.8,
-           -0.8,
-           0.2,
-           0.5,
-           1,
-           0.5
-         ],
-         [
-           0.5,
-           0.2,
-           -0.8,
-           -0.8,
-           -0.8,
-           -0.8,
-           0.2,
-           0.5,
-           1
-         ]
-       ],
-       "type" : "custom"
-     },
-     "maxDistance" : 0.35,
-     "minDistance" : 0.03,
-     "name" : "Solar Worms",
-     "paletteIndex" : 5,
-     "particleCount" : 35840,
-     "pointSize" : 8,
-     "preservesUISettings" : false,
-     "repulsion" : 0.03,
-     "speciesColorOffset" : 2,
-     "speciesCount" : 9,
-     "worldSize" : 1.5
-   }
+  {
+    "beta" : 0.3,
+    "distributionType" : "centeredCircle",
+    "friction" : 0.26,
+    "id" : "28F562C7-1A8D-4950-8C03-3F487E1122E3",
+    "isBuiltIn" : true,
+    "matrixType" : {
+      "data" : [
+        [
+          0,
+          0,
+          -0.5
+        ],
+        [
+          0,
+          0.5,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ]
+      ],
+      "type" : "custom"
+    },
+    "maxDistance" : 0.65,
+    "minDistance" : 0.04,
+    "name" : "Boom",
+    "paletteIndex" : 2,
+    "particleCount" : 30720,
+    "pointSize" : 5,
+    "preservesUISettings" : false,
+    "repulsion" : 0.03,
+    "speciesColorOffset" : 6,
+    "speciesCount" : 3,
+    "worldSize" : 0.5
+  },
+  {
+    "beta" : 0.3,
+    "distributionType" : "centeredCircle",
+    "friction" : 0.1,
+    "id" : "C205B42E-E2A8-4800-AE58-916A6832763B",
+    "isBuiltIn" : true,
+    "matrixType" : {
+      "data" : [
+        [
+          -1,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0.25,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          -0.05,
+          0,
+          0,
+          0.3
+        ],
+        [
+          0,
+          0,
+          0.25,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          -1,
+          0
+        ],
+        [
+          0,
+          0.69,
+          0,
+          0.34,
+          0,
+          -0.65
+        ]
+      ],
+      "type" : "custom"
+    },
+    "maxDistance" : 0.65,
+    "minDistance" : 0.04,
+    "name" : "Chloroplast",
+    "paletteIndex" : 0,
+    "particleCount" : 30720,
+    "pointSize" : 3,
+    "preservesUISettings" : false,
+    "repulsion" : 0.03,
+    "speciesColorOffset" : 1,
+    "speciesCount" : 6,
+    "worldSize" : 0.5
+  },
+  {
+    "beta" : 0.3,
+    "distributionType" : "uniformCircle",
+    "friction" : 0.17999999,
+    "id" : "26E08C90-C263-429E-BC40-F422E65D03E2",
+    "isBuiltIn" : true,
+    "matrixType" : {
+      "data" : [
+        [
+          0,
+          -0,
+          -0.26
+        ],
+        [
+          -0,
+          -0.36,
+          0
+        ],
+        [
+          -0.26,
+          0,
+          0
+        ]
+      ],
+      "type" : "custom"
+    },
+    "maxDistance" : 0.65,
+    "minDistance" : 0.04,
+    "name" : "Chromosomes",
+    "paletteIndex" : 2,
+    "particleCount" : 35840,
+    "pointSize" : 15,
+    "preservesUISettings" : false,
+    "repulsion" : 0.03,
+    "speciesColorOffset" : 6,
+    "speciesCount" : 3,
+    "worldSize" : 2
+  },
+  {
+    "beta" : 0.3,
+    "distributionType" : "perlinNoise",
+    "friction" : 0.14,
+    "id" : "12F9F53D-EBCC-4A4D-A5BF-3D53C072F9D8",
+    "isBuiltIn" : true,
+    "matrixType" : {
+      "data" : [
+        [
+          0,
+          -0.75,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          -1,
+          0,
+          0,
+          0.25
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0.5,
+          0,
+          0,
+          -0.75,
+          0,
+          -0.75
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0.25,
+          -0.5,
+          0,
+          0
+        ]
+      ],
+      "type" : "custom"
+    },
+    "maxDistance" : 0.45,
+    "minDistance" : 0.01,
+    "name" : "Flux",
+    "paletteIndex" : 5,
+    "particleCount" : 35840,
+    "pointSize" : 7,
+    "preservesUISettings" : false,
+    "repulsion" : 0.14,
+    "speciesColorOffset" : 2,
+    "speciesCount" : 6,
+    "worldSize" : 0.5
+  },
+  {
+    "beta" : 0.3,
+    "distributionType" : "perlinNoise",
+    "friction" : 0.08,
+    "id" : "91362DD9-9AF7-47D9-AEE5-4766BD7C142F",
+    "isBuiltIn" : true,
+    "matrixType" : {
+      "data" : [
+        [
+          0,
+          0,
+          0.65
+        ],
+        [
+          0,
+          -0.7,
+          0.7
+        ],
+        [
+          -0.65,
+          0,
+          0
+        ]
+      ],
+      "type" : "custom"
+    },
+    "maxDistance" : 0.65,
+    "minDistance" : 0.04,
+    "name" : "Lava",
+    "paletteIndex" : 0,
+    "particleCount" : 30720,
+    "pointSize" : 12,
+    "preservesUISettings" : false,
+    "repulsion" : 0.03,
+    "speciesColorOffset" : 0,
+    "speciesCount" : 3,
+    "worldSize" : 1.5
+  },
+  {
+    "beta" : 0.3,
+    "distributionType" : "uniform",
+    "friction" : 0.14,
+    "id" : "A16DC84A-B38F-4F75-B913-82CF9C4F9708",
+    "isBuiltIn" : true,
+    "matrixType" : {
+      "data" : [
+        [
+          -0.58,
+          -0.96,
+          -0.55,
+          0.56,
+          0.65,
+          0.21
+        ],
+        [
+          -0.99,
+          -0.67,
+          0.51,
+          0.16,
+          0.58,
+          -0.1
+        ],
+        [
+          0.36,
+          0.79,
+          -0.04,
+          -0.58,
+          1,
+          0.51
+        ],
+        [
+          -0.61,
+          0.92,
+          0.85,
+          -0.24,
+          0.56,
+          0.55
+        ],
+        [
+          -0.85,
+          0.77,
+          0.84,
+          -0.2,
+          -0.79,
+          -0.05
+        ],
+        [
+          -0.68,
+          -0.07,
+          -0.78,
+          0.16,
+          -0.29,
+          -0.55
+        ]
+      ],
+      "type" : "custom"
+    },
+    "maxDistance" : 0.65,
+    "minDistance" : 0.04,
+    "name" : "Microcosm",
+    "paletteIndex" : 2,
+    "particleCount" : 30720,
+    "pointSize" : 9,
+    "preservesUISettings" : false,
+    "repulsion" : 0.03,
+    "speciesColorOffset" : 0,
+    "speciesCount" : 6,
+    "worldSize" : 1
+  },
+  {
+    "beta" : 0.3,
+    "distributionType" : "centered",
+    "friction" : 0.21999998,
+    "id" : "DBECCB3D-454D-43E4-8F7A-215EC22FF8E8",
+    "isBuiltIn" : true,
+    "matrixType" : {
+      "data" : [
+        [
+          -0,
+          -0.98,
+          0.46,
+          -0.1,
+          0.15,
+          -0.86
+        ],
+        [
+          -0.54,
+          0.01,
+          0.86,
+          -0.53,
+          -0.99,
+          0.65
+        ],
+        [
+          -0.56,
+          0.5,
+          -0.73,
+          -0.19,
+          0.39,
+          0.54
+        ],
+        [
+          0.92,
+          0.78,
+          0.33,
+          -0.48,
+          -0.6,
+          0.56
+        ],
+        [
+          -0.22,
+          0.94,
+          0,
+          0.72,
+          0.86,
+          0.57
+        ],
+        [
+          -0.39,
+          -0.94,
+          0.99,
+          0.15,
+          0.91,
+          -0.46
+        ]
+      ],
+      "type" : "custom"
+    },
+    "maxDistance" : 0.65,
+    "minDistance" : 0.04,
+    "name" : "Oscillations",
+    "paletteIndex" : 6,
+    "particleCount" : 30720,
+    "pointSize" : 9,
+    "preservesUISettings" : false,
+    "repulsion" : 0.03,
+    "speciesColorOffset" : 3,
+    "speciesCount" : 6,
+    "worldSize" : 1
+  },
+  {
+    "beta" : 0.3,
+    "distributionType" : "perlinNoise",
+    "friction" : 0.1,
+    "id" : "2D1DFBD5-5EE8-4D3B-B6E3-544F6F0F1D03",
+    "isBuiltIn" : true,
+    "matrixType" : {
+      "data" : [
+        [
+          -0.7,
+          0.11,
+          0.38
+        ],
+        [
+          0.66,
+          0.11,
+          -0.49
+        ],
+        [
+          -0.71,
+          0.91,
+          0.74
+        ]
+      ],
+      "type" : "custom"
+    },
+    "maxDistance" : 0.65,
+    "minDistance" : 0.04,
+    "name" : "Ravenous",
+    "paletteIndex" : 3,
+    "particleCount" : 30720,
+    "pointSize" : 14,
+    "preservesUISettings" : false,
+    "repulsion" : 0.03,
+    "speciesColorOffset" : 2,
+    "speciesCount" : 3,
+    "worldSize" : 1.25
+  },
+  {
+    "beta" : 0.3,
+    "distributionType" : "uniform",
+    "friction" : 0.06,
+    "id" : "F1F9BBC0-FC3D-47A2-8495-B5EEBE941829",
+    "isBuiltIn" : true,
+    "matrixType" : {
+      "data" : [
+        [
+          0,
+          0,
+          1
+        ],
+        [
+          0,
+          -1,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ]
+      ],
+      "type" : "custom"
+    },
+    "maxDistance" : 0.65,
+    "minDistance" : 0.04,
+    "name" : "Sea Foam",
+    "paletteIndex" : 6,
+    "particleCount" : 20480,
+    "pointSize" : 6,
+    "preservesUISettings" : false,
+    "repulsion" : 0.03,
+    "speciesColorOffset" : 0,
+    "speciesCount" : 3,
+    "worldSize" : 0.5
+  },
+  {
+    "beta" : 0.15,
+    "distributionType" : "centered",
+    "friction" : 0.2,
+    "id" : "B2AEE359-C386-4F4D-8DCE-033FF8053364",
+    "isBuiltIn" : true,
+    "matrixType" : {
+      "data" : [
+        [
+          1,
+          0.25,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          1,
+          0.25,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          1,
+          0.25,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          1,
+          0.25,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0.015,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          -0.25,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          -0.25,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          -0.25,
+          0
+        ]
+      ],
+      "type" : "custom"
+    },
+    "maxDistance" : 0.6,
+    "minDistance" : 0.02,
+    "name" : "Snake",
+    "paletteIndex" : 0,
+    "particleCount" : 30720,
+    "pointSize" : 7,
+    "preservesUISettings" : false,
+    "repulsion" : 0.03,
+    "speciesColorOffset" : 0,
+    "speciesCount" : 9,
+    "worldSize" : 0.75
+  },
+  {
+    "beta" : 0.3,
+    "distributionType" : "spiral",
+    "friction" : 0.2,
+    "id" : "C5CF0C65-C3BB-41AF-9E69-7C245B8E94CF",
+    "isBuiltIn" : true,
+    "matrixType" : {
+      "data" : [
+        [
+          1,
+          0.5,
+          0.2,
+          -0.8,
+          -0.8,
+          -0.8,
+          -0.8,
+          0.2,
+          0.5
+        ],
+        [
+          0.5,
+          1,
+          0.5,
+          0.2,
+          -0.8,
+          -0.8,
+          -0.8,
+          -0.8,
+          0.2
+        ],
+        [
+          0.2,
+          0.5,
+          1,
+          0.5,
+          0.2,
+          -0.8,
+          -0.8,
+          -0.8,
+          -0.8
+        ],
+        [
+          -0.8,
+          0.2,
+          0.5,
+          1,
+          0.5,
+          0.2,
+          -0.8,
+          -0.8,
+          -0.8
+        ],
+        [
+          -0.8,
+          -0.8,
+          0.2,
+          0.5,
+          1,
+          0.5,
+          0.2,
+          -0.8,
+          -0.8
+        ],
+        [
+          -0.8,
+          -0.8,
+          -0.8,
+          0.2,
+          0.5,
+          1,
+          0.5,
+          0.2,
+          -0.8
+        ],
+        [
+          -0.8,
+          -0.8,
+          -0.8,
+          -0.8,
+          0.2,
+          0.5,
+          1,
+          0.5,
+          0.2
+        ],
+        [
+          0.2,
+          -0.8,
+          -0.8,
+          -0.8,
+          -0.8,
+          0.2,
+          0.5,
+          1,
+          0.5
+        ],
+        [
+          0.5,
+          0.2,
+          -0.8,
+          -0.8,
+          -0.8,
+          -0.8,
+          0.2,
+          0.5,
+          1
+        ]
+      ],
+      "type" : "custom"
+    },
+    "maxDistance" : 0.35,
+    "minDistance" : 0.03,
+    "name" : "Solar Worms",
+    "paletteIndex" : 5,
+    "particleCount" : 35840,
+    "pointSize" : 8,
+    "preservesUISettings" : false,
+    "repulsion" : 0.03,
+    "speciesColorOffset" : 2,
+    "speciesCount" : 9,
+    "worldSize" : 1.5
+  },
+  {
+    "beta" : 0.3,
+    "distributionType" : "perlinNoise",
+    "friction" : 0.1,
+    "id" : "27D890AC-B3BD-4A9D-94C5-17864FF1E864",
+    "isBuiltIn" : true,
+    "matrixType" : {
+      "data" : [
+        [
+          0.99,
+          0.16,
+          -0.79,
+          0.89,
+          -0.13,
+          0.94,
+          0.94,
+          0.33,
+          0.18
+        ],
+        [
+          -0.68,
+          -0.99,
+          0.63,
+          0.3,
+          0.26,
+          0.32,
+          0.06,
+          0.63,
+          0.47
+        ],
+        [
+          -0.59,
+          -0.64,
+          0.81,
+          -0.17,
+          -0.97,
+          0.68,
+          0.9,
+          0.19,
+          0.31
+        ],
+        [
+          -0.4,
+          0.98,
+          0.74,
+          0.61,
+          0.08,
+          0.75,
+          0.82,
+          0.99,
+          0.8
+        ],
+        [
+          -0.41,
+          -0.7,
+          -0.36,
+          -0.34,
+          0.09,
+          0.58,
+          -0.29,
+          0.76,
+          -0.61
+        ],
+        [
+          0.27,
+          -0.7,
+          0.72,
+          -0.9,
+          -0.27,
+          0.45,
+          0.21,
+          0.61,
+          -0.7
+        ],
+        [
+          -0.37,
+          0.26,
+          0.98,
+          -0.66,
+          0.83,
+          -0.83,
+          -1,
+          0.88,
+          0.11
+        ],
+        [
+          0.66,
+          0.28,
+          0.3,
+          0.81,
+          -0.23,
+          -0.63,
+          0.59,
+          0.1,
+          -0.23
+        ],
+        [
+          0.94,
+          0.87,
+          -0.77,
+          -0.56,
+          -0.11,
+          -0.92,
+          0.4,
+          0.22,
+          -0.44
+        ]
+      ],
+      "type" : "custom"
+    },
+    "maxDistance" : 1.05,
+    "minDistance" : 0.02,
+    "name" : "Space Wars",
+    "paletteIndex" : 2,
+    "particleCount" : 30720,
+    "pointSize" : 17,
+    "preservesUISettings" : false,
+    "repulsion" : 0.03,
+    "speciesColorOffset" : 5,
+    "speciesCount" : 9,
+    "worldSize" : 3
+  },
+  {
+    "beta" : 0.3,
+    "distributionType" : "line",
+    "friction" : 0.14,
+    "id" : "534F47CA-1D44-4AE7-87D0-4F85B770F7D9",
+    "isBuiltIn" : true,
+    "matrixType" : {
+      "data" : [
+        [
+          -0.25,
+          -0.59,
+          -0.68,
+          0.87
+        ],
+        [
+          -0.17,
+          -0.38,
+          0.54,
+          0.76
+        ],
+        [
+          0.97,
+          0.39,
+          -0.32,
+          -0.33
+        ],
+        [
+          0.35,
+          0.79,
+          0.85,
+          0.54
+        ]
+      ],
+      "type" : "custom"
+    },
+    "maxDistance" : 0.65,
+    "minDistance" : 0.04,
+    "name" : "Underground",
+    "paletteIndex" : 2,
+    "particleCount" : 30720,
+    "pointSize" : 9,
+    "preservesUISettings" : false,
+    "repulsion" : 0.03,
+    "speciesColorOffset" : 5,
+    "speciesCount" : 4,
+    "worldSize" : 1
+  }
 ]

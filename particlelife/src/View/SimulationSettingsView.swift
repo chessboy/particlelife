@@ -26,6 +26,16 @@ struct SimulationSettingsView: View {
     @State private var isExpanded = true
     @State private var isCloseButtonHovered = false
     
+    private let maxAllowedParticleCount: ParticleCount
+
+    init(renderer: Renderer) {
+        let gpuCoreCount = SystemCapabilities.shared.gpuCoreCount
+        let gpuType = SystemCapabilities.shared.gpuType
+        self.maxAllowedParticleCount = ParticleCount.maxAllowedParticleCount(for: gpuCoreCount, gpuType: gpuType)
+
+        self.renderer = renderer
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             
@@ -65,7 +75,7 @@ struct SimulationSettingsView: View {
                 PresetPickerView(settings: settings, renderer: renderer)
                 SpeciesPickerView(settings: settings, renderer: renderer)
                 MatrixPickerView(settings: settings, renderer: renderer)
-                ParticleCountPickerView(settings: settings, renderer: renderer)
+                ParticleCountPickerView(settings: settings, renderer: renderer, maxAllowedParticleCount: maxAllowedParticleCount)
                 DistributionPickerView(settings: settings, renderer: renderer)
                 PalettePickerView(settings: settings, renderer: renderer)
             }
@@ -429,6 +439,8 @@ struct ParticleCountPickerView: View {
     @ObservedObject var settings: SimulationSettings
     @ObservedObject var renderer: Renderer
 
+    var maxAllowedParticleCount: ParticleCount
+
     var body: some View {
         HStack(spacing: 0) {
             Text("Particles:")
@@ -442,11 +454,7 @@ struct ParticleCountPickerView: View {
                 }
             )) {
                 ForEach(ParticleCount.allCases.filter {
-                    let gpuCoreCount = SystemCapabilities.shared.gpuCoreCount
-                    let gpuType = SystemCapabilities.shared.gpuType
-                    let maxAllowed = ParticleCount.maxAllowedParticleCount(for: gpuCoreCount, gpuType: gpuType)
-
-                    return $0 <= maxAllowed
+                    return $0 <= maxAllowedParticleCount
                 }, id: \.self) { count in
                     Text(count.displayString)
                         .tag(count)

@@ -60,6 +60,21 @@ enum MatrixType: Codable, Hashable, CaseIterable {
         }
         return false
     }
+    
+    var shortString: String {
+        switch self {
+        case .custom(let matrix):
+            let size = "\(matrix.count)x\(matrix.first?.count ?? 0)"
+            if matrix.count == 1, let singleValue = matrix.first?.first {
+                return "custom(\(size), \(String(format: "%.2f", singleValue)))"  // 1x1 case
+            } else if let first = matrix.first?.first, let last = matrix.last?.last {
+                return "custom(\(size), \(String(format: "%.2f", first)), ..., \(String(format: "%.2f", last)))"
+            }
+            return "custom(\(size), empty)"  // Empty matrix
+        default:
+            return "\(self)"  // Default case returns the enum case name
+        }
+    }
 }
 
 extension MatrixType {

@@ -11,7 +11,7 @@ import Foundation
 enum MatrixGenerator {
     
     static func generateMatrix(speciesCount: Int, type: MatrixType) -> [[Float]] {
-        Logger.log("Generating matrix: speciesCount: \(speciesCount), type: \(type)", level: .debug)
+        Logger.log("Generating matrix: speciesCount: \(speciesCount), type: \(type.shortString)", level: .debug)
         
         var matrix = [[Float]](repeating: [Float](repeating: 0.0, count: speciesCount), count: speciesCount)
         

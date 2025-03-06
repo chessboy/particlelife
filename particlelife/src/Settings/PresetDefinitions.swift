@@ -14,16 +14,8 @@ class PresetDefinitions {
     static let testPreset = makeTestPreset()
     static var specialPresets: [SimulationPreset] = []
 
-    static func loadSpecialPresets(isOptimized: Bool) {
-        let gpuCoreCount = SystemCapabilities.shared.gpuCoreCount
-
-        if isOptimized {
-            Logger.log("Optimizing special presets for \(gpuCoreCount)-core GPU", level: .warning)
-        }
-
-        let presets = UserPresetStorage.loadPresetsFromBundle()
-        specialPresets = isOptimized ? presets.map { $0.optimized(for: gpuCoreCount) } : presets
-
+    static func loadSpecialPresets() {
+        specialPresets = UserPresetStorage.loadPresetsFromBundle()
         Logger.log("\n" + specialPresets.map { "  - \($0.name) (\($0.speciesCount) species, \($0.particleCount.displayString))" }.joined(separator: "\n"))
     }
     

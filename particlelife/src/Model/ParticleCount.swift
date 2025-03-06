@@ -82,20 +82,32 @@ enum ParticleCount: Int, CaseIterable, Identifiable, Codable, Comparable {
         let maxAllowed: ParticleCount
         
         if gpuType == .cpuOnly {
-            maxAllowed = .k10  // Ensure CPU-only never exceeds `k10`
+            maxAllowed = .k10  // CPU-only capped at `k10`
         } else if gpuType == .dedicatedGPU {
-            maxAllowed = .k40
-        } else if gpuCoreCount >= 30 {
-            maxAllowed = .k35
-        } else if gpuCoreCount >= 16 {
-            maxAllowed = .k30
-        } else if gpuCoreCount >= 8 {
-            maxAllowed = .k20
-        } else {
-            maxAllowed = .k10
+            if gpuCoreCount >= 30 {
+                maxAllowed = .k40  // M2 Max (30-38 cores)
+            } else if gpuCoreCount >= 16 {
+                maxAllowed = .k35  // M2 Pro-like chips
+            } else if gpuCoreCount >= 10 {
+                maxAllowed = .k20  // Base M2 (10-core)
+            } else {
+                maxAllowed = .k10  // Catch-all for anything weaker
+            }
+        } else { // Integrated GPUs
+            if gpuCoreCount >= 30 {
+                maxAllowed = .k35
+            } else if gpuCoreCount >= 16 {
+                maxAllowed = .k30
+            } else if gpuCoreCount >= 8 {
+                maxAllowed = .k20
+            } else {
+                maxAllowed = .k10
+            }
         }
         
-        return min(self, maxAllowed)
+        let optimizedCount = min(self, maxAllowed)
+        //Logger.log("Optimizing \(self) ➝ \(optimizedCount)", level: .debug)
+        return optimizedCount
     }
     
     static func maxAllowedParticleCount(for gpuCoreCount: Int, gpuType: GPUType) -> ParticleCount {
