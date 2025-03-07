@@ -110,7 +110,6 @@ struct PresetPickerView: View {
     @State private var isShowingDeleteSheet = false
     @State private var isHovered = false
 
-
     var body: some View {
         HStack(spacing: 8) {
             Button(action: {
@@ -145,6 +144,7 @@ struct PresetPickerView: View {
                         Text("New")
                     }
                 }
+                .keyboardShortcut("n", modifiers: .command)
                 
                 Button {
                     ParticleSystem.shared.selectPreset(PresetDefinitions.randomPreset)
@@ -154,6 +154,7 @@ struct PresetPickerView: View {
                         Text("Random")
                     }
                 }
+                .keyboardShortcut("?", modifiers: .command)
                 
                 // Built-in Presets
                 Divider()
@@ -191,7 +192,9 @@ struct PresetPickerView: View {
                 // File IO
                 Divider()
                 Button(action: {
-                    isShowingSaveSheet = true
+                    if !isShowingDeleteSheet {
+                        isShowingSaveSheet = true
+                    }
                 }) {
                     HStack {
                         Image(systemName: SFSymbols.Name.save)
@@ -218,21 +221,15 @@ struct PresetPickerView: View {
             .pickerStyle(MenuPickerStyle())
             .disabled(renderer.isPaused)
             .onReceive(NotificationCenter.default.publisher(for: .saveTriggered)) { _ in
-                Logger.log("received save notification")
-                isShowingSaveSheet = true
+                Logger.log("received save notification: isShowingDeleteSheet: \(isShowingDeleteSheet)")
+                if !isShowingDeleteSheet {
+                    isShowingSaveSheet = true
+                }
             }
-            .popover(
-                isPresented: $isShowingSaveSheet,
-                attachmentAnchor: .rect(.bounds),
-                arrowEdge: .top
-            ) {
+            .sheet(isPresented: $isShowingSaveSheet) {
                 SavePresetSheet(isShowingSaveSheet: $isShowingSaveSheet, presetName: .constant(settings.selectedPreset.name))
             }
-            .popover(
-                isPresented: $isShowingDeleteSheet,
-                attachmentAnchor: .rect(.bounds),
-                arrowEdge: .top
-            ) {
+            .sheet(isPresented: $isShowingDeleteSheet) {
                 DeletePresetSheet(isShowingDeleteSheet: $isShowingDeleteSheet)
             }
         }
@@ -332,10 +329,10 @@ struct PalettePickerView: View {
             
             Button(action: {
                 // for now we only support 0 (no effect) & 1 (texturizing effect)
-                SimulationSettings.shared.toggleColorEffect()
+                SimulationSettings.shared.nextColorEffect()
             }) {
                 Image(systemName: SFSymbols.Name.colorEffect)
-                    .foregroundColor(SimulationSettings.shared.colorEffectIndex == 0 ? .white : .yellow)
+                    .foregroundColor(.white)
                     .font(.system(size: 14))
                     .padding(2)
                     .background(isHovered ? Color.gray.opacity(0.3) : Color.clear)
@@ -363,8 +360,8 @@ struct PalettePickerView: View {
                     }
                 }
             )) {
-                ForEach(SpeciesPalette.allCases.indices, id: \.self) { index in
-                    Text(SpeciesPalette.allCases[index].name).tag(index)
+                ForEach(ColorPalette.allCases.indices, id: \.self) { index in
+                    Text(ColorPalette.allCases[index].name).tag(index)
                 }
             }
             .pickerStyle(MenuPickerStyle())
@@ -642,6 +639,21 @@ struct SavePresetSheet: View {
                 .onSubmit {
                     handleSaveAttempt()
                 }
+//                .onAppear() {
+//                    NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+//                        guard isShowingSaveSheet else { return event }
+//                        if event.keyCode == 36, !tempPresetName.isEmpty { // 36 = Return/Enter
+//                            handleSaveAttempt()
+//                            return nil // Swallow the event to prevent propagation
+//                            
+//                        } else if event.keyCode == 53 { // 52 = ESC
+//                            isShowingSaveSheet = false
+//                            return nil // Swallow the event to prevent propagation
+//                        }
+//
+//                        return event
+//                    }
+//                }
             HStack(spacing: 12) {
                 Button("Cancel") {
                     isShowingSaveSheet = false
@@ -745,6 +757,18 @@ struct DeletePresetSheet: View {
                     ParticleSystem.shared.selectPreset(PresetDefinitions.getDefaultPreset())
                     isShowingDeleteSheet = false
                 }
+                .onAppear() {
+//                    NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+//                        guard isShowingDeleteSheet else { return event }
+//                        if event.keyCode == 53 { // 52 = ESC
+//                            isShowingDeleteSheet = false
+//                            return nil // Swallow the event to prevent propagation
+//                        }
+//
+//                        return event
+//                    }
+                }
+
                 .buttonStyle(.borderedProminent)
                 .tint(.red)
                 .frame(width: 100)

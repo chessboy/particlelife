@@ -13,10 +13,6 @@ struct ClickData {
     var force: Float
 }
 
-struct Uniforms {
-    var frameCount: UInt32
-}
-
 class BufferManager {
     static let shared = BufferManager()
     

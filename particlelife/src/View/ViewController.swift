@@ -12,8 +12,9 @@ import MetalKit
 class ViewController: NSViewController {
     private var metalView: MTKView!
     private var renderer: Renderer!
-    private var actionTimer: Timer?
     private var fpsMonitor = FPSMonitor()
+    private var keyEventRouter: KeyEventRouter?
+    private var didShowSplash = false
 
     private var settingsButton: NSHostingView<SettingsButtonView>?
     private var settingsButtonFadeTimer: Timer?
@@ -28,25 +29,22 @@ class ViewController: NSViewController {
         setupSettingsPanel()
         setupSplashScreen()
         setupMouseTracking()
+        setupKeyboardTracking()
         enforceWindowSizeConstraints()
+        setupNotifications()
+    }
         
-        // Set up notifications
+    private func setupNotifications() {
         NotificationCenter.default.addObserver(self, selector: #selector(didEnterFullScreen), name: NSWindow.didEnterFullScreenNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(didExitFullScreen), name: NSWindow.didExitFullScreenNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(hideSettingsPanel), name: .closeSettingsPanel, object: nil)
-        
-        NotificationCenter.default.addObserver(forName: .lowPerformanceWarning, object: nil, queue: .main) { _ in
-            if let warning = SystemCapabilities.shared.performanceWarning() {
-                self.showAlert(title: warning.title, message: warning.message)
-            }
-        }
+        NotificationCenter.default.addObserver(self, selector: #selector(checkLowPerformanceWarning), name: .lowPerformanceWarning, object: nil)
     }
     
     override func viewWillAppear() {
         super.viewWillAppear()
         
         self.view.window?.makeFirstResponder(self) // Ensure proper input focus
-        actionTimer = Timer.scheduledTimer(timeInterval: 0.016, target: self, selector: #selector(updateCamera), userInfo: nil, repeats: true)
         
         fitWindowToScreen()
 
@@ -62,19 +60,7 @@ class ViewController: NSViewController {
             self.showSettingsPanel()
         }
     }
-    
-    func showAlert(title: String, message: String) {
-        let alert = NSAlert()
-        alert.messageText = title
-        alert.informativeText = message
-        alert.alertStyle = .warning
-        alert.addButton(withTitle: "OK")
         
-        DispatchQueue.main.async {
-            alert.runModal()
-        }
-    }
-    
     override func viewDidAppear() {
         fpsMonitor.startMonitoring()
     }
@@ -82,8 +68,7 @@ class ViewController: NSViewController {
     override func viewWillDisappear() {
         super.viewWillDisappear()
         fpsMonitor.stopMonitoring()
-        actionTimer?.invalidate()
-        actionTimer = nil
+        keyEventRouter?.stopListeningForEvents()
     }
         
     private func setupMetalView() {
@@ -102,6 +87,17 @@ class ViewController: NSViewController {
             metalView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
         ])
     }
+    
+    @objc private func checkLowPerformanceWarning() {
+        if let warning = SystemCapabilities.shared.performanceWarning() {
+            self.showAlert(title: warning.title, message: warning.message)
+        }
+    }
+}
+
+// MARK: Window Management
+
+extension ViewController {
     
     func fitWindowToScreen() {
         guard let window = view.window, let screen = window.screen else { return }
@@ -129,9 +125,7 @@ class ViewController: NSViewController {
         
         Logger.log("window size: \(window.frame.size) | content size: \(window.contentLayoutRect.size) | titleBarHeight: \(titleBarHeight)", level: .debug)
     }
-    
-    var didShowSplash = false
-    
+        
     @objc private func didEnterFullScreen() {
         if !UserSettings.shared.bool(forKey: UserSettingsKeys.startupInFullScreen) {
             UserSettings.shared.set(true, forKey: UserSettingsKeys.startupInFullScreen)
@@ -140,7 +134,6 @@ class ViewController: NSViewController {
         if !didShowSplash {
             didShowSplash = true
         }
-
     }
     
     // Reapply aspect ratio when exiting full screen
@@ -150,60 +143,32 @@ class ViewController: NSViewController {
         }
         UserSettings.shared.set(false, forKey: UserSettingsKeys.startupInFullScreen)
     }
+    
+    func showAlert(title: String, message: String) {
+        let alert = NSAlert()
+        alert.messageText = title
+        alert.informativeText = message
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: "OK")
+        
+        DispatchQueue.main.async {
+            alert.runModal()
+        }
+    }
 }
+
+private let settingsButtonWidth: CGFloat = 120
+private let settingsButtonLeftOffset: CGFloat = 100
+private let settingsPanelWidth: CGFloat = 340
+private let triggerZoneX: CGFloat = 300
+private let settingsButtonHeight: CGFloat = 44
 
 private var settingsButtonYConstraint: NSLayoutConstraint?
 private var initialSettingsButtonY: CGFloat?  // Store first Y entry, clear after hiding
 
-private let settingsButtonWidth: CGFloat = 120
-private let settingsButtonLeftOffset: CGFloat = 40
-private let settingsPanelWidth: CGFloat = 340
-private let triggerZoneX: CGFloat = 200
-private let settingsButtonHeight: CGFloat = 44
+// MARK: Settings Panel
 
-// handling of settings panel
 extension ViewController {
-    
-    private func setupMouseTracking() {
-        NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved]) { event in
-            self.handleMouseMove(event: event)
-            return event
-        }
-    }
-    
-    private func handleMouseMove(event: NSEvent) {
-        guard settingsPanel.isHidden else { return }
-        
-        let mouseX = event.locationInWindow.x
-        let mouseY = event.locationInWindow.y
-        
-        if mouseX < triggerZoneX {
-            if settingsButton?.isHidden ?? true {
-                let detectedY = initialSettingsButtonY ?? computeInitialY(from: mouseY)
-                showSettingsButton(at: detectedY)
-            }
-        } else {
-            hideSettingsButton()
-        }
-    }
-        
-    private func setupSettingsButton() {
-        let settingsButtonView = SettingsButtonView(action: toggleSettingsPanel)
-        let hostingView = NSHostingView(rootView: settingsButtonView)
-        hostingView.translatesAutoresizingMaskIntoConstraints = false
-        hostingView.alphaValue = 0.0 // Start hidden
-        
-        view.addSubview(hostingView)
-        settingsButton = hostingView
-        
-        if let settingsButton = settingsButton {
-            
-            NSLayoutConstraint.activate([
-                settingsButton.widthAnchor.constraint(equalToConstant: settingsButtonWidth), // Adjust as needed
-                settingsButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: settingsButtonLeftOffset) // Slight offset from the edge
-            ])
-        }
-    }
     
     private func setupSettingsPanel() {
         let settingsView = SimulationSettingsView(renderer: renderer)
@@ -212,7 +177,7 @@ extension ViewController {
         settingsPanel.translatesAutoresizingMaskIntoConstraints = false
         settingsPanel.isHidden = true
         settingsPanel.alphaValue = 0.0  // Start at 0 so first-time animation works
-
+        
         view.addSubview(settingsPanel)
         
         NSLayoutConstraint.activate([
@@ -222,7 +187,7 @@ extension ViewController {
         ])
     }
     
-    @objc private func toggleSettingsPanel() {
+    private func toggleSettingsPanel() {
         if settingsPanel.isHidden {
             showSettingsPanel()
         } else {
@@ -235,7 +200,7 @@ extension ViewController {
         
         settingsPanel.isHidden = false
         settingsPanel.alphaValue = 0.0  // Ensure it starts fully transparent
-
+        
         NSAnimationContext.runAnimationGroup { context in
             context.duration = 0.3
             settingsPanel.animator().alphaValue = 1.0
@@ -254,7 +219,30 @@ extension ViewController {
             self.settingsPanel.isHidden = true
         }
     }
-    
+}
+
+// MARK Settings Button
+
+extension ViewController {
+            
+    private func setupSettingsButton() {
+        let settingsButtonView = SettingsButtonView(action: { self.toggleSettingsPanel() })
+        let hostingView = NSHostingView(rootView: settingsButtonView)
+        hostingView.translatesAutoresizingMaskIntoConstraints = false
+        hostingView.alphaValue = 0.0 // Start hidden
+        
+        view.addSubview(hostingView)
+        settingsButton = hostingView
+        
+        if let settingsButton = settingsButton {
+            
+            NSLayoutConstraint.activate([
+                settingsButton.widthAnchor.constraint(equalToConstant: settingsButtonWidth), // Adjust as needed
+                settingsButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: settingsButtonLeftOffset) // Slight offset from the edge
+            ])
+        }
+    }
+
     private func showSettingsButton(at mouseY: CGFloat) {
         guard let settingsButton = settingsButton else { return }
 
@@ -310,133 +298,73 @@ extension ViewController {
     }
 }
 
-private var zoomingIn = false
-private var zoomingOut = false
-private var panningLeft = false
-private var panningRight = false
-private var panningUp = false
-private var panningDown = false
+
+// MARK: Event Handling
 
 extension ViewController {
-
+    
     override var acceptsFirstResponder: Bool { true }
     
+    // MARK: Mouse Events
+    
+    private func setupMouseTracking() {
+        NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved]) { event in
+            self.handleMouseMove(event: event)
+            return event
+        }
+    }
+        
+    private func handleMouseMove(event: NSEvent) {
+        guard settingsPanel.isHidden else { return }
+        
+        let mouseX = event.locationInWindow.x
+        let mouseY = event.locationInWindow.y
+        
+        if mouseX < triggerZoneX {
+            if settingsButton?.isHidden ?? true {
+                let detectedY = initialSettingsButtonY ?? computeInitialY(from: mouseY)
+                showSettingsButton(at: detectedY)
+            }
+        } else {
+            hideSettingsButton()
+        }
+    }
+
     override func mouseDown(with event: NSEvent) {
         handleMouseEvent(event, isRightClick: false)
     }
-
+    
     override func rightMouseDown(with event: NSEvent) {
         handleMouseEvent(event, isRightClick: true)
     }
-
+    
     private func handleMouseEvent(_ event: NSEvent, isRightClick: Bool) {
         let location = event.locationInWindow
         let convertedLocation = metalView.convert(location, from: nil)
         renderer.handleMouseClick(at: convertedLocation, in: metalView, isRightClick: isRightClick)
     }
     
+    // MARK: Key Events
+    
+    private func setupKeyboardTracking() {
+        keyEventRouter = KeyEventRouter(renderer: renderer, toggleSettingsPanelAction: { self.toggleSettingsPanel() })
+    }
+
     override func keyDown(with event: NSEvent) {
-        if handleMovementKey(event, isKeyDown: true) { return }
-        if handleCommandKey(event) { return }
-        handleOtherKeyDown(with: event)
+        guard let keyEventRouter = keyEventRouter else { return }
+        if keyEventRouter.handleMovementKey(event, isKeyDown: true) {
+            return
+        }
+        keyEventRouter.handleOtherKeyDown(with: event)
     }
-
+    
     override func keyUp(with event: NSEvent) {
-        _ = handleMovementKey(event, isKeyDown: false)
-    }
-
-    private func handleMovementKey(_ event: NSEvent, isKeyDown: Bool) -> Bool {
-        switch event.keyCode {
-        case 24: zoomingIn = isKeyDown          // + key
-        case 27: zoomingOut = isKeyDown         // - key
-        case 123: panningLeft = isKeyDown       // Left arrow
-        case 124: panningRight = isKeyDown      // Right arrow
-        case 125: panningDown = isKeyDown       // Down arrow
-        case 126: panningUp = isKeyDown         // Up arrow
-        default: return false // Return false if key was not handled
-        }
-        return true // Return true if key was handled
-    }
-
-    private func handleCommandKey(_ event: NSEvent) -> Bool {
-        // ⌘R Respawn
-        if event.modifierFlags.contains(.command) && event.characters == "r" {
-            renderer.respawnParticles()
-            return true
-        }
-        
-        // ⌘S Save the current settings to a preset
-        if event.modifierFlags.contains(.command) && event.characters == "s" {
-            NotificationCenter.default.post(name: .saveTriggered, object: nil)
-            return true
-        }
-        
-        // ⌘N New preset
-        if event.modifierFlags.contains(.command) && event.characters == "n" {
-            ParticleSystem.shared.selectPreset(PresetDefinitions.emptyPreset)
-           return true
-        }
-        
-        // ⌘/ (? key) New random-mode preset
-        if event.modifierFlags.contains(.command) && event.characters == "/" {
-            ParticleSystem.shared.selectPreset(PresetDefinitions.randomPreset)
-            return true
-        }
-        
-        return false
-    }
-    
-    func handleOtherKeyDown(with event: NSEvent) {
-        
-        switch event.keyCode {
-        case 33: // [
-            ParticleSystem.shared.decrementPaletteIndex()
-        case 30: // ]
-            ParticleSystem.shared.incrementPaletteIndex()
-        case 48: // Tab
-            toggleSettingsPanel()
-        case 49: // Space bar
-            renderer.isPaused.toggle()
-        case 29: // Zero
-            renderer.resetPanAndZoom()
-        case 116: // page up
-            ParticleSystem.shared.decrementSpeciesColorOffset()
-        case 121: // page down
-            ParticleSystem.shared.incrementSpeciesColorOffset()
-        case 17: // T key
-            SimulationSettings.shared.toggleColorEffect()
-        case 35: // P key
-            ParticleSystem.shared.selectRandomBuiltInPreset()
-        case 46: // M key
-            if SimulationSettings.shared.selectedPreset.matrixType.isRandom {
-                ParticleSystem.shared.respawn(shouldGenerateNewMatrix: true)
-            }
-        default:
-            return // Do NOT call super.keyDown(with: event) to prevent beep
-        }
-    }
-    
-    @objc private func updateCamera() {
-        if zoomingIn {
-            renderer.zoomIn()  // Small zoom step for smooth effect
-        }
-        if zoomingOut {
-            renderer.zoomOut() // Small zoom step for smooth effect
-        }
-        if panningLeft {
-            renderer.panLeft()  // Smooth panning left
-        }
-        if panningRight {
-            renderer.panRight()  // Smooth panning right
-        }
-        if panningUp {
-            renderer.panUp()  // Smooth panning up
-        }
-        if panningDown {
-            renderer.panDown()  // Smooth panning down
-        }
+        guard let keyEventRouter = keyEventRouter else { return }
+        _ = keyEventRouter.handleMovementKey(event, isKeyDown: false)
     }
 }
+
+// MARK: Splash Screen
 
 extension ViewController {
     

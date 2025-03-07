@@ -32,11 +32,11 @@ class PresetDefinitions {
         return availablePresets.randomElement() ?? randomPreset
     }
     static var storedPaletteIndex: Int {
-        return max(0, min(UserSettings.shared.int(forKey: UserSettingsKeys.colorPaletteIndex), SpeciesPalette.allCases.count - 1))
+        return max(0, min(UserSettings.shared.int(forKey: UserSettingsKeys.colorPaletteIndex), ColorPalette.allCases.count - 1))
     }
     
     static var storedSpeciesColorOffset: Int {
-        return max(0, min(UserSettings.shared.int(forKey: UserSettingsKeys.speciesColorOffset), SpeciesPalette.colorCount - 1))
+        return max(0, min(UserSettings.shared.int(forKey: UserSettingsKeys.speciesColorOffset), ColorPalette.colorCount - 1))
     }
 
     static func makeRandomPreset(speciesCount: Int) -> SimulationPreset {

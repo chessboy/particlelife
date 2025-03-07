@@ -65,9 +65,10 @@ class ParticleSystem: ObservableObject {
     }
     
     func speciesCountWillChange(newCount: Int) {
-        NotificationCenter.default.post(name: .particlesRespawned, object: nil)
-
         let settings = SimulationSettings.shared
+        guard newCount != settings.selectedPreset.speciesCount else { return }
+
+        NotificationCenter.default.post(name: .particlesRespawned, object: nil)
         
         guard newCount != settings.selectedPreset.speciesCount else {
             Logger.log("No change needed, speciesCount is already \(settings.selectedPreset.speciesCount)", level: .debug)
@@ -145,7 +146,7 @@ class ParticleSystem: ObservableObject {
         Logger.log("updateSpeciesColors: speciesCount: \(speciesCount), speciesColorOffset: \(speciesColorOffset), paletteIndex: \(paletteIndex)", level: .debug)
         
         DispatchQueue.main.async {
-            guard let selectedPalette = SpeciesPalette(rawValue: paletteIndex) else { return }
+            guard let selectedPalette = ColorPalette(rawValue: paletteIndex) else { return }
             let predefinedColors = selectedPalette.colors // Get colors directly from the enum
             
             self.speciesColors = (0..<speciesCount).map { predefinedColors[($0 + speciesColorOffset) % predefinedColors.count] }

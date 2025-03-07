@@ -7,7 +7,24 @@
 
 import SwiftUI
 
-enum SpeciesPalette: Int, CaseIterable {
+enum ColorEffect: Int {
+    case none, textured, grayscale
+    
+    /// Returns the next or previous ColorEffect in sequence, wrapping around
+    func nextColorEffect(direction: Int = 1) -> ColorEffect {
+        let allCases = Self.allCases
+        guard let currentIndex = allCases.firstIndex(of: self) else { return .none }
+        
+        let newIndex = (currentIndex + direction + allCases.count) % allCases.count
+        return allCases[newIndex]
+    }
+    
+    static var allCases: [ColorEffect] {
+        return [.none, .textured, .grayscale]
+    }
+}
+
+enum ColorPalette: Int, CaseIterable {
     case classic = 0
     case muted
     case dark

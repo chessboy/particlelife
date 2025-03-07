@@ -95,10 +95,16 @@ class SimulationSettings: ObservableObject {
         }
     }
     
-    func toggleColorEffect() {
-        colorEffectIndex = colorEffectIndex == 0 ? 1 : 0
+    var colorEffect: ColorEffect {
+        get { ColorEffect(rawValue: colorEffectIndex) ?? .none }
+        set { colorEffectIndex = newValue.rawValue }
     }
     
+    func nextColorEffect(direction: Int = 1) {
+        guard let currentEffect = ColorEffect(rawValue: colorEffectIndex) else { return }
+        colorEffect = currentEffect.nextColorEffect(direction: direction)
+    }
+
     @Published var colorEffectIndex: Int {
         didSet {
             // Batch updates to prevent excessive writes
@@ -113,19 +119,19 @@ class SimulationSettings: ObservableObject {
     }
     
     func incrementSpeciesColorOffset() {
-        speciesColorOffset = (speciesColorOffset + 1) % SpeciesPalette.colorCount
+        speciesColorOffset = (speciesColorOffset + 1) % ColorPalette.colorCount
     }
     
     func decrementSpeciesColorOffset() {
-        speciesColorOffset = (speciesColorOffset - 1 + SpeciesPalette.colorCount) % SpeciesPalette.colorCount
+        speciesColorOffset = (speciesColorOffset - 1 + ColorPalette.colorCount) % ColorPalette.colorCount
     }
     
     func incrementPaletteIndex() {
-        paletteIndex = (paletteIndex + 1) % SpeciesPalette.allCases.count
+        paletteIndex = (paletteIndex + 1) % ColorPalette.allCases.count
     }
     
     func decrementPaletteIndex() {
-        paletteIndex = (paletteIndex - 1 + SpeciesPalette.allCases.count) % SpeciesPalette.allCases.count
+        paletteIndex = (paletteIndex - 1 + ColorPalette.allCases.count) % ColorPalette.allCases.count
     }
 }
 

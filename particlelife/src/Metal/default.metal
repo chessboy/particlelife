@@ -8,6 +8,7 @@ using namespace metal;
 constant float ASPECT_RATIO = 1.7778;
 constant float ASPECT_RATIO_INVERSE = 1.0 / 1.7778;
 constant int TOTAL_SPECIES = 9;
+constant float FADE_IN_FRAMES = 60.0;
 
 struct Particle {
     float2 position;
@@ -33,34 +34,44 @@ float3 speciesColor(Particle particle, int speciesColorOffset, int paletteIndex,
     int adjustedSpecies = ((particle.species % speciesCount) + speciesColorOffset) % TOTAL_SPECIES;
     int palette = fast::clamp(paletteIndex, 0, int(sizeof(colorPalettes) / sizeof(colorPalettes[0])) - 1);
     
-    if (colorEffectIndex == 0) {
-        // No texturing
-        return colorPalettes[palette][adjustedSpecies];
-    }
-    
     // Get primary color
     float3 baseColor = colorPalettes[palette][adjustedSpecies];
-    
-    // Pick a neighboring species **within the active range**
-    int neighborOffset = (rand(particle.species, speciesColorOffset, id) > 0.5 ? 1 : -1);
-    int neighborSpecies = ((particle.species + neighborOffset) % speciesCount + speciesCount) % speciesCount;
-    neighborSpecies = (neighborSpecies + speciesColorOffset) % TOTAL_SPECIES;
-    
-    float3 neighborColor = colorPalettes[palette][neighborSpecies];
-    
-    // Blend base & neighbor between 0 and 20%
-    float blendAmount = rand(id, speciesColorOffset, particle.species) * 0.2;
-    float3 blendedColor = mix(baseColor, neighborColor, blendAmount);
-    
-    // Apply subtle brightness variation (from 0.9 to 1.1)
-    float brightnessFactor = 0.9 + rand(id, speciesColorOffset, particle.species) * 0.2;
-    float3 finalColor = blendedColor * brightnessFactor;
 
+    if (colorEffectIndex >= 1) {
+        // --- TEXTURE EFFECT ---
+        int neighborOffset = (rand(particle.species, speciesColorOffset, id) > 0.5 ? 1 : -1);
+        int neighborSpecies = ((particle.species + neighborOffset) % speciesCount + speciesCount) % speciesCount;
+        neighborSpecies = (neighborSpecies + speciesColorOffset) % TOTAL_SPECIES;
+        
+        float3 neighborColor = colorPalettes[palette][neighborSpecies];
+        
+        // Blend base & neighbor between 0 and 20%
+        float blendAmount = rand(id, speciesColorOffset, particle.species) * 0.2;
+        baseColor = mix(baseColor, neighborColor, blendAmount);
+        
+        // Apply subtle brightness variation (from 0.9 to 1.1)
+        float brightnessFactor = 0.9 + rand(id, speciesColorOffset, particle.species) * 0.2;
+        baseColor *= brightnessFactor;
+    }
+    
+    if (colorEffectIndex == 2) {
+        // --- GREYSCALE EFFECT ---
+        float grayscale = dot(baseColor, float3(0.299, 0.587, 0.114)); // Standard grayscale conversion
+        
+        // Increase contrast and apply a slight brightness boost
+        grayscale = mix(0.15, 1.0, pow(grayscale, 1.1)); // Slight contrast enhancement
+
+        // Final adjustment: Apply a soft brightness lift
+        grayscale = min(grayscale * 1.1, 1.0); // Boost but clamp at 1.0 to avoid overexposure
+
+        baseColor = float3(grayscale);
+    }
+    
     // --- FADE-IN EFFECT ---
-    const float fadeDuration = 60.0;  // Number of frames to reach full visibility
+    const float fadeDuration = FADE_IN_FRAMES;  // Number of frames to reach full visibility
     float fadeFactor = saturate(frameCount / fadeDuration); // Gradually increases from 0 to 1
-
-    return finalColor * fadeFactor;  // Darker at start, full color at fadeDuration
+    
+    return baseColor * fadeFactor;  // Darker at start, full color at fadeDuration
 }
 
 // draw particles
@@ -99,8 +110,8 @@ vertex VertexOut vertex_main(const device Particle* particles [[buffer(0)]],
     out.pointSize = scaledPointSize;
 
     // Compute color using species mapping
-    out.color = float4(speciesColor(particles[id], speciesColorOffset, paletteIndex, colorEffectIndex,
-                                    frameCount, id, speciesCount), fmod(frameCount * 0.01, 1.0));
+    out.color = float4(speciesColor(particles[id], speciesColorOffset, paletteIndex, colorEffectIndex, frameCount, id, speciesCount), 1);
+    
     return out;
 }
 

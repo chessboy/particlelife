@@ -38,13 +38,7 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
             
     init(metalView: MTKView? = nil, fpsMonitor: FPSMonitor) {
         self.fpsMonitor = fpsMonitor
-
-        #if arch(arm64)
-        Logger.log("Running on  Silicon")
-        #else
-        Logger.log("Running on Intel")
-        #endif
-
+        
         super.init()
         
         if SystemCapabilities.shared.gpuType == .dedicatedGPU {

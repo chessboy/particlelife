@@ -348,7 +348,7 @@ struct MatrixPreviewWrapper: View {
         self._matrix = State(initialValue: Array(repeating: Array(repeating: 0.99, count: n), count: n))
         
         let offset = 0
-        let predefinedColors = SpeciesPalette.muted.colors // Directly access the palette via the enum
+        let predefinedColors = ColorPalette.muted.colors // Directly access the palette via the enum
         self.speciesColors = (0..<n).map { predefinedColors[($0 + offset) % predefinedColors.count] }
     }
     

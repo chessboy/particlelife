@@ -52,6 +52,7 @@ class SystemCapabilities {
             self.gpuCoreCount = estimateCoreCount()
         }
         
+        Logger.log("SystemCapabilities: Running on \(isAppleSilicon ? " Silicon" : "Intel")", level: .debug)
         Logger.log("SystemCapabilities: deviceName: \(deviceName) | gpuType: \(gpuType) | Estimated GPU Cores: \(gpuCoreCount) | ThreadsPerGroup: \(maxThreadsPerGroup)", level: .debug)
         Logger.log("SystemCapabilities: preferredFramesPerSecond: \(preferredFramesPerSecond) | smoothingFactor: \(smoothingFactor)", level: .debug)
         Logger.log("SystemCapabilities: max particle count: \(ParticleCount.maxAllowedParticleCount(for: gpuCoreCount, gpuType: gpuType))", level: .debug)
