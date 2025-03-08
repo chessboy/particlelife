@@ -85,23 +85,6 @@ class ViewController: NSViewController {
         super.viewDidLayout()
         enforceWindowSizeConstraints()
     }
-        
-    private func setupMetalView() {
-        metalView = MTKView(frame: .zero, device: MTLCreateSystemDefaultDevice())
-        metalView.clearColor = MTLClearColor(red: 0, green: 0, blue: 0, alpha: 1)
-        metalView.autoresizingMask = []
-        metalView.translatesAutoresizingMaskIntoConstraints = true
-        
-        view.addSubview(metalView)
-
-        renderer = Renderer(metalView: metalView, fpsMonitor: fpsMonitor)
-    }
-    
-    @objc private func checkLowPerformanceWarning() {
-        if let warning = SystemCapabilities.shared.performanceWarning() {
-            self.showAlert(title: warning.title, message: warning.message)
-        }
-    }
 }
 
 // MARK: Window Management
@@ -175,7 +158,29 @@ private let triggerZoneX: CGFloat = 300
 private let settingsButtonHeight: CGFloat = 44
 
 private var settingsButtonYConstraint: NSLayoutConstraint?
-private var initialSettingsButtonY: CGFloat?  // Store first Y entry, clear after hiding
+private var initialSettingsButtonY: CGFloat?
+
+// MARL: Metal View
+
+extension ViewController {
+    
+    private func setupMetalView() {
+        metalView = MTKView(frame: .zero, device: MTLCreateSystemDefaultDevice())
+        metalView.clearColor = MTLClearColor(red: 0, green: 0, blue: 0, alpha: 1)
+        metalView.autoresizingMask = []
+        metalView.translatesAutoresizingMaskIntoConstraints = true
+        
+        view.addSubview(metalView)
+
+        renderer = Renderer(metalView: metalView, fpsMonitor: fpsMonitor)
+    }
+    
+    @objc private func checkLowPerformanceWarning() {
+        if let warning = SystemCapabilities.shared.performanceWarning() {
+            self.showAlert(title: warning.title, message: warning.message)
+        }
+    }
+}
 
 // MARK: Settings Panel
 
