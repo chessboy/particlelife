@@ -21,6 +21,8 @@ class ViewController: NSViewController {
     private var settingsPanel: NSHostingView<SimulationSettingsView>!
     private var splashScreen: NSHostingView<SplashScreenView>!
 
+    private let startupInFullScreen = true
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -46,16 +48,21 @@ class ViewController: NSViewController {
         
         guard let window = view.window else { return }
 
+        window.aspectRatio = NSSize(width: ASPECT_RATIO, height: 1)
+        window.minSize = NSSize(width: ASPECT_RATIO * 940, height: 940)
+
         window.makeFirstResponder(self) // Ensure proper input focus
-        window.backgroundColor = .red
-        window.alphaValue = 0.0
+        window.backgroundColor = .black
 
         centerWindow()
         enforceWindowSizeConstraints()
 
-        DispatchQueue.main.async {
-            window.toggleFullScreen(nil)
-            window.alphaValue = 1.0
+        if startupInFullScreen {
+            window.alphaValue = 0.0
+            DispatchQueue.main.async {
+                window.toggleFullScreen(nil)
+                window.alphaValue = 1.0
+            }
         }
 
         // Delay settings panel appearance
@@ -73,22 +80,21 @@ class ViewController: NSViewController {
         fpsMonitor.stopMonitoring()
         keyEventRouter?.stopListeningForEvents()
     }
+    
+    override func viewDidLayout() {
+        super.viewDidLayout()
+        enforceWindowSizeConstraints()
+    }
         
     private func setupMetalView() {
         metalView = MTKView(frame: .zero, device: MTLCreateSystemDefaultDevice())
         metalView.clearColor = MTLClearColor(red: 0, green: 0, blue: 0, alpha: 1)
-        metalView.autoresizingMask = [.width, .height]
-        metalView.translatesAutoresizingMaskIntoConstraints = false
+        metalView.autoresizingMask = []
+        metalView.translatesAutoresizingMaskIntoConstraints = true
+        
         view.addSubview(metalView)
 
         renderer = Renderer(metalView: metalView, fpsMonitor: fpsMonitor)
-
-        NSLayoutConstraint.activate([
-            metalView.topAnchor.constraint(equalTo: view.topAnchor),
-            metalView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            metalView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            metalView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
-        ])
     }
     
     @objc private func checkLowPerformanceWarning() {
@@ -112,24 +118,42 @@ extension ViewController {
         window.setFrameOrigin(NSPoint(x: centerX, y: centerY))
     }
     
-    private func enforceWindowSizeConstraints() {
+    func enforceWindowSizeConstraints() {
         guard let window = view.window else { return }
-        
+
         let aspectRatio: CGFloat = ASPECT_RATIO
-        let minContentHeight: CGFloat = 940
-        let minContentWidth: CGFloat = round(minContentHeight * aspectRatio)
-        
-        let titleBarHeight = window.frame.height - window.contentLayoutRect.height
-        let minWindowHeight = minContentHeight + titleBarHeight
-        let minWindowWidth = minContentWidth
-        
-        // These two lines do ALL the work!
-        window.aspectRatio = NSSize(width: aspectRatio, height: 1)
-        window.minSize = NSSize(width: minWindowWidth, height: minWindowHeight)
-        
-        Logger.log("window size: \(window.frame.size) | content size: \(window.contentLayoutRect.size) | titleBarHeight: \(titleBarHeight)", level: .debug)
+        let contentWidth = window.contentLayoutRect.width
+        let contentHeight = window.contentLayoutRect.height
+
+        // Factor in the title bar height
+        let titleBarHeight = window.frame.height - contentHeight
+        let adjustedContentHeight = contentHeight + titleBarHeight
+
+        let targetWidth = contentWidth
+        let targetHeight = targetWidth / aspectRatio
+
+        if targetHeight > adjustedContentHeight {
+            // Too tall, adjust width instead
+            let adjustedHeight = adjustedContentHeight
+            let adjustedWidth = adjustedHeight * aspectRatio
+            metalView.frame = CGRect(
+                x: (contentWidth - adjustedWidth) / 2,
+                y: 0,
+                width: adjustedWidth,
+                height: adjustedHeight
+            )
+        } else {
+            // Center normally
+            metalView.frame = CGRect(
+                x: 0,
+                y: (adjustedContentHeight - targetHeight) / 2,
+                width: targetWidth,
+                height: targetHeight
+            )
+        }
+
+        Logger.log("MetalView resized to: \(metalView.frame.size)", level: .debug)
     }
-        
     @objc private func didEnterFullScreen() {
         if !didShowSplash {
             didShowSplash = true
