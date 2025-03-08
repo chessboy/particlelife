@@ -136,20 +136,10 @@ extension ViewController {
             // Too tall, adjust width instead
             let adjustedHeight = adjustedContentHeight
             let adjustedWidth = adjustedHeight * aspectRatio
-            metalView.frame = CGRect(
-                x: (contentWidth - adjustedWidth) / 2,
-                y: 0,
-                width: adjustedWidth,
-                height: adjustedHeight
-            )
+            metalView.frame = CGRect(x: (contentWidth - adjustedWidth) / 2, y: 0, width: adjustedWidth, height: adjustedHeight)
         } else {
             // Center normally
-            metalView.frame = CGRect(
-                x: 0,
-                y: (adjustedContentHeight - targetHeight) / 2,
-                width: targetWidth,
-                height: targetHeight
-            )
+            metalView.frame = CGRect(x: 0, y: (adjustedContentHeight - targetHeight) / 2, width: targetWidth, height: targetHeight)
         }
 
         // Logger.log("MetalView resized to: \(metalView.frame.size), aspect ratio: \(metalView.frame.size.aspectRatioFormattedTo2Places) ", level: .debug)
