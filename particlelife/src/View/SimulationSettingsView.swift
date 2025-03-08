@@ -92,13 +92,14 @@ struct SimulationSettingsView: View {
             Spacer()
         }
         .frame(width: 340)
-        .background(renderer.isPaused ? Color(red: 0.2, green: 0, blue: 0)/*.opacity(0.9)*/ : Color(white: 0.07)/*.opacity(0.9)*/)
-        .clipShape(RoundedCornerShape(corners: [.topRight, .bottomRight], radius: 20))
-        .overlay(
-            RoundedCornerShape(corners: [.topRight, .bottomRight], radius: 20)
-                .stroke(Color(white: 0.33), lineWidth: 1.5)
-        )
-        .shadow(radius: 10)
+        .background(Color(white: 0.07))
+//        .background(renderer.isPaused ? Color(red: 0.2, green: 0, blue: 0) : Color(white: 0.07))
+//        .clipShape(RoundedCornerShape(corners: [.topRight, .bottomRight], radius: 20))
+//        .overlay(
+//            RoundedCornerShape(corners: [.topRight, .bottomRight], radius: 20)
+//                .stroke(Color(white: 0.33), lineWidth: 1.5)
+//        )
+//        .shadow(radius: 10)
     }
 }
 

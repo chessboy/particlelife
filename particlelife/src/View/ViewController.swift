@@ -10,6 +10,9 @@ import SwiftUI
 import MetalKit
 
 class ViewController: NSViewController {
+    
+    private let minWindowHeight: CGFloat = 940
+    
     private var metalView: MTKView!
     private var renderer: Renderer!
     private var fpsMonitor = FPSMonitor()
@@ -21,7 +24,7 @@ class ViewController: NSViewController {
     private var settingsPanel: NSHostingView<SimulationSettingsView>!
     private var splashScreen: NSHostingView<SplashScreenView>!
 
-    private let startupInFullScreen = true
+    private let startupInFullScreen = false
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -32,7 +35,6 @@ class ViewController: NSViewController {
         setupSplashScreen()
         setupMouseTracking()
         setupKeyboardTracking()
-        enforceWindowSizeConstraints()
         setupNotifications()
     }
         
@@ -48,15 +50,16 @@ class ViewController: NSViewController {
         
         guard let window = view.window else { return }
 
-        window.aspectRatio = NSSize(width: ASPECT_RATIO, height: 1)
-        window.minSize = NSSize(width: ASPECT_RATIO * 940, height: 940)
+        let adjustedAspectRatio = 2.16667
+        window.aspectRatio = NSSize(width: adjustedAspectRatio, height: 1)
+        window.minSize = NSSize(width: adjustedAspectRatio * minWindowHeight, height: minWindowHeight)
 
-        window.makeFirstResponder(self) // Ensure proper input focus
-        window.backgroundColor = .black
+        window.makeFirstResponder(self)
+        window.backgroundColor = NSColor(white: 0.07, alpha: 1)
 
         centerWindow()
-        enforceWindowSizeConstraints()
-
+        self.enforceWindowSizeConstraints()
+        
         if startupInFullScreen {
             window.alphaValue = 0.0
             DispatchQueue.main.async {
@@ -102,31 +105,49 @@ extension ViewController {
     }
     
     func enforceWindowSizeConstraints() {
-        guard let window = view.window else { return }
+        guard let window = view.window else {
+            Logger.log("⚠️ No window available, skipping enforceWindowSizeConstraints()", level: .error)
+            return
+        }
 
-        let aspectRatio: CGFloat = ASPECT_RATIO
-        let contentWidth = window.contentLayoutRect.width
+        let settingsPanelWidth: CGFloat = 340  // Space for the settings panel
+        let aspectRatio: CGFloat = 1.7778  // Metal view should always maintain this AR
+        let contentWidth = window.contentLayoutRect.width - settingsPanelWidth
         let contentHeight = window.contentLayoutRect.height
 
         // Factor in the title bar height
         let titleBarHeight = window.frame.height - contentHeight
-        let adjustedContentHeight = contentHeight + titleBarHeight
 
+        // Ensure metal view behavior is **consistent with fullscreen**
         let targetWidth = contentWidth
         let targetHeight = targetWidth / aspectRatio
 
-        if targetHeight > adjustedContentHeight {
-            // Too tall, adjust width instead
-            let adjustedHeight = adjustedContentHeight
-            let adjustedWidth = adjustedHeight * aspectRatio
-            metalView.frame = CGRect(x: (contentWidth - adjustedWidth) / 2, y: 0, width: adjustedWidth, height: adjustedHeight)
+        var adjustedWidth: CGFloat
+        var adjustedHeight: CGFloat
+        var metalViewX: CGFloat
+        var metalViewY: CGFloat
+
+        if targetHeight > contentHeight {
+            // If too tall, **force FSM-like behavior**: fill width, letterbox top/bottom
+            adjustedWidth = contentWidth
+            adjustedHeight = adjustedWidth / aspectRatio
+            metalViewX = settingsPanelWidth
+            metalViewY = (contentHeight - adjustedHeight) / 2  // Center vertically
         } else {
-            // Center normally
-            metalView.frame = CGRect(x: 0, y: (adjustedContentHeight - targetHeight) / 2, width: targetWidth, height: targetHeight)
+            // Fill width first, force letterboxing on top/bottom
+            adjustedWidth = targetWidth
+            adjustedHeight = targetHeight
+            metalViewX = settingsPanelWidth
+            metalViewY = (contentHeight - targetHeight) / 2  // Keep it centered
         }
 
-        // Logger.log("MetalView resized to: \(metalView.frame.size), aspect ratio: \(metalView.frame.size.aspectRatioFormattedTo2Places) ", level: .debug)
+        // Apply new frame to Metal View
+        metalView.frame = CGRect(x: metalViewX, y: metalViewY, width: adjustedWidth, height: adjustedHeight)
+
+        // 🛠 LOGGING: Confirm fix
+        Logger.log("✅ FSM-matching enforced | MetalView Frame: \(metalView.frame)", level: .debug)
     }
+    
     @objc private func didEnterFullScreen() {
         if !didShowSplash {
             didShowSplash = true
