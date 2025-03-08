@@ -13,6 +13,7 @@ enum ParticleCount: Int, CaseIterable, Identifiable, Codable, Comparable {
     case k5 = 5120
     case k10 = 10240
     case k20 = 20480
+    case k25 = 24576
     case k30 = 30720
     case k35 = 35840
     case k40 = 40960
@@ -28,6 +29,7 @@ enum ParticleCount: Int, CaseIterable, Identifiable, Codable, Comparable {
         case .k5: return "5K"
         case .k10: return "10K"
         case .k20: return "20K"
+        case .k25: return "25K"
         case .k30: return "30K"
         case .k35: return "35K"
         case .k40: return "40K"
@@ -68,10 +70,10 @@ enum ParticleCount: Int, CaseIterable, Identifiable, Codable, Comparable {
             3: .k20,
             4: .k20,
             5: .k20,
-            6: .k30,
-            7: .k30,
-            8: .k35,
-            9: .k35
+            6: .k25,
+            7: .k25,
+            8: .k30,
+            9: .k30
         ]
         
         let baseCount = baseMapping[speciesCount] ?? .k10
@@ -89,6 +91,8 @@ enum ParticleCount: Int, CaseIterable, Identifiable, Codable, Comparable {
             } else if gpuCoreCount >= 16 {
                 maxAllowed = .k35  // M2 Pro-like chips
             } else if gpuCoreCount >= 10 {
+                maxAllowed = .k25  // Mid-tier dedicated GPUs (e.g., base M2 with better thermals)
+            } else if gpuCoreCount >= 8 {
                 maxAllowed = .k20  // Base M2 (10-core)
             } else {
                 maxAllowed = .k10  // Catch-all for anything weaker
@@ -98,6 +102,8 @@ enum ParticleCount: Int, CaseIterable, Identifiable, Codable, Comparable {
                 maxAllowed = .k35
             } else if gpuCoreCount >= 16 {
                 maxAllowed = .k30
+            } else if gpuCoreCount >= 10 {
+                maxAllowed = .k25
             } else if gpuCoreCount >= 8 {
                 maxAllowed = .k20
             } else {
@@ -110,7 +116,19 @@ enum ParticleCount: Int, CaseIterable, Identifiable, Codable, Comparable {
         return optimizedCount
     }
     
-    static func maxAllowedParticleCount(for gpuCoreCount: Int, gpuType: GPUType) -> ParticleCount {
-        return .maxParticleCount.optimizedParticleCount(for: gpuCoreCount, gpuType: gpuType)
+    /// Returns the next higher ParticleCount, clamping at `.k40`
+    var next: ParticleCount {
+        let allCases = ParticleCount.allCases
+
+        if let currentIndex = ParticleCount.allCases.firstIndex(of: self), currentIndex + 1 < allCases.count {
+            return allCases[currentIndex + 1]
+        }
+
+        return .maxParticleCount // Clamp at max
+    }
+
+    static func maxAllowedParticleCount(for gpuCoreCount: Int, gpuType: GPUType, allowExtra: Bool = false) -> ParticleCount {
+        let baseMax = ParticleCount.maxParticleCount.optimizedParticleCount(for: gpuCoreCount, gpuType: gpuType)
+        return allowExtra ? baseMax.next : baseMax
     }
 }

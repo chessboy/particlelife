@@ -44,17 +44,20 @@ class ViewController: NSViewController {
     override func viewWillAppear() {
         super.viewWillAppear()
         
-        self.view.window?.makeFirstResponder(self) // Ensure proper input focus
-        
-        fitWindowToScreen()
+        guard let window = view.window else { return }
 
-        // Always make window fullscreen on launch
-        if let window = view.window {
+        window.makeFirstResponder(self) // Ensure proper input focus
+        window.backgroundColor = .red
+        window.alphaValue = 0.0
+
+        centerWindow()
+        enforceWindowSizeConstraints()
+
+        DispatchQueue.main.async {
             window.toggleFullScreen(nil)
-        } else {
-            Logger.log("Could not find window to make fullscreen", level: .error)
+            window.alphaValue = 1.0
         }
-        
+
         // Delay settings panel appearance
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             self.showSettingsPanel()
@@ -99,13 +102,14 @@ class ViewController: NSViewController {
 
 extension ViewController {
     
-    func fitWindowToScreen() {
+    func centerWindow() {
         guard let window = view.window, let screen = window.screen else { return }
-        
-        let screenFrame = screen.frame // Get full screen dimensions
-        window.setFrame(screenFrame, display: true)
 
-        Logger.log("Window resized to fit screen: \(screenFrame)", level: .debug)
+        let screenFrame = screen.frame
+        let windowSize = window.frame.size
+        let centerX = (screenFrame.width - windowSize.width) / 2
+        let centerY = (screenFrame.height - windowSize.height) / 2
+        window.setFrameOrigin(NSPoint(x: centerX, y: centerY))
     }
     
     private func enforceWindowSizeConstraints() {
@@ -127,10 +131,6 @@ extension ViewController {
     }
         
     @objc private func didEnterFullScreen() {
-        if !UserSettings.shared.bool(forKey: UserSettingsKeys.startupInFullScreen) {
-            UserSettings.shared.set(true, forKey: UserSettingsKeys.startupInFullScreen)
-        }
-        
         if !didShowSplash {
             didShowSplash = true
         }
@@ -141,7 +141,6 @@ extension ViewController {
         DispatchQueue.main.async {
             self.enforceWindowSizeConstraints()
         }
-        UserSettings.shared.set(false, forKey: UserSettingsKeys.startupInFullScreen)
     }
     
     func showAlert(title: String, message: String) {

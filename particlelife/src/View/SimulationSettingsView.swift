@@ -31,7 +31,7 @@ struct SimulationSettingsView: View {
     init(renderer: Renderer) {
         let gpuCoreCount = SystemCapabilities.shared.gpuCoreCount
         let gpuType = SystemCapabilities.shared.gpuType
-        self.maxAllowedParticleCount = ParticleCount.maxAllowedParticleCount(for: gpuCoreCount, gpuType: gpuType)
+        self.maxAllowedParticleCount = ParticleCount.maxAllowedParticleCount(for: gpuCoreCount, gpuType: gpuType, allowExtra: true)
 
         self.renderer = renderer
     }

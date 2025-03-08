@@ -96,7 +96,6 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
     /// Called when a preset is applied
     @objc private func particlesRespawned() {
         frameCount = 0
-        print("particlesRespawned: frame count reset to 0")
     }
             
     // Combine compute + render pipeline setup into a single function

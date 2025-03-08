@@ -66,9 +66,9 @@ enum MatrixType: Codable, Hashable, CaseIterable {
         case .custom(let matrix):
             let size = "\(matrix.count)x\(matrix.first?.count ?? 0)"
             if matrix.count == 1, let singleValue = matrix.first?.first {
-                return "custom(\(size), \(String(format: "%.2f", singleValue)))"  // 1x1 case
+                return "custom(\(size), \(singleValue.formattedTo2Places))"  // 1x1 case
             } else if let first = matrix.first?.first, let last = matrix.last?.last {
-                return "custom(\(size), \(String(format: "%.2f", first)), ..., \(String(format: "%.2f", last)))"
+                return "custom(\(size), \(first.formattedTo2Places)), ..., \(last.formattedTo2Places))"
             }
             return "custom(\(size), empty)"  // Empty matrix
         default:

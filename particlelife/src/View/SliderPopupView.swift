@@ -16,7 +16,7 @@ struct SliderPopupView: View {
 
     var body: some View {
         VStack(spacing: 8) {
-            Text(String(format: "%.2f", value))
+            Text(value.formattedTo2Places)
                 .font(.title3)
                 .bold()
                 .foregroundColor(.white)
@@ -34,7 +34,7 @@ struct SliderPopupView: View {
                         onValueChange(quickValue)
                         onDismiss()
                     }) {
-                        Text(String(format: "%.1f", quickValue))
+                        Text(quickValue.formatted)
                             .font(.headline)
                             .foregroundColor(.white)
                             .shadow(color: .black.opacity(0.6), radius: 2, x: 0, y: 1)
