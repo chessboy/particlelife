@@ -64,6 +64,9 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
             metalView.delegate = self
             metalView.enableSetNeedsDisplay = false
             metalView.preferredFramesPerSecond = SystemCapabilities.shared.preferredFramesPerSecond
+//            metalView.layer?.contentsGravity = .center // Prevents scaling by macOS
+//            metalView.layer?.magnificationFilter = .nearest // Ensures pixel-perfect rendering
+//            metalView.layer?.minificationFilter = .linear // Smooth scaling for downsampling
             Logger.log("Metal device initialized successfully", level: .debug)
         } else {
             Logger.log("Running in Preview Mode - Metal Rendering Disabled", level: .warning)
@@ -96,7 +99,6 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
     /// Called when a preset is applied
     @objc private func particlesRespawned() {
         frameCount = 0
-        print("particlesRespawned: frame count reset to 0")
     }
             
     // Combine compute + render pipeline setup into a single function

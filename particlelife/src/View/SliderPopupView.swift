@@ -16,7 +16,7 @@ struct SliderPopupView: View {
 
     var body: some View {
         VStack(spacing: 8) {
-            Text(String(format: "%.2f", value))
+            Text(value.formattedTo2Places)
                 .font(.title3)
                 .bold()
                 .foregroundColor(.white)

@@ -105,7 +105,7 @@ struct MatrixView: View {
     private func setMatrixValue(row: Int, col: Int, newValue: Float) {
         matrix[row][col] = newValue
         BufferManager.shared.updateMatrixBuffer(matrix: matrix)
-        tooltipText = String(format: "%.2f", newValue)
+        tooltipText = newValue.formattedTo2Places
         
         // update the current preset's matrix
         SimulationSettings.shared.selectedPreset = SimulationSettings.shared.selectedPreset.copy(withName: nil, newMatrixType: .custom(matrix))
@@ -262,7 +262,7 @@ struct MatrixGrid: View {
     @ViewBuilder
     private func tooltipOverlay(value: Float) -> some View {
         if speciesColors.count <= MatrixGrid.switchToTooltips {
-            TooltipView(text: String(format: "%.2f", value), style: .shadow)
+            TooltipView(text: value.formattedTo2Places, style: .shadow)
                 .animation(.easeInOut(duration: 0.3), value: value)
         }
     }
@@ -290,7 +290,7 @@ struct MatrixGrid: View {
             hoveredCell = (row, col)
             
             if speciesColors.count > MatrixGrid.switchToTooltips {
-                tooltipText = String(format: "%.2f", value)
+                tooltipText = value.formattedTo2Places
                 tooltipPosition = computeTooltipPosition(row: row, col: col, cellSize: cellSize)
             } else {
                 // Fully suppress tooltip while keeping hover effect

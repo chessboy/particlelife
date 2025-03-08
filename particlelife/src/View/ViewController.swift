@@ -9,12 +9,13 @@ import Cocoa
 import SwiftUI
 import MetalKit
 
-class ViewController: NSViewController {
+class ViewController: NSViewController, NSWindowDelegate {
     private var metalView: MTKView!
     private var renderer: Renderer!
     private var fpsMonitor = FPSMonitor()
     private var keyEventRouter: KeyEventRouter?
     private var didShowSplash = false
+    private var layoutInProgress = false
 
     private var settingsButton: NSHostingView<SettingsButtonView>?
     private var settingsButtonFadeTimer: Timer?
@@ -30,37 +31,50 @@ class ViewController: NSViewController {
         setupSplashScreen()
         setupMouseTracking()
         setupKeyboardTracking()
-        enforceWindowSizeConstraints()
         setupNotifications()
     }
         
     private func setupNotifications() {
-        NotificationCenter.default.addObserver(self, selector: #selector(didEnterFullScreen), name: NSWindow.didEnterFullScreenNotification, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(didExitFullScreen), name: NSWindow.didExitFullScreenNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(windowDidEnterFullScreen), name: NSWindow.didEnterFullScreenNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(hideSettingsPanel), name: .closeSettingsPanel, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(checkLowPerformanceWarning), name: .lowPerformanceWarning, object: nil)
     }
     
     override func viewWillAppear() {
         super.viewWillAppear()
-        
-        self.view.window?.makeFirstResponder(self) // Ensure proper input focus
-        
-        fitWindowToScreen()
+        guard let window = view.window, let screen = window.screen else { return }
 
-        // Always make window fullscreen on launch
-        if let window = view.window {
+        window.makeFirstResponder(self) // Ensure proper input focus
+        window.backgroundColor = .red
+        window.alphaValue = 0.0
+
+        // Enforce 16:9 aspect ratio dynamically
+        let minWidth: CGFloat = 940 * ASPECT_RATIO
+        let minHeight: CGFloat = 940
+
+        window.minSize = NSSize(width: minWidth, height: minHeight)
+        window.minFullScreenContentSize = NSSize(width: minWidth, height: minHeight)
+
+        enforceWindowSizeConstraints()
+
+        // Center window before going fullscreen
+        let screenFrame = screen.frame
+        let windowSize = window.frame.size
+        let centerX = (screenFrame.width - windowSize.width) / 2
+        let centerY = (screenFrame.height - windowSize.height) / 2
+        window.setFrameOrigin(NSPoint(x: centerX, y: centerY))
+
+        DispatchQueue.main.async {
             window.toggleFullScreen(nil)
-        } else {
-            Logger.log("Could not find window to make fullscreen", level: .error)
+            window.alphaValue = 1.0
         }
-        
+
         // Delay settings panel appearance
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             self.showSettingsPanel()
         }
     }
-        
+    
     override func viewDidAppear() {
         fpsMonitor.startMonitoring()
     }
@@ -70,7 +84,33 @@ class ViewController: NSViewController {
         fpsMonitor.stopMonitoring()
         keyEventRouter?.stopListeningForEvents()
     }
-        
+    
+    func windowWillResize(_ sender: NSWindow, to frameSize: NSSize) -> NSSize {
+        let minHeight: CGFloat = 940
+        let aspectRatio: CGFloat = ASPECT_RATIO
+        let titleBarHeight = sender.frame.height - sender.contentLayoutRect.height
+
+        // Calculate width based on the height constraint
+        let correctedHeight = max(minHeight, frameSize.height - titleBarHeight)
+        let correctedWidth = correctedHeight * aspectRatio
+
+        return NSSize(width: correctedWidth, height: correctedHeight + titleBarHeight)
+    }
+
+    override func viewDidLayout() {
+        super.viewDidLayout()
+
+        guard let window = view.window else { return }
+
+        // Prevent recursive layout calls
+        if !window.inLiveResize, !layoutInProgress {
+            layoutInProgress = true
+            DispatchQueue.main.async {
+                self.enforceWindowSizeConstraints()
+                self.layoutInProgress = false
+            }
+        }
+    }
     private func setupMetalView() {
         metalView = MTKView(frame: .zero, device: MTLCreateSystemDefaultDevice())
         metalView.clearColor = MTLClearColor(red: 0, green: 0, blue: 0, alpha: 1)
@@ -98,52 +138,48 @@ class ViewController: NSViewController {
 // MARK: Window Management
 
 extension ViewController {
-    
-    func fitWindowToScreen() {
-        guard let window = view.window, let screen = window.screen else { return }
         
-        let screenFrame = screen.frame // Get full screen dimensions
-        window.setFrame(screenFrame, display: true)
-
-        Logger.log("Window resized to fit screen: \(screenFrame)", level: .debug)
-    }
-    
     private func enforceWindowSizeConstraints() {
         guard let window = view.window else { return }
-        
+ 
         let aspectRatio: CGFloat = ASPECT_RATIO
-        let minContentHeight: CGFloat = 940
-        let minContentWidth: CGFloat = round(minContentHeight * aspectRatio)
-        
-        let titleBarHeight = window.frame.height - window.contentLayoutRect.height
-        let minWindowHeight = minContentHeight + titleBarHeight
-        let minWindowWidth = minContentWidth
-        
-        // These two lines do ALL the work!
-        window.aspectRatio = NSSize(width: aspectRatio, height: 1)
-        window.minSize = NSSize(width: minWindowWidth, height: minWindowHeight)
-        
-        Logger.log("window size: \(window.frame.size) | content size: \(window.contentLayoutRect.size) | titleBarHeight: \(titleBarHeight)", level: .debug)
-    }
-        
-    @objc private func didEnterFullScreen() {
-        if !UserSettings.shared.bool(forKey: UserSettingsKeys.startupInFullScreen) {
-            UserSettings.shared.set(true, forKey: UserSettingsKeys.startupInFullScreen)
+        let isFullscreen = window.styleMask.contains(.fullScreen)
+ 
+        if !isFullscreen {
+            let titleBarHeight = window.frame.height - window.contentLayoutRect.height
+            let correctedHeight = window.frame.width / aspectRatio + titleBarHeight
+ 
+            let newFrame = CGRect(
+                x: window.frame.origin.x,
+                y: window.frame.origin.y - (correctedHeight - window.frame.height),
+                width: window.frame.width,
+                height: correctedHeight
+            )
+ 
+            window.setFrame(newFrame, display: true)
+            window.aspectRatio = NSSize(width: aspectRatio, height: 1)
         }
+
+//        Logger.log("Window frame: \(window.frame)", level: .debug)
+//        Logger.log("View bounds: \(view.bounds)", level: .debug)
+//        Logger.log("MetalView frame: \(metalView.frame)", level: .debug)
+//        Logger.log("MetalView drawableSize BEFORE: \(metalView.drawableSize)", level: .debug)
         
+        //metalView.layer?.contentsGravity = .resizeAspect
+
+        let scale = view.window?.backingScaleFactor ?? NSScreen.main?.backingScaleFactor ?? 1.0
+        metalView.drawableSize = CGSize(width: metalView.frame.width * scale,
+                                        height: metalView.frame.height * scale)
+
+        //Logger.log("Updated drawableSize to \(metalView.drawableSize) with scale factor \(scale)", level: .debug)
+    }
+    
+    @objc private func windowDidEnterFullScreen() {
         if !didShowSplash {
             didShowSplash = true
         }
     }
-    
-    // Reapply aspect ratio when exiting full screen
-    @objc private func didExitFullScreen() {
-        DispatchQueue.main.async {
-            self.enforceWindowSizeConstraints()
-        }
-        UserSettings.shared.set(false, forKey: UserSettingsKeys.startupInFullScreen)
-    }
-    
+        
     func showAlert(title: String, message: String) {
         let alert = NSAlert()
         alert.messageText = title

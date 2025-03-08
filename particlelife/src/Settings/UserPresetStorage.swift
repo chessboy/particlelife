@@ -36,72 +36,7 @@ class UserPresetStorage {
             return []
         }
     }
-    
-    static func migrateIfNeeded() {
-        let currentVersion = 0
-        let storedVersion = UserDefaults.standard.integer(forKey: migrationVersionKey)
         
-        guard storedVersion < currentVersion else {
-            Logger.log("No need to migrate from v\(storedVersion) to v\(currentVersion)")
-            return
-        }
-        
-        Logger.log("Running preset migration from v\(storedVersion) to v\(currentVersion)...")
-        
-        var presets = loadUserPresets(checkMigration: false)
-        
-        // Early exit if no presets exist
-        if presets.isEmpty {
-            Logger.log("No user presets found. Skipping migration.")
-            UserDefaults.standard.set(currentVersion, forKey: migrationVersionKey)
-            return
-        }
-        
-        let originalPresets = presets  // Keep original state for comparison
-        
-        Logger.log("Checking for changes in presets...")
-        
-        // Perform migration
-        presets = presets.map { preset in
-            preset.copy(newPreservesUISettings: false)
-        }
-        
-        // Detect modified presets
-        let changedPresets = zip(originalPresets, presets).filter { $0 != $1 }
-        
-        if changedPresets.isEmpty {
-            Logger.log("Migration check complete: No changes detected, skipping save.")
-            UserDefaults.standard.set(currentVersion, forKey: migrationVersionKey)
-            return
-        }
-        
-        // Log only the changes
-        Logger.log("Changes detected during migration:")
-        changedPresets.forEach { original, migrated in
-            Logger.log("  - Preset '\(original.name)' modified.")
-            if original.preservesUISettings != migrated.preservesUISettings {
-                Logger.log("    * shouldResetSpeciesCountAndColors: \(original.preservesUISettings) → \(migrated.preservesUISettings)")
-            }
-        }
-        
-        // Safety Check: Ensure encoding works before persisting
-        guard let encodedPresets = try? JSONEncoder().encode(presets) else {
-            Logger.log("Migration failed: Unable to encode presets", level: .error)
-            return
-        }
-        
-        // Safety Check: Ensure presets are not empty before saving
-        guard !presets.isEmpty else {
-            Logger.log("Migration failed: Resulting presets are empty", level: .error)
-            return
-        }
-        
-        // Save updated presets
-        UserDefaults.standard.set(encodedPresets, forKey: userPresetsKey)
-        UserDefaults.standard.set(currentVersion, forKey: migrationVersionKey)
-        Logger.log("Preset migration complete")
-    }
-    
     static func saveUserPreset(_ preset: SimulationPreset, replaceExisting: Bool = false) -> SimulationPreset {
         var presets = loadUserPresets()
 
@@ -212,4 +147,73 @@ extension UserPresetStorage {
             Logger.logWithError("Error encoding presets to JSON", error: error)
         }
     }
+}
+
+extension UserPresetStorage {
+    
+    static func migrateIfNeeded() {
+        let currentVersion = 0
+        let storedVersion = UserDefaults.standard.integer(forKey: migrationVersionKey)
+        
+        guard storedVersion < currentVersion else {
+            Logger.log("No need to migrate from v\(storedVersion) to v\(currentVersion)")
+            return
+        }
+        
+        Logger.log("Running preset migration from v\(storedVersion) to v\(currentVersion)...")
+        
+        var presets = loadUserPresets(checkMigration: false)
+        
+        // Early exit if no presets exist
+        if presets.isEmpty {
+            Logger.log("No user presets found. Skipping migration.")
+            UserDefaults.standard.set(currentVersion, forKey: migrationVersionKey)
+            return
+        }
+        
+        let originalPresets = presets  // Keep original state for comparison
+        
+        Logger.log("Checking for changes in presets...")
+        
+        // Perform migration
+        presets = presets.map { preset in
+            preset.copy(newPreservesUISettings: false)
+        }
+        
+        // Detect modified presets
+        let changedPresets = zip(originalPresets, presets).filter { $0 != $1 }
+        
+        if changedPresets.isEmpty {
+            Logger.log("Migration check complete: No changes detected, skipping save.")
+            UserDefaults.standard.set(currentVersion, forKey: migrationVersionKey)
+            return
+        }
+        
+        // Log only the changes
+        Logger.log("Changes detected during migration:")
+        changedPresets.forEach { original, migrated in
+            Logger.log("  - Preset '\(original.name)' modified.")
+            if original.preservesUISettings != migrated.preservesUISettings {
+                Logger.log("    * shouldResetSpeciesCountAndColors: \(original.preservesUISettings) → \(migrated.preservesUISettings)")
+            }
+        }
+        
+        // Safety Check: Ensure encoding works before persisting
+        guard let encodedPresets = try? JSONEncoder().encode(presets) else {
+            Logger.log("Migration failed: Unable to encode presets", level: .error)
+            return
+        }
+        
+        // Safety Check: Ensure presets are not empty before saving
+        guard !presets.isEmpty else {
+            Logger.log("Migration failed: Resulting presets are empty", level: .error)
+            return
+        }
+        
+        // Save updated presets
+        UserDefaults.standard.set(encodedPresets, forKey: userPresetsKey)
+        UserDefaults.standard.set(currentVersion, forKey: migrationVersionKey)
+        Logger.log("Preset migration complete")
+    }
+
 }

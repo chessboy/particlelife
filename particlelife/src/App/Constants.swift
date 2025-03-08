@@ -7,12 +7,11 @@
 
 import SwiftUI
 
-let ASPECT_RATIO: CGFloat = 1.7778
+let ASPECT_RATIO: CGFloat = 1.777778
 
 struct UserSettingsKeys {
     static let colorPaletteIndex = "colorPaletteIndex"
     static let speciesColorOffset = "speciesColorOffset"
-    static let startupInFullScreen = "startupInFullScreen"
     static let showingPhysicsPane = "showingPhysicsPane"
     static let colorEffectIndex = "colorEffectIndex"
 }

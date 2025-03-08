@@ -28,8 +28,12 @@ class PresetDefinitions {
     }
     
     static func randomSpecialPreset(excluding excludedPreset: SimulationPreset? = nil) -> SimulationPreset {
-        let availablePresets = specialPresets.filter { $0.id != excludedPreset?.id }
-        return availablePresets.randomElement() ?? randomPreset
+        
+        return specialPresets.filter { $0.name == "Underground" }.first ?? randomPreset
+
+        
+//        let availablePresets = specialPresets.filter { $0.id != excludedPreset?.id }
+//        return availablePresets.randomElement() ?? randomPreset
     }
     static var storedPaletteIndex: Int {
         return max(0, min(UserSettings.shared.int(forKey: UserSettingsKeys.colorPaletteIndex), ColorPalette.allCases.count - 1))

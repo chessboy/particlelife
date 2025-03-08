@@ -55,7 +55,8 @@ class SystemCapabilities {
         Logger.log("SystemCapabilities: Running on \(isAppleSilicon ? " Silicon" : "Intel")", level: .debug)
         Logger.log("SystemCapabilities: deviceName: \(deviceName) | gpuType: \(gpuType) | Estimated GPU Cores: \(gpuCoreCount) | ThreadsPerGroup: \(maxThreadsPerGroup)", level: .debug)
         Logger.log("SystemCapabilities: preferredFramesPerSecond: \(preferredFramesPerSecond) | smoothingFactor: \(smoothingFactor)", level: .debug)
-        Logger.log("SystemCapabilities: max particle count: \(ParticleCount.maxAllowedParticleCount(for: gpuCoreCount, gpuType: gpuType))", level: .debug)
+        Logger.log("SystemCapabilities: max particle count for optimization: \(ParticleCount.maxAllowedParticleCount(for: gpuCoreCount, gpuType: gpuType))", level: .debug)
+        Logger.log("SystemCapabilities: max particle count for menu: \(ParticleCount.maxAllowedParticleCount(for: gpuCoreCount, gpuType: gpuType, allowExtra: true))", level: .debug)
     }
     
     /// Estimates GPU core count based on known Apple GPUs.
