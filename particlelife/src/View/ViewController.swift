@@ -152,7 +152,7 @@ extension ViewController {
             )
         }
 
-        Logger.log("MetalView resized to: \(metalView.frame.size)", level: .debug)
+        // Logger.log("MetalView resized to: \(metalView.frame.size), aspect ratio: \(metalView.frame.size.aspectRatioFormattedTo2Places) ", level: .debug)
     }
     @objc private func didEnterFullScreen() {
         if !didShowSplash {
@@ -162,9 +162,7 @@ extension ViewController {
     
     // Reapply aspect ratio when exiting full screen
     @objc private func didExitFullScreen() {
-        DispatchQueue.main.async {
-            self.enforceWindowSizeConstraints()
-        }
+        self.enforceWindowSizeConstraints()
     }
     
     func showAlert(title: String, message: String) {
