@@ -268,6 +268,7 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
 //                       + "FPS Check: \(view.preferredFramesPerSecond)",
 //                       level: .debug)
         }
+        
         BufferManager.shared.updateWindowSizeBuffer(width: Float(correctedSize.width), height: Float(correctedSize.height))
     }
 }

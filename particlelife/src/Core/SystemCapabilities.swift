@@ -59,25 +59,30 @@ class SystemCapabilities {
         Logger.log("SystemCapabilities: max particle count for menu: \(ParticleCount.maxAllowedParticleCount(for: gpuCoreCount, gpuType: gpuType, allowExtra: true))", level: .debug)
     }
     
-    /// Estimates GPU core count based on known Apple GPUs.
     private func estimateCoreCount() -> Int {
+        // M4 Series
+        if deviceName.contains("M4 Ultra") { return 80 }  // M4 Ultra: 80-core GPU
+        if deviceName.contains("M4 Max") { return 40 }    // M4 Max: 40-core GPU
+        if deviceName.contains("M4 Pro") { return 20 }    // M4 Pro: 20-core GPU
+        if deviceName.contains("M4") { return 10 }        // M4 Base: 10-core GPU
+        
+        // M3 Series
+        if deviceName.contains("M3 Ultra") { return 80 }  // M3 Ultra: 60-core (lower tier) | 80-core (higher tier) GPU
+        if deviceName.contains("M3 Max") { return 40 }    // M3 Max: 30-core (lower tier) | 40-core (higher tier) GPU
+        if deviceName.contains("M3 Pro") { return 18 }    // M3 Pro: 14-core (lower tier) | 18-core (higher tier) GPU
+        if deviceName.contains("M3") { return 10 }        // M3 Base: 10-core GPU
+        
         // M2 Series
-        if deviceName.contains("M2 Ultra") { return 60 }  // M2 Ultra: 60-core (lower tier) | 76-core (higher tier)
-        if deviceName.contains("M2 Max") { return 30 }    // M2 Max: 30-core (lower tier) | 38-core (higher tier)
-        if deviceName.contains("M2 Pro") { return 16 }    // M2 Pro: 16-core (lower tier) | 19-core (higher tier)
+        if deviceName.contains("M2 Ultra") { return 76 }  // M2 Ultra: 60-core (lower tier) | 76-core (higher tier) GPU
+        if deviceName.contains("M2 Max") { return 38 }    // M2 Max: 30-core (lower tier) | 38-core (higher tier) GPU
+        if deviceName.contains("M2 Pro") { return 19 }    // M2 Pro: 16-core (lower tier) | 19-core (higher tier) GPU
         if deviceName.contains("M2") { return 10 }        // M2 Base: 10-core GPU
         
         // M1 Series
-        if deviceName.contains("M1 Ultra") { return 48 }  // M1 Ultra: 48-core (lower tier) | 64-core (higher tier)
-        if deviceName.contains("M1 Max") { return 24 }    // M1 Max: 24-core (lower tier) | 32-core (higher tier)
-        if deviceName.contains("M1 Pro") { return 14 }    // M1 Pro: 14-core (lower tier) | 16-core (higher tier)
+        if deviceName.contains("M1 Ultra") { return 64 }  // M1 Ultra: 48-core (lower tier) | 64-core (higher tier) GPU
+        if deviceName.contains("M1 Max") { return 32 }    // M1 Max: 24-core (lower tier) | 32-core (higher tier) GPU
+        if deviceName.contains("M1 Pro") { return 16 }    // M1 Pro: 14-core (lower tier) | 16-core (higher tier) GPU
         if deviceName.contains("M1") { return 8 }         // M1 Base: 8-core GPU
-        
-        // Future-proofing for M3 series (based on trends)
-        if deviceName.contains("M3 Ultra") { return 76 }  // Placeholder: M3 Ultra
-        if deviceName.contains("M3 Max") { return 40 }    // Placeholder: M3 Max (likely 30/40)
-        if deviceName.contains("M3 Pro") { return 20 }    // Placeholder: M3 Pro (likely 18/20)
-        if deviceName.contains("M3") { return 12 }        // Placeholder: M3 Base (likely 10/12)
         
         Logger.log("Unknown GPU model '\(deviceName)', falling back to default core count.", level: .warning)
         return 8 // Default fallback for unknown/Intel GPUs

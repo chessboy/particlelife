@@ -98,7 +98,7 @@ class KeyEventRouter {
             ParticleSystem.shared.decrementSpeciesColorOffset()
         case 121: // page down
             ParticleSystem.shared.incrementSpeciesColorOffset()
-        case 17: // T key
+        case 8: // C key
             SimulationSettings.shared.nextColorEffect(direction: isShiftDown ? -1 : 1)
         case 35: // P key
             ParticleSystem.shared.selectRandomBuiltInPreset()
