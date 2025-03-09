@@ -20,8 +20,6 @@ class ViewController: NSViewController {
     private var settingsButtonFadeTimer: Timer?
     private var settingsPanel: NSHostingView<SimulationSettingsView>!
     private var splashScreen: NSHostingView<SplashScreenView>!
-
-    private let startupInFullScreen = true
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -56,7 +54,7 @@ class ViewController: NSViewController {
         centerWindow()
         enforceWindowSizeConstraints()
 
-        if startupInFullScreen {
+        if TestConfig.startupInFullScreen {
             window.alphaValue = 0.0
             DispatchQueue.main.async {
                 window.toggleFullScreen(nil)
