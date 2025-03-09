@@ -42,7 +42,7 @@ class PresetDefinitions {
     }
     
     static var storedSpeciesColorOffset: Int {
-        return max(0, min(UserSettings.shared.int(forKey: UserSettingsKeys.speciesColorOffset), ColorPalette.colorCount - 1))
+        return max(0, min(UserSettings.shared.int(forKey: UserSettingsKeys.speciesColorOffset), ColorPalette.speciesCount - 1))
     }
 
     static func makeRandomPreset(speciesCount: Int) -> SimulationPreset {

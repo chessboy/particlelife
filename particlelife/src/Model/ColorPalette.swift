@@ -33,8 +33,9 @@ enum ColorPalette: Int, CaseIterable {
     case vivid
     case sunset
     case ocean
+    case gray
 
-    static let colorCount = 9
+    static let speciesCount = 9
 
     var colors: [Color] {
         switch self {
@@ -122,6 +123,18 @@ enum ColorPalette: Int, CaseIterable {
                 Color(red: 1.0, green: 1.0, blue: 1.0),   // 🌊 Foam White
                 Color(red: 0.1, green: 0.3, blue: 0.5)    // 🌑 Midnight Tide
             ]
+        case .gray:
+            return [
+                Color(red: 0.3, green: 0.3, blue: 0.3),   // ⚫ Dark Gray
+                Color(red: 0.4, green: 0.4, blue: 0.4),   // 🌑 Charcoal Gray
+                Color(red: 0.5, green: 0.5, blue: 0.5),   // 🌗 Mid Gray
+                Color(red: 0.6, green: 0.6, blue: 0.6),   // 🌖 Soft Gray
+                Color(red: 0.7, green: 0.7, blue: 0.7),   // 🌕 Light Gray
+                Color(red: 0.75, green: 0.75, blue: 0.75), // 🌫️ Misty Gray
+                Color(red: 0.8, green: 0.8, blue: 0.8),   // ☁ Pale Gray
+                Color(red: 0.85, green: 0.85, blue: 0.85), // ⚪ Almost White Gray
+                Color(red: 0.9, green: 0.9, blue: 0.9)    // ❄ Near-White
+            ]
         }
     }
 
@@ -134,6 +147,7 @@ enum ColorPalette: Int, CaseIterable {
         case .vivid: return "Vivid"
         case .sunset: return "Sunset"
         case .ocean: return "Ocean"
+        case .gray: return "Gray"
         }
     }
 }

@@ -8,7 +8,7 @@
 #include <metal_stdlib>
 using namespace metal;
 
-constant float3 colorPalettes[7][9] = {
+constant float3 colorPalettes[8][9] = {
     {   // Default Bright Palette
         float3(1.0, 0.2, 0.2),   // 🔴 Soft Red
         float3(1.0, 0.6, 0.0),   // 🟠 Orange
@@ -85,5 +85,16 @@ constant float3 colorPalettes[7][9] = {
         float3(0.8, 0.9, 1.0),   // ☁️ Pale Sky Blue
         float3(1.0, 1.0, 1.0),   // 🌊 Foam White
         float3(0.1, 0.3, 0.5)    // 🌑 Midnight Tide
-    }
+    },
+    {   // Gray Palette
+        float3(0.3, 0.3, 0.3),   // ⚫ Dark Gray
+        float3(0.4, 0.4, 0.4),   // 🌑 Charcoal Gray
+        float3(0.5, 0.5, 0.5),   // 🌗 Mid Gray
+        float3(0.6, 0.6, 0.6),   // 🌖 Soft Gray
+        float3(0.7, 0.7, 0.7),   // 🌕 Light Gray
+        float3(0.75, 0.75, 0.75), // 🌫️ Misty Gray
+        float3(0.8, 0.8, 0.8),   // ☁ Pale Gray
+        float3(0.85, 0.85, 0.85), // ⚪ Almost White Gray
+        float3(0.9, 0.9, 0.9)    // ❄ Near-White
+    },
 };
