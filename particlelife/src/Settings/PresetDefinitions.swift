@@ -9,6 +9,7 @@ import Foundation
 
 class PresetDefinitions {
         
+    static let forceBoomPreset = true
     static let randomPreset = makeRandomPreset(speciesCount: 3)
     static let emptyPreset = makeEmptyPreset(speciesCount: 3)
     static let testPreset = makeTestPreset()
@@ -28,6 +29,12 @@ class PresetDefinitions {
     }
     
     static func randomSpecialPreset(excluding excludedPreset: SimulationPreset? = nil) -> SimulationPreset {
+        if forceBoomPreset {
+            if let boomPreset = (specialPresets.filter({ $0.name == "Boom"}).first) {
+                return boomPreset
+            }
+        }
+        
         let availablePresets = specialPresets.filter { $0.id != excludedPreset?.id }
         return availablePresets.randomElement() ?? randomPreset
     }

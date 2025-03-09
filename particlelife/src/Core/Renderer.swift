@@ -30,7 +30,7 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
     private var commandQueue: MTLCommandQueue?
     private var particleSystem: ParticleSystem!
     
-    private var pipelineState: MTLRenderPipelineState?
+    private var renderPipelineState: MTLRenderPipelineState?
     private var computePipeline: MTLComputePipelineState?
     
     private var cancellables = Set<AnyCancellable>()
@@ -117,19 +117,19 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         let vertexFunction = library.makeFunction(name: "vertex_main") // For particles
         let fragmentFunction = library.makeFunction(name: "fragment_main") // Shared fragment shader
         
-        // Setup Particle Pipeline
-        let pipelineDescriptor = MTLRenderPipelineDescriptor()
-        pipelineDescriptor.vertexFunction = vertexFunction
-        pipelineDescriptor.fragmentFunction = fragmentFunction
-        pipelineDescriptor.colorAttachments[0].pixelFormat = .bgra8Unorm
+        // Setup Render Pipeline
+        let renderPipelineDescriptor = MTLRenderPipelineDescriptor()
+        renderPipelineDescriptor.vertexFunction = vertexFunction
+        renderPipelineDescriptor.fragmentFunction = fragmentFunction
+        renderPipelineDescriptor.colorAttachments[0].pixelFormat = .bgra8Unorm
         
         // Enable blending for smooth rendering
-        pipelineDescriptor.colorAttachments[0].isBlendingEnabled = true
-        pipelineDescriptor.colorAttachments[0].sourceRGBBlendFactor = .sourceAlpha
-        pipelineDescriptor.colorAttachments[0].destinationRGBBlendFactor = .oneMinusSourceAlpha
+        renderPipelineDescriptor.colorAttachments[0].isBlendingEnabled = true
+        renderPipelineDescriptor.colorAttachments[0].sourceRGBBlendFactor = .sourceAlpha
+        renderPipelineDescriptor.colorAttachments[0].destinationRGBBlendFactor = .oneMinusSourceAlpha
         
         do {
-            pipelineState = try device?.makeRenderPipelineState(descriptor: pipelineDescriptor)
+            renderPipelineState = try device?.makeRenderPipelineState(descriptor: renderPipelineDescriptor)
         } catch {
             fatalError("ERROR: Failed to create render pipeline state: \(error)")
         }
@@ -210,17 +210,17 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
     
     private func runRenderPass(commandBuffer: MTLCommandBuffer?, view: MTKView) {
         guard let drawable = view.currentDrawable,
-              let pipelineState = pipelineState,
-              let passDescriptor = view.currentRenderPassDescriptor else { return }
+              let renderPipelineState = renderPipelineState,
+              let renderPassDescriptor = view.currentRenderPassDescriptor else { return }
         
-        passDescriptor.colorAttachments[0].loadAction = .clear
-        passDescriptor.colorAttachments[0].clearColor = MTLClearColor(red: 0.05, green: 0.05, blue: 0.05, alpha: 1.0)
+        renderPassDescriptor.colorAttachments[0].loadAction = .clear
+        renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColor(red: 0.05, green: 0.05, blue: 0.05, alpha: 1.0)
         
-        guard let renderEncoder = commandBuffer?.makeRenderCommandEncoder(descriptor: passDescriptor) else { return }
+        guard let renderEncoder = commandBuffer?.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else { return }
         let bufferManager: BufferManager = BufferManager.shared
                 
         // Draw Particles
-        renderEncoder.setRenderPipelineState(pipelineState)
+        renderEncoder.setRenderPipelineState(renderPipelineState)
         renderEncoder.setVertexBuffer(bufferManager.particleBuffer, offset: 0, index: 0)
         renderEncoder.setVertexBuffer(bufferManager.cameraBuffer, offset: 0, index: 1)
         renderEncoder.setVertexBuffer(bufferManager.zoomBuffer, offset: 0, index: 2)
