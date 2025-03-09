@@ -32,7 +32,6 @@ class ViewController: NSViewController {
         setupSplashScreen()
         setupMouseTracking()
         setupKeyboardTracking()
-        enforceWindowSizeConstraints()
         setupNotifications()
     }
         
@@ -95,12 +94,27 @@ extension ViewController {
         guard let window = view.window, let screen = window.screen else { return }
 
         let screenFrame = screen.frame
-        let windowSize = window.frame.size
+        let aspectRatio: CGFloat = ASPECT_RATIO
+        let percentage: CGFloat = 0.75
+        
+        // Calculate window size based on % width first
+        var targetWidth = screenFrame.width * percentage
+        var targetHeight = targetWidth / aspectRatio
+
+        // If the calculated height is too tall for a portrait screen, adjust it
+        if targetHeight > screenFrame.height * percentage {
+            targetHeight = screenFrame.height * percentage
+            targetWidth = targetHeight * aspectRatio  // Recalculate width based on height
+        }
+
+        let windowSize = NSSize(width: targetWidth, height: targetHeight)
+
         let centerX = (screenFrame.width - windowSize.width) / 2
         let centerY = (screenFrame.height - windowSize.height) / 2
-        window.setFrameOrigin(NSPoint(x: centerX, y: centerY))
+
+        window.setFrame(NSRect(x: centerX, y: centerY, width: windowSize.width, height: windowSize.height), display: true, animate: true)
     }
-    
+
     func enforceWindowSizeConstraints() {
         guard let window = view.window else { return }
 

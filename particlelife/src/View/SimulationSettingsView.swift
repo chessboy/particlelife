@@ -23,17 +23,18 @@ struct SimulationSettingsView: View {
     @State private var isShowingDeleteSheet = false
     @State private var presetName: String = "New Preset"
     
-    @State private var isExpanded = true
+    @State var isExpanded: Bool
     @State private var isCloseButtonHovered = false
     
     private let maxAllowedParticleCount: ParticleCount
 
     init(renderer: Renderer) {
+        self.renderer = renderer
+
         let gpuCoreCount = SystemCapabilities.shared.gpuCoreCount
         let gpuType = SystemCapabilities.shared.gpuType
-        self.maxAllowedParticleCount = ParticleCount.maxAllowedParticleCount(for: gpuCoreCount, gpuType: gpuType, allowExtra: true)
-
-        self.renderer = renderer
+        maxAllowedParticleCount = ParticleCount.maxAllowedParticleCount(for: gpuCoreCount, gpuType: gpuType, allowExtra: true)
+        isExpanded = UserSettings.shared.bool(forKey: UserSettingsKeys.showingPhysicsPane, defaultValue: false)
     }
 
     var body: some View {
@@ -72,7 +73,7 @@ struct SimulationSettingsView: View {
             
             // Preset, Matrix, Distribution: Grouped neatly
             VStack(spacing: 12) {
-                PresetPickerView(settings: settings, renderer: renderer)
+                PresetPickerView(settings: settings, renderer: renderer, isShowingSaveSheet: $isShowingSaveSheet, isShowingDeleteSheet: $isShowingDeleteSheet)
                 SpeciesPickerView(settings: settings, renderer: renderer)
                 MatrixPickerView(settings: settings, renderer: renderer)
                 ParticleCountPickerView(settings: settings, renderer: renderer, maxAllowedParticleCount: maxAllowedParticleCount)
@@ -86,13 +87,13 @@ struct SimulationSettingsView: View {
                 .padding(.top, 20)
                 .padding(.bottom, 8)
             
-            PhysicsSettingsView(settings: settings, renderer: renderer)
+            PhysicsSettingsView(settings: settings, renderer: renderer, isExpanded: $isExpanded)
             FooterView(renderer: renderer)
             
             Spacer()
         }
         .frame(width: 340)
-        .background(renderer.isPaused ? Color(red: 0.2, green: 0, blue: 0)/*.opacity(0.9)*/ : Color(white: 0.07)/*.opacity(0.9)*/)
+        .background(renderer.isPaused ? Color(red: 0.2, green: 0, blue: 0).opacity(0.9) : Color(white: 0.07).opacity(0.9))
         .clipShape(RoundedCornerShape(corners: [.topRight, .bottomRight], radius: 20))
         .overlay(
             RoundedCornerShape(corners: [.topRight, .bottomRight], radius: 20)
@@ -106,8 +107,8 @@ struct PresetPickerView: View {
     @ObservedObject var settings: SimulationSettings
     @ObservedObject var renderer: Renderer
     
-    @State private var isShowingSaveSheet = false
-    @State private var isShowingDeleteSheet = false
+    @Binding var isShowingSaveSheet: Bool
+    @Binding var isShowingDeleteSheet: Bool
     @State private var isHovered = false
 
     var body: some View {
@@ -513,13 +514,13 @@ struct LogoView: View {
 struct PhysicsSettingsView: View {
     @ObservedObject var settings: SimulationSettings
     @ObservedObject var renderer: Renderer
-    @State private var isExpanded: Bool = UserSettings.shared.bool(forKey: UserSettingsKeys.showingPhysicsPane, defaultValue: true)
+    @Binding var isExpanded: Bool
     @State private var isButtonHovered = false
-    
+
     var body: some View {
         VStack {
             Button(action: {
-                withAnimation(.easeInOut(duration: 0.2)) {
+                withAnimation(.easeInOut(duration: 0.3)) {
                     isExpanded.toggle()
                     UserSettings.shared.set(isExpanded, forKey: UserSettingsKeys.showingPhysicsPane)
                 }
@@ -530,7 +531,7 @@ struct PhysicsSettingsView: View {
                     Spacer()
                     Image(systemName: "chevron.right")
                         .rotationEffect(.degrees(isExpanded ? 90 : 0))
-                        .animation(.easeInOut(duration: 0.2), value: isExpanded)
+                        .animation(.easeInOut(duration: 0.3), value: isExpanded)
                         .font(.title2)
                 }
                 .padding(.vertical, 8)
@@ -558,6 +559,21 @@ struct PhysicsSettingsView: View {
         .padding(.horizontal, 20)
     }
 }
+
+struct SmoothHeightModifier: AnimatableModifier {
+    var targetHeight: CGFloat
+    var animatableData: CGFloat {
+        get { targetHeight }
+        set { targetHeight = newValue }
+    }
+    
+    func body(content: Content) -> some View {
+        content
+            .frame(height: targetHeight)
+            .clipped()
+    }
+}
+
 
 struct FooterView: View {
     @State private var fps: Int = 0
