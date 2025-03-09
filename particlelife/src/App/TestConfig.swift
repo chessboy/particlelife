@@ -8,6 +8,6 @@
 import Foundation
 
 struct TestConfig {
-    static let startupInFullScreen = false
-    static let forceBoomPreset = true
+    static let startupInFullScreen = true
+    static let forceBoomPreset = false
 }

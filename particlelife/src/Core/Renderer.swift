@@ -134,7 +134,7 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
             fatalError("ERROR: Failed to create render pipeline state: \(error)")
         }
     }
-        
+    
     func draw(in view: MTKView) {
         if isPaused || !BufferManager.shared.areBuffersInitialized {
             return
@@ -232,6 +232,8 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         renderEncoder.setVertexBuffer(bufferManager.colorEffectIndexBuffer, offset: 0, index: 8)
         renderEncoder.setVertexBuffer(bufferManager.speciesCountBuffer, offset: 0, index: 9)
 
+        renderEncoder.setFragmentBuffer(bufferManager.colorEffectIndexBuffer, offset: 0, index: 0)
+        
         let particleCount = SimulationSettings.shared.selectedPreset.particleCount.rawValue
         renderEncoder.drawPrimitives(type: .point, vertexStart: 0, vertexCount: particleCount)
         

@@ -27,6 +27,24 @@ struct ClickData {
     float force;     // Effect force
 };
 
+// draw a particle
+fragment float4 fragment_main(VertexOut in [[stage_in]], float2 pointCoord [[point_coord]],
+                              constant uint &colorEffectIndex [[buffer(0)]]) {
+    
+    float2 coord = pointCoord - 0.5;
+    float distSquared = dot(coord, coord);
+
+    // Use colorEffectIndex to modify behavior
+    float alpha = 1.0 - smoothstep(0.2, 0.25, distSquared);  // Default smooth transition
+
+    if (colorEffectIndex >= 1) {
+        alpha *= 0.75;
+        return float4(in.color.rgb * alpha * 1.25, alpha);
+   }
+    
+    return float4(in.color.rgb, alpha);
+}
+
 // Species colors are tweaked by blending its color with neighboring colors
 float3 speciesColor(Particle particle, int speciesColorOffset, int paletteIndex, int colorEffectIndex,
                     uint frameCount, uint id, int speciesCount) {
@@ -49,24 +67,11 @@ float3 speciesColor(Particle particle, int speciesColorOffset, int paletteIndex,
         float blendAmount = rand(id, speciesColorOffset, particle.species) * 0.2;
         baseColor = mix(baseColor, neighborColor, blendAmount);
         
-        // Apply subtle brightness variation (from 0.9 to 1.1)
-        float brightnessFactor = 0.9 + rand(id, speciesColorOffset, particle.species) * 0.2;
+        // Apply subtle brightness variation (from 1.4 to 1.6)
+        float brightnessFactor = 1.4 + rand(id, speciesColorOffset, particle.species) * 0.2;
         baseColor *= brightnessFactor;
     }
-    
-    if (colorEffectIndex == 2) {
-        // --- GREYSCALE EFFECT ---
-        float grayscale = dot(baseColor, float3(0.299, 0.587, 0.114)); // Standard grayscale conversion
         
-        // Increase contrast and apply a slight brightness boost
-        grayscale = mix(0.15, 1.0, pow(grayscale, 1.1)); // Slight contrast enhancement
-
-        // Final adjustment: Apply a soft brightness lift
-        grayscale = min(grayscale * 1.1, 1.0); // Boost but clamp at 1.0 to avoid overexposure
-
-        baseColor = float3(grayscale);
-    }
-    
     // --- FADE-IN EFFECT ---
     const float fadeDuration = FADE_IN_FRAMES;  // Number of frames to reach full visibility
     float fadeFactor = saturate(frameCount / fadeDuration); // Gradually increases from 0 to 1
@@ -74,7 +79,7 @@ float3 speciesColor(Particle particle, int speciesColorOffset, int paletteIndex,
     return baseColor * fadeFactor;  // Darker at start, full color at fadeDuration
 }
 
-// draw particles
+// draw particles in the world
 vertex VertexOut vertex_main(const device Particle* particles [[buffer(0)]],
                              const device float2* cameraPosition [[buffer(1)]],
                              const device float* zoomLevel [[buffer(2)]],
@@ -113,16 +118,6 @@ vertex VertexOut vertex_main(const device Particle* particles [[buffer(0)]],
     out.color = float4(speciesColor(particles[id], speciesColorOffset, paletteIndex, colorEffectIndex, frameCount, id, speciesCount), 1);
     
     return out;
-}
-
-// draw a point
-fragment float4 fragment_main(VertexOut in [[stage_in]], float2 pointCoord [[point_coord]]) {
-    float2 coord = pointCoord - 0.5;
-    float distSquared = dot(coord, coord);
-
-    // Use smoothstep for soft edges instead of discard
-    float alpha = 1.0 - smoothstep(0.2, 0.25, distSquared);  // Smooth transition at the edge
-    return float4(in.color.rgb, alpha);
 }
 
 float2 handleBoundary(float2 pos, float worldSize) {

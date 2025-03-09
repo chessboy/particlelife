@@ -333,7 +333,7 @@ struct PalettePickerView: View {
                 SimulationSettings.shared.nextColorEffect()
             }) {
                 Image(systemName: SFSymbols.Name.colorEffect)
-                    .foregroundColor(.white)
+                    .foregroundColor(SimulationSettings.shared.colorEffectIndex == 1 ? .yellow : .white )
                     .font(.system(size: 14))
                     .padding(2)
                     .background(isHovered ? Color.gray.opacity(0.3) : Color.clear)
