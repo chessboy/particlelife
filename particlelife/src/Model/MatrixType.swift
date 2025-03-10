@@ -104,7 +104,7 @@ extension MatrixType {
         case .snakes:
             try container.encode("snakes", forKey: .type)
         case .attractRepelBands:
-            try container.encode("attractionRepulsionBands", forKey: .type)
+            try container.encode("attractRepelBands", forKey: .type)
         case .custom(let matrix):
             try container.encode("custom", forKey: .type)
             try container.encode(matrix, forKey: .data)
@@ -132,7 +132,7 @@ extension MatrixType {
             self = .chains3
         case "snakes":
             self = .snakes
-        case "attractionRepulsionBands":
+        case "attractRepelBands":
             self = .attractRepelBands
         case "custom":
             let matrix = try container.decode([[Float]].self, forKey: .data)
