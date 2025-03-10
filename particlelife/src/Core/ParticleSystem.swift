@@ -100,7 +100,6 @@ class ParticleSystem: ObservableObject {
     /// Generates a new set of particles
     private func generateParticles(preset: SimulationPreset) {
         
-        Logger.log("generateParticles: speciesCount: \(preset.speciesCount), particleCount: \(preset.particleCount), matrixType: \(preset.matrixType.shortString)")
         if let renderer = renderer {
             renderer.resetFrameCount()
         }
@@ -138,6 +137,8 @@ class ParticleSystem: ObservableObject {
                 particles[i].position.y *= scaleFactorY
             }
         }
+        
+        Logger.log("particles generated: speciesCount: \(preset.speciesCount), particleCount: \(preset.particleCount), matrixType: \(preset.matrixType.shortString)")
     }
     
     /// Generates a new matrix and updates colors using species color offset
