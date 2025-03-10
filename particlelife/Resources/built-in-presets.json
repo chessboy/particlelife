@@ -336,7 +336,7 @@
     },
     "maxDistance" : 0.65,
     "minDistance" : 0.04,
-    "name" : "Microcosm",
+    "name" : "Cell 2",
     "paletteIndex" : 5,
     "colorEffectIndex" : 1,
     "particleCount" : 30720,
@@ -347,6 +347,94 @@
     "speciesCount" : 6,
     "worldSize" : 1
   },
+  {
+    "beta" : 0.3,
+    "colorEffectIndex" : 1,
+    "distributionType" : "uniform",
+    "friction" : 0.04,
+    "id" : "6045CB86-3CFC-4DFA-B47A-251A02D3EB4B",
+    "isBuiltIn" : false,
+    "matrixType" : {
+      "data" : [
+        [
+          -1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0.25,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          1,
+          -0.05,
+          0,
+          0,
+          0.3,
+          0
+        ],
+        [
+          0,
+          0,
+          0.25,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          -1,
+          0,
+          0
+        ],
+        [
+          0,
+          0.69,
+          0,
+          0.34,
+          0,
+          -0.65,
+          0
+        ],
+        [
+          -0.3,
+          0.05000007,
+          0.05000007,
+          0.05000007,
+          -0.3,
+          0.05000007,
+          0
+        ]
+      ],
+      "type" : "custom"
+    },
+    "maxDistance" : 0.6,
+    "minDistance" : 0.03,
+    "name" : "Cell 3",
+    "paletteIndex" : 3,
+    "particleCount" : 30720,
+    "pointSize" : 19,
+    "preservesUISettings" : false,
+    "repulsion" : 0.03,
+    "speciesColorOffset" : 8,
+    "speciesCount" : 7,
+    "worldSize" : 2
+  }
+  ,
   {
     "beta" : 0.3,
     "distributionType" : "centered",
@@ -449,7 +537,7 @@
     "minDistance" : 0.04,
     "name" : "Seeing Red",
     "paletteIndex" : 3,
-    "colorEffectIndex" : 1,
+    "colorEffectIndex" : 0,
     "particleCount" : 30720,
     "pointSize" : 14,
     "preservesUISettings" : false,
@@ -461,7 +549,7 @@
   {
     "beta" : 0.3,
     "distributionType" : "uniform",
-    "friction" : 0.1,
+    "friction" : 0.08,
     "id" : "F1F9BBC0-FC3D-47A2-8495-B5EEBE941829",
     "isBuiltIn" : true,
     "matrixType" : {
