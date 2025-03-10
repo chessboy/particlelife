@@ -56,7 +56,7 @@ enum ParticleCount: Int, CaseIterable, Identifiable, Codable, Comparable {
     }
     
     static var allCases: [ParticleCount] {
-        return [.k1, .k2, .k5, .k10, .k20, .k30, .k35, .k40]
+        return [.k1, .k2, .k5, .k10, .k20, .k25, .k30, .k35, .k40]
     }
     
     /// Returns the recommended particle count based on species count, **then optimizes it for the user's GPU**.
