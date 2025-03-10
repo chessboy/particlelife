@@ -54,7 +54,7 @@ class ViewController: NSViewController {
         centerWindow()
         enforceWindowSizeConstraints()
 
-        if TestConfig.startupInFullScreen {
+        if FeatureFlags.noStartupInFullScreen.isOff {
             window.alphaValue = 0.0
             DispatchQueue.main.async {
                 window.toggleFullScreen(nil)

@@ -28,7 +28,7 @@ class PresetDefinitions {
     }
     
     static func randomSpecialPreset(excluding excludedPreset: SimulationPreset? = nil) -> SimulationPreset {
-        if TestConfig.forceBoomPreset {
+        if FeatureFlags.forceBoomPreset.isOn {
             if let boomPreset = (specialPresets.filter({ $0.name == "Boom"}).first) {
                 return boomPreset
             }
