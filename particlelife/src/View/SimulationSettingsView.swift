@@ -331,7 +331,7 @@ struct PalettePickerView: View {
             
             Button(action: {
                 // for now we only support 0 (no effect) & 1 (texturizing effect)
-                SimulationSettings.shared.nextColorEffect()
+                ParticleSystem.shared.toggleColorEffect()
             }) {
                 Image(systemName: SFSymbols.Name.colorEffect)
                     .foregroundColor(SimulationSettings.shared.colorEffectIndex == 1 ? .yellow : .white )
@@ -341,6 +341,7 @@ struct PalettePickerView: View {
                     .clipShape(Circle())
             }
             .buttonStyle(PlainButtonStyle())
+            .disabled(renderer.isPaused)
             .help("Use T key to toggle color effect")
             .onHover { hovering in
                 withAnimation(.easeInOut(duration: 0.15)) {
@@ -398,10 +399,12 @@ struct SimulationButtonsView: View {
                     ParticleSystem.shared.selectPreset(SimulationSettings.shared.selectedPreset)
                 }
             }
+            .disabled(renderer.isPaused)
             
             HoverButton(title: "Respawn", systemImage: SFSymbols.Name.respawn) {
                 renderer.respawnParticles()
             }
+            .disabled(renderer.isPaused)
         }
     }
 }

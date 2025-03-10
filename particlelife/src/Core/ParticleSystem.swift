@@ -235,7 +235,8 @@ extension ParticleSystem {
                 newParticleCount: selectedPreset.particleCount,
                 newDistributionType: selectedPreset.distributionType,
                 newSpeciesColorOffset: settings.speciesColorOffset,
-                newPaletteIndex: settings.paletteIndex
+                newPaletteIndex: settings.paletteIndex,
+                newColorEffectIndex: settings.colorEffectIndex
             )
         } else {
             Logger.log("Using all preset setttings while selecting preset '\(preset.name)'", level: .debug)
@@ -270,6 +271,11 @@ extension ParticleSystem {
         UserSettings.shared.set(SimulationSettings.shared.paletteIndex, forKey: UserSettingsKeys.colorPaletteIndex)
         updateSpeciesColorsFromSettings()
     }
+    
+    func toggleColorEffect() {
+        SimulationSettings.shared.toggleColorEffect()
+        UserSettings.shared.set(SimulationSettings.shared.colorEffectIndex, forKey: UserSettingsKeys.colorEffectIndex)
+    }
 }
 
 extension ParticleSystem {
@@ -297,7 +303,8 @@ extension ParticleSystem {
             isBuiltIn: preset.isBuiltIn,
             preservesUISettings: preset.preservesUISettings,
             speciesColorOffset: settings.speciesColorOffset,
-            paletteIndex: settings.paletteIndex
+            paletteIndex: settings.paletteIndex,
+            colorEffectIndex: settings.colorEffectIndex
         )
     }
 }

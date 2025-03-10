@@ -29,10 +29,6 @@ struct ConfigurableSetting {
 
 class SimulationSettings: ObservableObject {
     static let shared = SimulationSettings()
-    
-    private init() {
-        self.colorEffectIndex = UserSettings.shared.int(forKey: UserSettingsKeys.colorEffectIndex, defaultValue: 1)
-    }
 
     @Published var userPresets: [SimulationPreset] = PresetManager.shared.getUserPresets()
     @Published var selectedPreset: SimulationPreset = PresetDefinitions.getDefaultPreset()
@@ -94,27 +90,10 @@ class SimulationSettings: ObservableObject {
             SimulationSettings.shared.scheduleBufferUpdate()
         }
     }
-    
-    var colorEffect: ColorEffect {
-        get { ColorEffect(rawValue: colorEffectIndex) ?? .none }
-        set { colorEffectIndex = newValue.rawValue }
-    }
-    
-    func nextColorEffect(direction: Int = 1) {
-        guard let currentEffect = ColorEffect(rawValue: colorEffectIndex) else { return }
-        colorEffect = currentEffect.nextColorEffect(direction: direction)
-    }
-
-    @Published var colorEffectIndex: Int {
+        
+    @Published var colorEffectIndex: Int = 0 {
         didSet {
-            // Batch updates to prevent excessive writes
-            if colorEffectIndex != oldValue {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-                    guard let self = self else { return }
-                    UserSettings.shared.set(self.colorEffectIndex, forKey: UserSettingsKeys.colorEffectIndex)
-                }
-                SimulationSettings.shared.scheduleBufferUpdate()
-            }
+            SimulationSettings.shared.scheduleBufferUpdate()
         }
     }
     
@@ -132,6 +111,10 @@ class SimulationSettings: ObservableObject {
     
     func decrementPaletteIndex() {
         paletteIndex = (paletteIndex - 1 + ColorPalette.allCases.count) % ColorPalette.allCases.count
+    }
+    
+    func toggleColorEffect() {
+        colorEffectIndex = 1 - colorEffectIndex
     }
 }
 
@@ -173,6 +156,7 @@ extension SimulationSettings {
         worldSize.value = preset.worldSize
         speciesColorOffset = preset.speciesColorOffset
         paletteIndex = preset.paletteIndex
+        colorEffectIndex = preset.colorEffectIndex
     }
 }
 
@@ -194,7 +178,8 @@ extension SimulationSettings {
             isBuiltIn: false,
             preservesUISettings: false,
             speciesColorOffset: speciesColorOffset,
-            paletteIndex: paletteIndex
+            paletteIndex: paletteIndex,
+            colorEffectIndex: colorEffectIndex
         )
         
         // Save preset

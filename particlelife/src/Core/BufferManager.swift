@@ -187,7 +187,7 @@ extension BufferManager {
         )
         
         if let last = lastPhysicsSettings, last.isEqual(to: currentSettings) {
-            return // 🚀 No change, skip update
+            return // No change, skip update
         }
         
         lastPhysicsSettings = currentSettings

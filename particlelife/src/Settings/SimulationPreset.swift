@@ -25,6 +25,7 @@ struct SimulationPreset: Identifiable {
     let preservesUISettings: Bool
     let speciesColorOffset: Int
     let paletteIndex: Int
+    let colorEffectIndex: Int
 
     init(
         id: UUID = UUID(),
@@ -43,7 +44,8 @@ struct SimulationPreset: Identifiable {
         isBuiltIn: Bool = true,
         preservesUISettings: Bool = false,
         speciesColorOffset: Int = 0,
-        paletteIndex: Int = 0
+        paletteIndex: Int = 0,
+        colorEffectIndex: Int = 0
     ) {
         self.id = id
         self.name = name
@@ -62,6 +64,7 @@ struct SimulationPreset: Identifiable {
         self.preservesUISettings = preservesUISettings
         self.speciesColorOffset = speciesColorOffset
         self.paletteIndex = paletteIndex
+        self.colorEffectIndex = colorEffectIndex
     }
 }
 
@@ -87,7 +90,8 @@ extension SimulationPreset: Hashable {
         lhs.isBuiltIn == rhs.isBuiltIn &&
         lhs.preservesUISettings == rhs.preservesUISettings &&
         lhs.speciesColorOffset == rhs.speciesColorOffset &&
-        lhs.paletteIndex == rhs.paletteIndex
+        lhs.paletteIndex == rhs.paletteIndex &&
+        lhs.colorEffectIndex == rhs.colorEffectIndex
     }
 }
 
@@ -96,7 +100,8 @@ extension SimulationPreset: Codable {
     enum CodingKeys: String, CodingKey {
         case id, name, speciesCount, particleCount, matrixType, distributionType
         case maxDistance, minDistance, beta, friction, repulsion
-        case pointSize, worldSize, isBuiltIn, preservesUISettings, speciesColorOffset, paletteIndex
+        case pointSize, worldSize, isBuiltIn, preservesUISettings
+        case speciesColorOffset, paletteIndex, colorEffectIndex
     }
 
     /// Custom decoding to handle missing fields
@@ -121,6 +126,7 @@ extension SimulationPreset: Codable {
         preservesUISettings = try container.decode(Bool.self, forKey: .preservesUISettings)
         speciesColorOffset = try container.decode(Int.self, forKey: .speciesColorOffset)
         paletteIndex = try container.decode(Int.self, forKey: .paletteIndex)
+        colorEffectIndex = try container.decode(Int.self, forKey: .colorEffectIndex)
     }
 
     /// Custom encoding (ensures all fields are saved)
@@ -143,6 +149,7 @@ extension SimulationPreset: Codable {
         try container.encode(preservesUISettings, forKey: .preservesUISettings)
         try container.encode(speciesColorOffset, forKey: .speciesColorOffset)
         try container.encode(paletteIndex, forKey: .paletteIndex)
+        try container.encode(colorEffectIndex, forKey: .colorEffectIndex)
     }
 }
 
@@ -161,7 +168,8 @@ extension SimulationPreset {
             ├─ Built-in: \(isBuiltIn)
             ├─ Preserve UI Settings: \(preservesUISettings)
             ├─ Species Color Offset: \(speciesColorOffset)
-            └─ Palette Index: \(paletteIndex)
+            ├─ Palette Index: \(paletteIndex)
+            └─ Color Effect Index: \(colorEffectIndex)
             """
     }
 }
@@ -193,7 +201,8 @@ extension SimulationPreset {
         newIsBuiltIn: Bool? = nil,
         newPreservesUISettings: Bool? = nil,
         newSpeciesColorOffset: Int? = nil,
-        newPaletteIndex: Int? = nil
+        newPaletteIndex: Int? = nil,
+        newColorEffectIndex: Int? = nil
     ) -> SimulationPreset {
         var copiedMatrixType = newMatrixType ?? matrixType  // Use new matrix if provided
         
@@ -219,7 +228,8 @@ extension SimulationPreset {
             isBuiltIn: newIsBuiltIn ?? isBuiltIn,
             preservesUISettings: newPreservesUISettings ?? preservesUISettings,
             speciesColorOffset: newSpeciesColorOffset ?? speciesColorOffset,
-            paletteIndex: newPaletteIndex ?? paletteIndex
+            paletteIndex: newPaletteIndex ?? paletteIndex,
+            colorEffectIndex: newColorEffectIndex ?? colorEffectIndex
         )
     }
 }
