@@ -28,7 +28,6 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
     
     private var device: MTLDevice?
     private var commandQueue: MTLCommandQueue?
-    private var particleSystem: ParticleSystem!
     
     private var renderPipelineState: MTLRenderPipelineState?
     private var computePipeline: MTLComputePipelineState?
@@ -70,7 +69,6 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         }
         
         self.commandQueue = device?.makeCommandQueue()
-        self.particleSystem = ParticleSystem.shared
         setupPipelines()
         
         // listeners
@@ -83,7 +81,6 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         }
         
         NotificationCenter.default.addObserver(self, selector: #selector(presetApplied), name: Notification.Name.presetSelected, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(particlesRespawned), name: Notification.Name.particlesRespawned, object: nil)
     }
     
     /// Called when a preset is applied
@@ -92,12 +89,13 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
             isPaused.toggle()
         }
     }
-    
-    /// Called when a preset is applied
-    @objc private func particlesRespawned() {
-        frameCount = 0
-    }
             
+    func resetFrameCount() {
+        self.frameCount = 0
+        BufferManager.shared.updateFrameCountBuffer(frameCount: frameCount)
+        Logger.log("frameCount reset to 0", level: .debug)
+    }
+    
     // Combine compute + render pipeline setup into a single function
     private func setupPipelines() {
         guard let library = device?.makeDefaultLibrary() else {
@@ -158,7 +156,7 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         DispatchQueue.main.async {
             self.fpsMonitor?.frameRendered()
         }
-        particleSystem.update()
+        ParticleSystem.shared.update()
         
         BufferManager.shared.updateCameraBuffer(cameraPosition: cameraPosition)
         BufferManager.shared.updateZoomBuffer(zoomLevel: zoomLevel)
@@ -246,7 +244,7 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         if isPaused {
             isPaused.toggle()
         }
-        particleSystem.respawn(shouldGenerateNewMatrix: false)
+        ParticleSystem.shared.respawn(shouldGenerateNewMatrix: false)
     }
     
     func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {

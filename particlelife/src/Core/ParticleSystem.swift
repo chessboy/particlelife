@@ -13,6 +13,7 @@ import Combine
 class ParticleSystem: ObservableObject {
     static let shared = ParticleSystem()
 
+    var renderer: Renderer?
     private var particles: [Particle] = []
     
     @Published var matrix: [[Float]] = []
@@ -68,7 +69,9 @@ class ParticleSystem: ObservableObject {
         let settings = SimulationSettings.shared
         guard newCount != settings.selectedPreset.speciesCount else { return }
 
-        NotificationCenter.default.post(name: .particlesRespawned, object: nil)
+        if let renderer = renderer {
+            renderer.resetFrameCount()
+        }
         
         guard newCount != settings.selectedPreset.speciesCount else {
             Logger.log("No change needed, speciesCount is already \(settings.selectedPreset.speciesCount)", level: .debug)
@@ -98,7 +101,9 @@ class ParticleSystem: ObservableObject {
     private func generateParticles(preset: SimulationPreset) {
         
         Logger.log("generateParticles: speciesCount: \(preset.speciesCount), particleCount: \(preset.particleCount), matrixType: \(preset.matrixType.shortString)")
-        NotificationCenter.default.post(name: .particlesRespawned, object: nil)
+        if let renderer = renderer {
+            renderer.resetFrameCount()
+        }
 
         particles = ParticleGenerator.generate(
             distribution: preset.distributionType,

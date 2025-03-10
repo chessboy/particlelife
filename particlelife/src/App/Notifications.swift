@@ -13,5 +13,4 @@ extension Notification.Name {
     static let saveTriggered = Notification.Name("saveTriggered")
     static let closeSettingsPanel = Notification.Name("closeSettingsPanel")
     static let lowPerformanceWarning = Notification.Name("lowPerformanceWarning")
-    static let particlesRespawned = Notification.Name("particlesRespawned")
 }

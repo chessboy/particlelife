@@ -185,6 +185,7 @@ extension ViewController {
         view.addSubview(metalView)
 
         renderer = Renderer(metalView: metalView, fpsMonitor: fpsMonitor)
+        ParticleSystem.shared.renderer = renderer
     }
     
     @objc private func checkLowPerformanceWarning() {
