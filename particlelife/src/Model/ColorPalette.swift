@@ -29,7 +29,7 @@ enum ColorPalette: Int, CaseIterable {
     case classic = 0
     case muted
     case dark
-    case alt
+    case jungle
     case vivid
     case sunset
     case ocean
@@ -75,17 +75,17 @@ enum ColorPalette: Int, CaseIterable {
                 Color(red: 0.6, green: 0.3, blue: 0.7),   // 🔮 Dim Lavender
                 Color(red: 0.2, green: 0.2, blue: 0.2)    // ⚫ Charcoal Grey
             ]
-        case .alt:
+        case .jungle:
             return [
-                Color(red: 0.95, green: 0.35, blue: 0.35), // 🍓 Soft Strawberry
-                Color(red: 1.0, green: 0.55, blue: 0.15),  // 🍊 Sunset Orange
-                Color(red: 1.0, green: 0.85, blue: 0.3),   // 🍋 Lemon Gold
-                Color(red: 0.3, green: 0.8, blue: 0.4),    // 🌿 Leaf Green
-                Color(red: 0.3, green: 0.6, blue: 1.0),    // 🌊 Sky Blue
-                Color(red: 0.7, green: 0.4, blue: 1.0),    // 🎆 Soft Lavender
-                Color(red: 0.2, green: 0.9, blue: 0.9),    // 🌴 Aqua Green
-                Color(red: 1.0, green: 0.3, blue: 0.7),    // 🌸 Cherry Blossom
-                Color(red: 0.3, green: 0.85, blue: 0.7)    // 🦜 Mint Teal
+                Color(red: 0.0, green: 0.3, blue: 0.0),   // 🌿 Deep Forest Green
+                Color(red: 0.1, green: 0.5, blue: 0.1),   // 🍃 Lush Green
+                Color(red: 0.2, green: 0.7, blue: 0.3),   // 🌱 Fresh Leaf
+                Color(red: 0.3, green: 0.6, blue: 0.2),   // 🌾 Mossy Green
+                Color(red: 0.5, green: 0.4, blue: 0.2),   // 🪵 Earthy Brown
+                Color(red: 0.8, green: 0.6, blue: 0.2),   // 🌻 Sunlit Gold
+                Color(red: 0.9, green: 0.3, blue: 0.2),   // 🌺 Tropical Red
+                Color(red: 0.0, green: 0.6, blue: 0.5),   // 🐍 Jungle Teal
+                Color(red: 0.1, green: 0.2, blue: 0.5)    // 🌌 Nightfall Blue
             ]
         case .vivid:
             return [
@@ -143,7 +143,7 @@ enum ColorPalette: Int, CaseIterable {
         case .classic: return "Classic"
         case .muted: return "Muted"
         case .dark: return "Dark"
-        case .alt: return "Alt"
+        case .jungle: return "Jungle"
         case .vivid: return "Vivid"
         case .sunset: return "Sunset"
         case .ocean: return "Ocean"

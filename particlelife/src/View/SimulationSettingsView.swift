@@ -92,7 +92,8 @@ struct SimulationSettingsView: View {
             
             Spacer()
         }
-        .frame(width: 340)
+        .frame(width: 340, height: isExpanded ? 875 : 660)
+        .animation(.easeInOut(duration: 0.3), value: isExpanded)
         .background(renderer.isPaused ? Color(red: 0.2, green: 0, blue: 0).opacity(0.9) : Color(white: 0.07).opacity(0.9))
         .clipShape(RoundedCornerShape(corners: [.topRight, .bottomRight], radius: 20))
         .overlay(
@@ -519,6 +520,7 @@ struct PhysicsSettingsView: View {
 
     var body: some View {
         VStack {
+            // Expand/collapse button
             Button(action: {
                 withAnimation(.easeInOut(duration: 0.3)) {
                     isExpanded.toggle()
@@ -548,12 +550,15 @@ struct PhysicsSettingsView: View {
             .contentShape(Rectangle())
             .frame(width: pickerViewWidth)
             
-            if isExpanded {
-                SimulationSlidersView(settings: settings, renderer: renderer)
-                    .padding(.top, 8)
-                    .transition(.opacity.combined(with: .move(edge: .top)))
-                
-            }
+            // Smooth Expand/Collapse - Always in View, Just Fades and Moves
+            SimulationSlidersView(settings: settings, renderer: renderer)
+                .padding(.top, 16)
+                .padding(.bottom, 16)
+                .frame(height: isExpanded ? 216 : 0) // Animate Height
+                .opacity(isExpanded ? 1 : 0)        // Animate Opacity
+                .offset(y: isExpanded ? 0 : -10)    // Smooth Collapse Movement
+                .animation(.easeInOut(duration: 0.3), value: isExpanded)
+                .clipped() // Prevents overflow
         }
         .padding(.vertical, 10)
         .padding(.horizontal, 20)
@@ -614,7 +619,7 @@ struct FooterView: View {
                 }
             }
         }
-        .padding(.top, 8)
+//        .padding(.top, 8)
         .padding(.bottom, 4)
         .padding(.horizontal, 8)
         .frame(width: 300)

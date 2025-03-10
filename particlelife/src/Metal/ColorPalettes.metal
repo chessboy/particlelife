@@ -9,7 +9,7 @@
 using namespace metal;
 
 constant float3 colorPalettes[8][9] = {
-    {   // Default Bright Palette
+    {   // Classic
         float3(1.0, 0.2, 0.2),   // 🔴 Soft Red
         float3(1.0, 0.6, 0.0),   // 🟠 Orange
         float3(0.95, 0.95, 0.0), // 🟡 Warm Yellow
@@ -20,7 +20,7 @@ constant float3 colorPalettes[8][9] = {
         float3(1.0, 0.0, 0.6),   // 💖 Hot Pink
         float3(0.2, 0.8, 0.6)    // 🌊 Teal
     },
-    {   // Muted Nature-Inspired Palette
+    {   // Muted
         float3(0.9, 0.5, 0.4),   // 🍂 Rust
         float3(0.8, 0.7, 0.5),   // 🌾 Wheat
         float3(0.4, 0.6, 0.3),   // 🌲 Forest Green
@@ -31,7 +31,7 @@ constant float3 colorPalettes[8][9] = {
         float3(0.4, 0.3, 0.6),   // 🍇 Plum
         float3(0.3, 0.4, 0.5)    // ⛈ Stormy Blue
     },
-    {   // Dark Cosmic Palette
+    {   // Dark
         float3(0.2, 0.5, 0.3),    // 🍞 Moldy Green-Blue
         float3(0.25, 0.05, 0.5),  // 🔮 Dark Purple (slightly brighter, more visible)
         float3(0.4, 0.05, 0.75),  // 🟣 Electric Violet (enhanced separation)
@@ -42,18 +42,18 @@ constant float3 colorPalettes[8][9] = {
         float3(0.6, 0.3, 0.7),    // 🔮 Dim Lavender
         float3(0.2, 0.2, 0.2)     // ⚫ Charcoal Grey
     },
-    {   // **SpeciesColorAlt Palette**
-        float3(0.95, 0.35, 0.35),  // 🍓 Soft Strawberry
-        float3(1.0, 0.55, 0.15),   // 🍊 Sunset Orange
-        float3(1.0, 0.85, 0.3),    // 🍋 Lemon Gold
-        float3(0.3, 0.8, 0.4),     // 🌿 Leaf Green
-        float3(0.3, 0.6, 1.0),     // 🌊 Sky Blue
-        float3(0.7, 0.4, 1.0),     // 🎆 Soft Lavender
-        float3(0.2, 0.9, 0.9),     // 🌴 Aqua Green
-        float3(1.0, 0.3, 0.7),     // 🌸 Cherry Blossom
-        float3(0.3, 0.85, 0.7)     // 🦜 Mint Teal
+    {   // Jungle
+        float3(0.0, 0.3, 0.0),   // 🌿 Deep Forest Green
+        float3(0.1, 0.5, 0.1),   // 🍃 Lush Green
+        float3(0.2, 0.7, 0.3),   // 🌱 Fresh Leaf
+        float3(0.3, 0.6, 0.2),   // 🌾 Mossy Green
+        float3(0.5, 0.4, 0.2),   // 🪵 Earthy Brown
+        float3(0.8, 0.6, 0.2),   // 🌻 Sunlit Gold
+        float3(0.9, 0.3, 0.2),   // 🌺 Tropical Red
+        float3(0.0, 0.6, 0.5),   // 🐍 Jungle Teal
+        float3(0.1, 0.2, 0.5)    // 🌌 Nightfall Blue
     },
-    {   // **SpeciesColorWild Palette**
+    {   // Vibrant
         float3(1.0, 0.0, 0.0),   // 🔥 Pure Red
         float3(1.0, 0.5, 0.0),   // 🧡 Neon Orange
         float3(1.0, 1.0, 0.0),   // ⚡ Electric Yellow
@@ -64,7 +64,7 @@ constant float3 colorPalettes[8][9] = {
         float3(1.0, 0.0, 1.0),   // 💜 Hyper Magenta
         float3(1.0, 0.0, 0.5)    // 💖 Hot Raspberry
     },
-    {   // **Sunset Palette 🌅**
+    {   // Sunset
         float3(1.0, 0.5, 0.2),   // 🌅 Warm Tangerine
         float3(1.0, 0.3, 0.3),   // 🍓 Deep Strawberry Red
         float3(1.0, 0.75, 0.3),  // 🍑 Golden Peach
@@ -75,7 +75,7 @@ constant float3 colorPalettes[8][9] = {
         float3(1.0, 0.85, 0.4),  // ☀️ Soft Golden Glow
         float3(0.8, 0.6, 0.2)    // 🌾 Earthy Amber
     },
-    {   // **Ocean Palette 🌊**
+    {   // Ocean
         float3(0.0, 0.2, 0.6),   // 🌊 Deep Ocean Blue
         float3(0.0, 0.5, 0.8),   // 🟦 Bright Cerulean
         float3(0.0, 0.7, 1.0),   // 💎 Electric Aqua
@@ -96,5 +96,5 @@ constant float3 colorPalettes[8][9] = {
         float3(0.8, 0.8, 0.8),   // ☁ Pale Gray
         float3(0.85, 0.85, 0.85), // ⚪ Almost White Gray
         float3(0.9, 0.9, 0.9)    // ❄ Near-White
-    },
+    }
 };

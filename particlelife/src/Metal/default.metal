@@ -259,12 +259,21 @@ kernel void compute_particle_movement(
             }
         }
     }
-        
-    // Apply friction dynamically
-    selfParticle.velocity += force * 0.1;
-    selfParticle.velocity *= (1.0 - *friction);
-    selfParticle.position += selfParticle.velocity * c_dt;
-    selfParticle.position = handleBoundary(selfParticle.position, c_worldSize);
 
+        // Precompute friction factor
+        const float frictionFactor = 1.0 - (*friction * 1.1);
+
+        // Apply final force
+        selfParticle.velocity += force * 0.15;
+
+        // Apply friction
+        selfParticle.velocity *= frictionFactor;
+
+        // Move the particle by velocity with respect to delta time
+        selfParticle.position += selfParticle.velocity * c_dt;
+
+        // Keep it in bounds
+        selfParticle.position = handleBoundary(selfParticle.position, c_worldSize);
+        
     particles[id] = selfParticle;
 }

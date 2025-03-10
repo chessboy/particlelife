@@ -41,7 +41,7 @@
     "beta" : 0.3,
     "distributionType" : "centeredCircle",
     "friction" : 0.1,
-    "id" : "C205B42E-E2A8-4800-AE58-916A6832763B",
+    "id" : "9BA2A01A-3EC8-4DFB-8320-20F23F3935C0",
     "isBuiltIn" : true,
     "matrixType" : {
       "data" : [
@@ -51,6 +51,7 @@
           0,
           0,
           0,
+          0,
           0
         ],
         [
@@ -58,6 +59,7 @@
           0,
           0,
           0.25,
+          0,
           0,
           0
         ],
@@ -67,12 +69,14 @@
           -0.05,
           0,
           0,
-          0.3
+          0.3,
+          0
         ],
         [
           0,
           0,
           0.25,
+          0,
           0,
           0,
           0
@@ -83,6 +87,7 @@
           0,
           0,
           -1,
+          0,
           0
         ],
         [
@@ -91,21 +96,31 @@
           0,
           0.34,
           0,
-          -0.65
+          -0.65,
+          0
+        ],
+        [
+          -0.3,
+          0.05000007,
+          0.05000007,
+          0.05000007,
+          -0.3,
+          0.05000007,
+          1
         ]
       ],
       "type" : "custom"
     },
     "maxDistance" : 0.65,
     "minDistance" : 0.04,
-    "name" : "Chloroplast",
-    "paletteIndex" : 0,
+    "name" : "Cell",
+    "paletteIndex" : 3,
     "particleCount" : 30720,
     "pointSize" : 3,
     "preservesUISettings" : false,
     "repulsion" : 0.03,
-    "speciesColorOffset" : 1,
-    "speciesCount" : 6,
+    "speciesColorOffset" : 0,
+    "speciesCount" : 7,
     "worldSize" : 0.5
   },
   {
@@ -149,8 +164,8 @@
   {
     "beta" : 0.3,
     "distributionType" : "perlinNoise",
-    "friction" : 0.14,
-    "id" : "12F9F53D-EBCC-4A4D-A5BF-3D53C072F9D8",
+    "friction" : 0.08,
+    "id" : "92A8AADB-401F-49EB-86D4-941C90E592E2",
     "isBuiltIn" : true,
     "matrixType" : {
       "data" : [
@@ -175,7 +190,7 @@
           0,
           0,
           0,
-          0,
+          1,
           0
         ],
         [
@@ -205,15 +220,15 @@
       ],
       "type" : "custom"
     },
-    "maxDistance" : 0.45,
+    "maxDistance" : 0.3,
     "minDistance" : 0.01,
     "name" : "Flux",
-    "paletteIndex" : 5,
+    "paletteIndex" : 2,
     "particleCount" : 35840,
-    "pointSize" : 7,
+    "pointSize" : 9,
     "preservesUISettings" : false,
     "repulsion" : 0.14,
-    "speciesColorOffset" : 2,
+    "speciesColorOffset" : 0,
     "speciesCount" : 6,
     "worldSize" : 0.5
   },
@@ -259,7 +274,7 @@
     "beta" : 0.3,
     "distributionType" : "uniform",
     "friction" : 0.14,
-    "id" : "A16DC84A-B38F-4F75-B913-82CF9C4F9708",
+    "id" : "5353AD27-36EF-40ED-B8A8-6290095E3733",
     "isBuiltIn" : true,
     "matrixType" : {
       "data" : [
@@ -317,12 +332,12 @@
     "maxDistance" : 0.65,
     "minDistance" : 0.04,
     "name" : "Microcosm",
-    "paletteIndex" : 2,
+    "paletteIndex" : 5,
     "particleCount" : 30720,
     "pointSize" : 9,
     "preservesUISettings" : false,
     "repulsion" : 0.03,
-    "speciesColorOffset" : 0,
+    "speciesColorOffset" : 8,
     "speciesCount" : 6,
     "worldSize" : 1
   },
@@ -400,8 +415,8 @@
   {
     "beta" : 0.3,
     "distributionType" : "perlinNoise",
-    "friction" : 0.1,
-    "id" : "2D1DFBD5-5EE8-4D3B-B6E3-544F6F0F1D03",
+    "friction" : 0.17999999,
+    "id" : "026B6829-2C67-4F5E-A6DC-AFF250C8B152",
     "isBuiltIn" : true,
     "matrixType" : {
       "data" : [
@@ -425,13 +440,13 @@
     },
     "maxDistance" : 0.65,
     "minDistance" : 0.04,
-    "name" : "Ravenous",
+    "name" : "Seeing Red",
     "paletteIndex" : 3,
     "particleCount" : 30720,
     "pointSize" : 14,
     "preservesUISettings" : false,
     "repulsion" : 0.03,
-    "speciesColorOffset" : 2,
+    "speciesColorOffset" : 5,
     "speciesCount" : 3,
     "worldSize" : 1.25
   },
