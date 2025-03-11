@@ -23,5 +23,8 @@ struct SFSymbols {
         static let stored = if #available(macOS 15, *) { "archivebox.fill" } else { "archivebox" }
         static let save = if #available(macOS 15, *) { "square.and.arrow.down.fill" } else { "square.and.arrow.down" }
         static let delete = if #available(macOS 15, *) { "trash.fill" } else { "trash" }
+        
+        static let stepSize01 = "slider.horizontal.below.square.filled.and.square"
+        static let stepSize05 = "slider.horizontal.below.square.and.square.filled"
     }
 }

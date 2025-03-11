@@ -12,21 +12,63 @@ struct SliderPopupView: View {
     let onValueChange: (Float) -> Void
     let onDismiss: () -> Void
 
+    @State private var stepSize: Float = UserSettings.shared.float(forKey: UserSettingsKeys.matrixValueSliderStep, defaultValue: 0.05)
     let quickValues: [Float] = [-1.0, -0.5, 0.0, 0.5, 1.0] // Quick select values
-
+    
+    var iconForStepSize: String {
+        return (stepSize == 0.01) ? SFSymbols.Name.stepSize01 : SFSymbols.Name.stepSize05
+    }
+    
     var body: some View {
-        VStack(spacing: 8) {
-            Text(value.formattedTo2Places)
-                .font(.title3)
-                .bold()
-                .foregroundColor(.white)
+        VStack(spacing: 16) {
+            // Header with Step Toggle Button
+            HStack(spacing: 0) {
+                Button(action: {
+                    stepSize = (stepSize == 0.05) ? 0.01 : 0.05
+                    UserSettings.shared.set(stepSize, forKey: UserSettingsKeys.matrixValueSliderStep)
+                }) {
+                    HStack(spacing: 5) {
+                        let icon = iconForStepSize
+                        Image(systemName: icon)
+                            .font(.body)
+                        Text(stepSize.formattedTo2Places)
+                            .font(.body)
+                            .bold()
+                            .frame(width: 38)
+                    }
+                    
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .frame(width: 80)
+                    .background(Color.white.opacity(0.2))
+                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                }
+                .buttonStyle(PlainButtonStyle())
 
-            Slider(value: $value, in: -1.0...1.0, step: 0.05)
+                Spacer()
+                
+                Text(value.formattedTo2Places)
+                    .font(.title3)
+                    .bold()
+                    .foregroundColor(.white)
+                    .frame(width: 80)
+
+                Spacer()
+                
+                Rectangle()
+                    .frame(width: 80, height: 10)
+                    .foregroundColor(Color.clear)
+            }
+            .frame(width: 280) // Ensure alignment
+    
+            Slider(value: $value, in: -1.0...1.0, step: stepSize)
                 .frame(width: 280)
                 .accentColor(.white)
                 .onChange(of: value) { oldValue, newValue in
                     onValueChange(value)
                 }
+
             HStack(spacing: 15) {
                 ForEach(quickValues, id: \.self) { quickValue in
                     Button(action: {
@@ -48,12 +90,12 @@ struct SliderPopupView: View {
                                     .stroke(Color.white.opacity(0.2), lineWidth: 1)
                             )
                     }
-                    .buttonStyle(PlainButtonStyle()) // Keeps it visually consistent
+                    .buttonStyle(PlainButtonStyle())
                 }
             }
             .frame(width: 280)
         }
-        .padding()
+        .padding(20)
         .background(
             RoundedRectangle(cornerRadius: 12)
                 .fill(Color(white: 0.15))
@@ -79,7 +121,6 @@ struct SliderPopupView: View {
             return .black // Neutral (0) is black
         }
     }
-
 }
 
 #Preview {

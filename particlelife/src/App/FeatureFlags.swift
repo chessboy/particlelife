@@ -44,7 +44,7 @@ struct FeatureFlags {
     // Set to `.cpuOnly`, `.integratedGPU`, or `.dedicatedGPU` (nil allows detection)
     static var debugGPUType: GPUType? = nil
     // Set to a custom core count e.g., 10, 16, 30 (nil allows detection)
-    static var debugGPUCoreCount: Int? = 10
+    static var debugGPUCoreCount: Int? = nil
 
     static var allFlags: [FeatureFlag] {
         return [enableLogging, enableFileLogging, forceBoomPreset, noStartupInFullScreen]
@@ -55,9 +55,6 @@ struct FeatureFlags {
         
         if environment == .debug {
             enableLogging.turnOn()
-            enableFileLogging.turnOn()
-            forceBoomPreset.turnOff()
-            noStartupInFullScreen.turnOff()
             Logger.log("Environment configured for debug")
             logAllFlags()
         } else {
