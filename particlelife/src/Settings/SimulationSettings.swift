@@ -135,7 +135,7 @@ extension SimulationSettings {
     
     func updateDistributionType(_ newType: DistributionType) {
         selectedPreset = selectedPreset.copy(newDistributionType: newType)
-        NotificationCenter.default.post(name: .presetSelected, object: nil)
+        ParticleSystem.shared.respawn(shouldGenerateNewMatrix: false)
     }
     
     private static func handleWorldSizeChange(_ newValue: Float) {

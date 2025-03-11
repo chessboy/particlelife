@@ -252,7 +252,7 @@ struct MatrixPickerView: View {
                     ParticleSystem.shared.respawn(shouldGenerateNewMatrix: true)
                 }) {
                     Image(systemName: SFSymbols.Name.dice)
-                        .foregroundColor(isHovered ? .white : Color(white: 0.8))
+                        .foregroundColor(.yellow)
                         .font(.system(size: 14))
                         .padding(2)
                         .background(isHovered ? Color.gray.opacity(0.3) : Color.clear)
@@ -265,15 +265,11 @@ struct MatrixPickerView: View {
                         isHovered = hovering
                     }
                 }
-            } else {
-                Rectangle()
-                    .foregroundColor(Color.clear)
-                    .frame(width: 23, height: 10)
             }
             
             Text("Matrix:")
                 .foregroundColor(labelColor)
-                .frame(width: pickerLabelWidth - 23, alignment: .trailing)
+                .frame(width: pickerLabelWidth - (settings.selectedPreset.matrixType.isRandom ? 20 : 0), alignment: .trailing)
             Picker("", selection: Binding(
                 get: { settings.selectedPreset.matrixType },
                 set: { newType in

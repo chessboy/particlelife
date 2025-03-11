@@ -134,6 +134,7 @@ enum MatrixGenerator {
             return matrix // If speciesCount is unchanged, return as is
         }
         
+        // No cases matched (empty matrix returned)
         return matrix
     }
 }

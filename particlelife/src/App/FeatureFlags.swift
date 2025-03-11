@@ -13,7 +13,7 @@ enum Environment: String {
 }
 
 struct FeatureFlag: CustomStringConvertible {
-    var description: String { return "\(name) is \(state)" }
+    var description: String { return "\(name): \(state)" }
     
     let name: String
     var state: State
@@ -36,11 +36,16 @@ struct FeatureFlag: CustomStringConvertible {
 struct FeatureFlags {
     
     // Feature Toggles (Safe Defaults: `.off`)
-    static var enableLogging = FeatureFlag(name: "Enable Logging", defaultState: .off)
-    static var enableFileLogging = FeatureFlag(name: "Enable File Logging", defaultState: .off)
-    static var forceBoomPreset = FeatureFlag(name: "Force Boom Preset", defaultState: .off)
-    static var noStartupInFullScreen = FeatureFlag(name: "No Startup in Full Screen", defaultState: .off)
+    static var enableLogging = FeatureFlag(name: "Enable Logging")
+    static var enableFileLogging = FeatureFlag(name: "Enable File Logging")
+    static var forceBoomPreset = FeatureFlag(name: "Force Boom Preset")
+    static var noStartupInFullScreen = FeatureFlag(name: "No Startup in Full Screen")
     
+    // Set to `.cpuOnly`, `.integratedGPU`, or `.dedicatedGPU` (nil allows detection)
+    static var debugGPUType: GPUType? = nil
+    // Set to a custom core count e.g., 10, 16, 30 (nil allows detection)
+    static var debugGPUCoreCount: Int? = 10
+
     static var allFlags: [FeatureFlag] {
         return [enableLogging, enableFileLogging, forceBoomPreset, noStartupInFullScreen]
     }
@@ -56,13 +61,19 @@ struct FeatureFlags {
             Logger.log("Environment configured for debug")
             logAllFlags()
         } else {
-            enableLogging.turnOn()
-            Logger.log("Environment configured for release") // this will be the only log in prod
-            enableLogging.turnOff()
-            enableFileLogging.turnOff()
-            forceBoomPreset.turnOff()
-            noStartupInFullScreen.turnOff()
+            forceProductionConfig() // Ensures production safety
         }
+    }
+    
+    /// 📴 Ensures production settings are always safe (All Off)
+    static func forceProductionConfig() {
+        enableLogging.turnOff()
+        enableFileLogging.turnOff()
+        forceBoomPreset.turnOff()
+        noStartupInFullScreen.turnOff()
+        
+        debugGPUType = nil
+        debugGPUCoreCount = nil
     }
     
     static func logAllFlags() {
@@ -72,6 +83,9 @@ struct FeatureFlags {
             description += "\n\t|-\(flag)"
         }
         
+        description += "\n\t|-Debug GPU Type: \(debugGPUType?.rawValue ?? "nil")"
+        description += "\n\t|-Debug GPU Core Count: \(debugGPUCoreCount?.description ?? "nil")"
+
         Logger.log(description, level: .debug)
     }
 }

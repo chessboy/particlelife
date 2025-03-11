@@ -80,7 +80,13 @@ class ParticleSystem: ObservableObject {
         
         let newPreset = settings.selectedPreset.copy(newSpeciesCount: newCount)
         
-        generateNewMatrix(preset: newPreset, speciesColorOffset: SimulationSettings.shared.speciesColorOffset, paletteIndex: SimulationSettings.shared.paletteIndex)
+        if newPreset.matrixType.isRandom {
+            // try to preseve the matrix as much as possible
+            matrix = MatrixGenerator.generateMatrix(speciesCount: newPreset.speciesCount, type: .custom(matrix))
+            generateSpeciesColors(speciesCount: newPreset.speciesCount, speciesColorOffset: SimulationSettings.shared.speciesColorOffset, paletteIndex: SimulationSettings.shared.paletteIndex)
+        } else {
+            generateNewMatrix(preset: newPreset, speciesColorOffset: SimulationSettings.shared.speciesColorOffset, paletteIndex: SimulationSettings.shared.paletteIndex)
+        }
         generateParticles(preset: newPreset)
         updatePhysicsAndBuffers(preset: newPreset)
         
@@ -237,9 +243,20 @@ extension ParticleSystem {
         if storedPreset.preservesUISettings {
             Logger.log("Preserving UI settings while selecting preset '\(preset.name)'", level: .debug)
             presetToApply = storedPreset.copy(
+                
+                // preserve these from current preset
                 newSpeciesCount: selectedPreset.speciesCount,
                 newParticleCount: selectedPreset.particleCount,
                 newDistributionType: selectedPreset.distributionType,
+                
+                // preserve these from current UI
+                newMaxDistance: settings.maxDistance.value,
+                newMinDistance: settings.minDistance.value,
+                newBeta: settings.beta.value,
+                newFriction: settings.friction.value,
+                newRepulsion: settings.repulsion.value,
+                newPointSize: settings.pointSize.value,
+                newWorldSize: settings.worldSize.value,
                 newSpeciesColorOffset: settings.speciesColorOffset,
                 newPaletteIndex: settings.paletteIndex,
                 newColorEffectIndex: settings.colorEffectIndex

@@ -7,7 +7,7 @@
 
 import Metal
 
-enum GPUType {
+enum GPUType: String {
     case dedicatedGPU   // High-performance GPU
     case integratedGPU  // Low-power GPU (e.g., Intel/Apple integrated)
     case cpuOnly        // No Metal-compatible GPU, CPU fallback
@@ -18,8 +18,8 @@ class SystemCapabilities {
     let baseSmoothingFactor: Float = 0.05
     
     // Debug overrides (set to `nil` for real detection)
-    private let debugGPUType: GPUType? = nil // Set to `.cpuOnly`, `.integratedGPU`, or `.dedicatedGPU`
-    private let debugGPUCoreCount: Int? = nil // Set to a custom core count (e.g., 10, 16, 30)
+    private let debugGPUType: GPUType? = FeatureFlags.debugGPUType
+    private let debugGPUCoreCount: Int? = FeatureFlags.debugGPUCoreCount
     
     let device: MTLDevice?
     var deviceName: String

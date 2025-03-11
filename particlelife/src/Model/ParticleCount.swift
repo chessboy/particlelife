@@ -12,6 +12,7 @@ enum ParticleCount: Int, CaseIterable, Identifiable, Codable, Comparable {
     case k2 = 2048
     case k5 = 5120
     case k10 = 10240
+    case k15 = 15360
     case k20 = 20480
     case k25 = 24576
     case k30 = 30720
@@ -28,6 +29,7 @@ enum ParticleCount: Int, CaseIterable, Identifiable, Codable, Comparable {
         case .k2: return "2K"
         case .k5: return "5K"
         case .k10: return "10K"
+        case .k15: return "15K"
         case .k20: return "20K"
         case .k25: return "25K"
         case .k30: return "30K"
@@ -56,7 +58,7 @@ enum ParticleCount: Int, CaseIterable, Identifiable, Codable, Comparable {
     }
     
     static var allCases: [ParticleCount] {
-        return [.k1, .k2, .k5, .k10, .k20, .k25, .k30, .k35, .k40]
+        return [.k1, .k2, .k5, .k10, .k15, .k20, .k25, .k30, .k35, .k40]
     }
     
     /// Returns the recommended particle count based on species count, **then optimizes it for the user's GPU**.
@@ -67,8 +69,8 @@ enum ParticleCount: Int, CaseIterable, Identifiable, Codable, Comparable {
         let baseMapping: [Int: ParticleCount] = [
             1: .k10,
             2: .k10,
-            3: .k20,
-            4: .k20,
+            3: .k15,
+            4: .k15,
             5: .k20,
             6: .k25,
             7: .k25,
@@ -90,29 +92,32 @@ enum ParticleCount: Int, CaseIterable, Identifiable, Codable, Comparable {
                 maxAllowed = .k40  // M2 Max (30-38 cores)
             } else if gpuCoreCount >= 16 {
                 maxAllowed = .k35  // M2 Pro-like chips
+            } else if gpuCoreCount >= 12 {  // 🔹 Adjusted threshold
+                maxAllowed = .k30  // Mid-range M2 / future M-series
             } else if gpuCoreCount >= 10 {
-                maxAllowed = .k25  // Mid-tier dedicated GPUs (e.g., base M2 with better thermals)
+                maxAllowed = .k25  // Base M2 (10-core) with better thermals
             } else if gpuCoreCount >= 8 {
-                maxAllowed = .k20  // Base M2 (10-core)
+                maxAllowed = .k20  // Lower-end GPUs
             } else {
-                maxAllowed = .k10  // Catch-all for anything weaker
+                maxAllowed = .k15  // 🔹 Adjusted fallback (better than `.k10`)
             }
         } else { // Integrated GPUs
             if gpuCoreCount >= 30 {
                 maxAllowed = .k35
             } else if gpuCoreCount >= 16 {
                 maxAllowed = .k30
-            } else if gpuCoreCount >= 10 {
+            } else if gpuCoreCount >= 12 {  // 🔹 Adjusted threshold
                 maxAllowed = .k25
-            } else if gpuCoreCount >= 8 {
+            } else if gpuCoreCount >= 10 {
                 maxAllowed = .k20
+            } else if gpuCoreCount >= 8 {
+                maxAllowed = .k15  // 🔹 Slightly lower fallback for weaker integrated GPUs
             } else {
-                maxAllowed = .k10
+                maxAllowed = .k10  // Minimum fallback
             }
         }
         
         let optimizedCount = min(self, maxAllowed)
-        //Logger.log("Optimizing \(self) ➝ \(optimizedCount)", level: .debug)
         return optimizedCount
     }
     
