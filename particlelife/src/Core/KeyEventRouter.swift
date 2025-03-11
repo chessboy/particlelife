@@ -59,6 +59,20 @@ class KeyEventRouter {
     
     func handleOtherKeyDown(with event: NSEvent) {
         
+        // handle keys allowed while paused
+        if event.keyCode == 49 { // Space bar
+            renderer.togglePaused()
+            return
+        } else if event.keyCode == 48 { // Tab
+            toggleSettingsPanelAction()
+            return
+        }
+        
+        // now bail if paused
+        if renderer.isPaused {
+            return
+        }
+
         let isCommandDown = event.modifierFlags.contains(.command)
         //let isShiftDown = event.modifierFlags.contains(.shift)
         let isOptionDown = event.modifierFlags.contains(.option)
@@ -68,7 +82,7 @@ class KeyEventRouter {
 
         case 15: // R
             if isCommandDown {
-                renderer.respawnParticles()
+                ParticleSystem.shared.respawn(shouldGenerateNewMatrix: false)
             } else if isOptionDown {
                 ParticleSystem.shared.selectPreset(SimulationSettings.shared.selectedPreset)
             }
@@ -88,10 +102,6 @@ class KeyEventRouter {
             ParticleSystem.shared.decrementPaletteIndex()
         case 30: // ]
             ParticleSystem.shared.incrementPaletteIndex()
-        case 48: // Tab
-            toggleSettingsPanelAction()
-        case 49: // Space bar
-            renderer.isPaused.toggle()
         case 29: // Zero
             renderer.resetPanAndZoom()
         case 116: // page up

@@ -14,10 +14,14 @@ extension Notification.Name {
 class FPSMonitor {
     private var lastUpdateTime: TimeInterval?
     private var frameCount: Int = 0
-    private var timer: Timer?
-    private var lastFPS: Int = -1 // Track last sent FPS as an Int
+    private var lastFPS: Int = -1
+    private var isPaused: Bool = false
 
+    /// Call this when a frame is rendered
     func frameRendered() {
+        // If paused, ignore frame updates
+        if isPaused { return }
+
         frameCount += 1
         let currentTime = CFAbsoluteTimeGetCurrent()
 
@@ -29,15 +33,16 @@ class FPSMonitor {
         let deltaTime = currentTime - lastTime
 
         if deltaTime >= 1.0 {
-            let calculatedFPS = Int(round(Double(frameCount) / deltaTime)) // Convert to Int
+            let calculatedFPS = Int(round(Double(frameCount) / deltaTime))
 
-            // Only send notification if FPS has changed
-            if calculatedFPS != lastFPS {
+            // Prevent FPS drop to 0 after unpausing
+            let safeFPS = isPaused ? lastFPS : max(calculatedFPS, 30)
+
+            if safeFPS != lastFPS {
                 NotificationCenter.default.post(
-                    name: .fpsDidUpdate, object: nil, userInfo: ["fps": calculatedFPS]
+                    name: .fpsDidUpdate, object: nil, userInfo: ["fps": safeFPS]
                 )
-                //Logger.log("framerate: \(calculatedFPS) changed")
-                lastFPS = calculatedFPS // Update last sent FPS
+                lastFPS = safeFPS
             }
 
             frameCount = 0
@@ -45,14 +50,31 @@ class FPSMonitor {
         }
     }
 
+    /// Call this when the app is paused or resumed
+    private func setPaused(_ paused: Bool) {
+        isPaused = paused
+
+        if paused {
+            //Logger.log("Pausing FPS monitor", level: .debug)
+        } else {
+            //Logger.log("Resuming FPS monitor", level: .debug)
+            lastUpdateTime = CFAbsoluteTimeGetCurrent() // Reset timing
+            frameCount = 0 // Prevent stale frame data
+        }
+    }
+
+    func togglePaused() {
+        setPaused(!isPaused)
+    }
+    
     func startMonitoring() {
-        Logger.log("starting FPS monitor", level: .debug)
-        lastUpdateTime = nil // Reset so it initializes on first frame
+        Logger.log("Starting FPS monitor", level: .debug)
+        lastUpdateTime = nil // Reset time tracking
+        isPaused = false
     }
 
     func stopMonitoring() {
-        Logger.log("stopping FPS monitor", level: .debug)
-        timer?.invalidate()
-        timer = nil
+        Logger.log("Stopping FPS monitor", level: .debug)
+        isPaused = true
     }
 }

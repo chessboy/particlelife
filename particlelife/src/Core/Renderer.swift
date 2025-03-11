@@ -18,7 +18,7 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
     
     private weak var fpsMonitor: FPSMonitor?
 
-    @Published var isPaused: Bool = false
+    @Published private(set) var isPaused: Bool = false
     
     var cameraPosition: simd_float2 = .zero
     var zoomLevel: Float = 1.0
@@ -79,15 +79,6 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
                 self?.adjustZoomAndCameraForWorldSize(newWorldSize.value)
             }
         }
-        
-        NotificationCenter.default.addObserver(self, selector: #selector(presetApplied), name: Notification.Name.presetSelected, object: nil)
-    }
-    
-    /// Called when a preset is applied
-    @objc private func presetApplied() {
-        if isPaused {
-            isPaused.toggle()
-        }
     }
             
     func resetFrameCount() {
@@ -131,6 +122,11 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         } catch {
             fatalError("ERROR: Failed to create render pipeline state: \(error)")
         }
+    }
+    
+    func togglePaused() {
+        fpsMonitor?.togglePaused()
+        isPaused.toggle()
     }
     
     func draw(in view: MTKView) {
@@ -238,13 +234,6 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         // wrap up
         renderEncoder.endEncoding()
         commandBuffer?.present(drawable)
-    }
-        
-    func respawnParticles() {
-        if isPaused {
-            isPaused.toggle()
-        }
-        ParticleSystem.shared.respawn(shouldGenerateNewMatrix: false)
     }
     
     func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {

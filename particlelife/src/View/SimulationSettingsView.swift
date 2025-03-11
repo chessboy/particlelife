@@ -398,7 +398,7 @@ struct SimulationButtonsView: View {
             .disabled(renderer.isPaused)
             
             HoverButton(title: "Respawn", systemImage: SFSymbols.Name.respawn) {
-                renderer.respawnParticles()
+                ParticleSystem.shared.respawn(shouldGenerateNewMatrix: false)
             }
             .disabled(renderer.isPaused)
         }

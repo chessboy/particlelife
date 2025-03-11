@@ -130,7 +130,7 @@ extension SimulationSettings {
     
     func updateMatrixType(_ newType: MatrixType) {
         selectedPreset = selectedPreset.copy(newMatrixType: newType)
-        NotificationCenter.default.post(name: .presetSelected, object: nil)
+        ParticleSystem.shared.respawn(shouldGenerateNewMatrix: true)
     }
     
     func updateDistributionType(_ newType: DistributionType) {

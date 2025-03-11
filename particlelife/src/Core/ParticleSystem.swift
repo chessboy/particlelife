@@ -30,17 +30,8 @@ class ParticleSystem: ObservableObject {
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
             self.selectPreset(initialPreset)
         }
-        
-        // listen for changes when a preset is applied
-        NotificationCenter.default.addObserver(self, selector: #selector(presetApplied), name: Notification.Name.presetSelected, object: nil)
     }
-    
-    /// Called when a preset is applied
-    @objc private func presetApplied() {
-        Logger.log("Preset applied - updating Particle System with respawn")
-        respawn(shouldGenerateNewMatrix: true)
-    }
-        
+            
     /// Updates buffers and physics settings
     private func updatePhysicsAndBuffers(preset: SimulationPreset) {
         BufferManager.shared.updateParticleBuffers(
@@ -269,7 +260,7 @@ extension ParticleSystem {
         SimulationSettings.shared.selectedPreset = presetToApply
         SimulationSettings.shared.applyPreset(presetToApply)
         
-        NotificationCenter.default.post(name: .presetSelected, object: nil)
+        respawn(shouldGenerateNewMatrix: true)
     }
     
     func incrementSpeciesColorOffset() {
