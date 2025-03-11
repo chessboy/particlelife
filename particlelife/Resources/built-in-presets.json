@@ -238,7 +238,7 @@
     },
     "maxDistance" : 0.65,
     "minDistance" : 0.04,
-    "name" : "Classical",
+    "name" : "Classic Particle Life",
     "paletteIndex" : 0,
     "particleCount" : 15360,
     "pointSize" : 12,

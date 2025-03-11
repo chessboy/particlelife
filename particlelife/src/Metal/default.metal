@@ -73,10 +73,9 @@ float3 speciesColor(Particle particle, int speciesColorOffset, int paletteIndex,
     }
         
     // --- FADE-IN EFFECT ---
-    const float fadeDuration = FADE_IN_FRAMES;  // Number of frames to reach full visibility
-    float fadeFactor = saturate(frameCount / fadeDuration); // Gradually increases from 0 to 1
-    
-    return baseColor * fadeFactor;  // Darker at start, full color at fadeDuration
+    const float fadeFactor = saturate(frameCount / FADE_IN_FRAMES);
+    const float adjustedFactor = max(fadeFactor, 0.1);
+    return baseColor * adjustedFactor;
 }
 
 // draw particles in the world

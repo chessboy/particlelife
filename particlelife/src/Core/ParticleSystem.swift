@@ -87,6 +87,7 @@ class ParticleSystem: ObservableObject {
         } else {
             generateNewMatrix(preset: newPreset, speciesColorOffset: SimulationSettings.shared.speciesColorOffset, paletteIndex: SimulationSettings.shared.paletteIndex)
         }
+        
         generateParticles(preset: newPreset)
         updatePhysicsAndBuffers(preset: newPreset)
         

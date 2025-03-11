@@ -249,7 +249,7 @@ struct MatrixGrid: View {
                     hovered == (row, col) ? strokedRectangle(color: Color.white.opacity(0.85), lineWidth: 2, cornerRadius: cornerRadiusMatrix) : nil
                 }
             )
-            .overlay(tooltipOverlay(value: value))
+            .overlay(valueOverlay(value: value))
             .animation(.easeInOut(duration: 0.3), value: value)
             .onHover { isHovering in
                 handleHover(isHovering: isHovering, row: row, col: col, value: value, cellSize: cellSize)
@@ -260,11 +260,12 @@ struct MatrixGrid: View {
     }
     
     @ViewBuilder
-    private func tooltipOverlay(value: Float) -> some View {
-        if speciesColors.count <= MatrixGrid.switchToTooltips {
-            TooltipView(text: value.formattedTo2Places, style: .shadow)
-                .animation(.easeInOut(duration: 0.3), value: value)
-        }
+    private func valueOverlay(value: Float) -> some View {
+        let shouldShow = speciesColors.count <= MatrixGrid.switchToTooltips
+        
+        TooltipView(text: value.formattedTo2Places, style: .shadow)
+            .opacity(shouldShow ? 1 : 0)
+            .animation(.smooth(duration: 0.3), value: shouldShow)
     }
     
     private func handleTap(row: Int, col: Int, value: Float, cellSize: CGFloat) {
