@@ -84,7 +84,7 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
     func resetFrameCount() {
         self.frameCount = 0
         BufferManager.shared.updateFrameCountBuffer(frameCount: frameCount)
-        Logger.log("frameCount reset to 0", level: .debug)
+        //Logger.log("frameCount reset to 0", level: .debug)
     }
     
     // Combine compute + render pipeline setup into a single function

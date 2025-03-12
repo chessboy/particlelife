@@ -5,7 +5,7 @@ struct ParticleGenerator {
 
     static func generate(distribution: DistributionType, particleCount: ParticleCount, speciesCount: Int) -> [Particle] {
         
-        Logger.log("Distribution: \(distribution), count: \(particleCount.displayString), speciesCount: \(speciesCount)", level: .debug)
+        // Logger.log("Distribution: \(distribution), count: \(particleCount.displayString), speciesCount: \(speciesCount)", level: .debug)
         
         let count = particleCount.rawValue
         
@@ -69,10 +69,7 @@ extension ParticleGenerator {
         }
         return particles
     }
-}
 
-extension ParticleGenerator {
-    
     static func centered(count: Int, speciesCount: Int) -> [Particle] {
         let scale: Float = 0.3
         return (0..<count).map { _ in

@@ -133,7 +133,11 @@ extension SimulationSettings {
     }
     
     func updateMatrixType(_ newType: MatrixType) {
-        selectedPreset = selectedPreset.copy(newMatrixType: newType)
+        if newType.isRandom {
+            selectedPreset = selectedPreset.copy(withName: "Random", newMatrixType: newType)
+        } else {
+            selectedPreset = selectedPreset.copy(withName: "New", newMatrixType: newType)
+        }
         ParticleSystem.shared.respawn(shouldGenerateNewMatrix: true)
     }
     
