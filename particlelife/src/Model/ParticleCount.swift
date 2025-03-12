@@ -7,6 +7,7 @@
 
 import Foundation
 
+// multiples of 1024
 enum ParticleCount: Int, CaseIterable, Identifiable, Codable, Comparable {
     case k1 = 1024
     case k2 = 2048
@@ -92,26 +93,26 @@ enum ParticleCount: Int, CaseIterable, Identifiable, Codable, Comparable {
                 maxAllowed = .k40  // M2 Max (30-38 cores)
             } else if gpuCoreCount >= 16 {
                 maxAllowed = .k35  // M2 Pro-like chips
-            } else if gpuCoreCount >= 12 {  // 🔹 Adjusted threshold
+            } else if gpuCoreCount >= 12 {
                 maxAllowed = .k30  // Mid-range M2 / future M-series
             } else if gpuCoreCount >= 10 {
                 maxAllowed = .k25  // Base M2 (10-core) with better thermals
             } else if gpuCoreCount >= 8 {
                 maxAllowed = .k20  // Lower-end GPUs
             } else {
-                maxAllowed = .k15  // 🔹 Adjusted fallback (better than `.k10`)
+                maxAllowed = .k15 // Minimum fallback
             }
         } else { // Integrated GPUs
             if gpuCoreCount >= 30 {
                 maxAllowed = .k35
             } else if gpuCoreCount >= 16 {
                 maxAllowed = .k30
-            } else if gpuCoreCount >= 12 {  // 🔹 Adjusted threshold
+            } else if gpuCoreCount >= 12 {
                 maxAllowed = .k25
             } else if gpuCoreCount >= 10 {
                 maxAllowed = .k20
             } else if gpuCoreCount >= 8 {
-                maxAllowed = .k15  // 🔹 Slightly lower fallback for weaker integrated GPUs
+                maxAllowed = .k15
             } else {
                 maxAllowed = .k10  // Minimum fallback
             }

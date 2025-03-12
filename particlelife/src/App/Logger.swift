@@ -82,6 +82,10 @@ class Logger {
         print(logMessage)
     }
     
+    static func logWithError(_ message: String, error: Error, function: String = #function, file: String = #file) {
+        log("\(message): error: \(error.localizedDescription)", level: .error, function: function, file: file)
+    }
+    
     private func writeToFile(_ text: String) {
         guard FeatureFlags.enableFileLogging.isOn, let logFileURL = logFileURL else { return }
         if let handle = try? FileHandle(forWritingTo: logFileURL) {
@@ -125,15 +129,5 @@ class Logger {
         
         // Otherwise, return just the class name
         return components.first.map(String.init) ?? cleaned
-    }
-}
-
-extension Logger {
-    static func logWithError(_ message: String, error: Error, function: String = #function, file: String = #file) {
-        let filename = (file as NSString).lastPathComponent
-        let paddedFilename = filename.padding(toLength: LoggerConfig.filenamePadding, withPad: " ", startingAt: 0)
-        let paddedLevel = LogLevel.error.padded  // Use the same padding logic as other logs
-        
-        print("\(paddedLevel) | \(paddedFilename) \(function) ➝ \(message): \(error.localizedDescription)")
     }
 }

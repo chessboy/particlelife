@@ -263,7 +263,7 @@ kernel void compute_particle_movement(
         const float frictionFactor = 1.0 - (*friction * 1.1);
 
         // Apply final force
-        selfParticle.velocity += force * 0.15;
+        selfParticle.velocity += force * 0.16;
 
         // Apply friction
         selfParticle.velocity *= frictionFactor;

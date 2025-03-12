@@ -134,7 +134,7 @@ class UserPresetStorage {
             Logger.log("Successfully found saved preset after reload: \(storedPreset.name) (ID: \(storedPreset.id))", level: .debug)
             return storedPreset
         } else {
-            Logger.log("ERROR: Saved preset '\(finalPreset.name)' (ID: \(finalPreset.id)) not found after reload!", level: .error)
+            Logger.log("Saved preset '\(finalPreset.name)' (ID: \(finalPreset.id)) not found after reload!", level: .error)
             return finalPreset // Fallback in case of an issue
         }
     }

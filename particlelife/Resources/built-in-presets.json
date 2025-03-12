@@ -711,7 +711,7 @@
   {
     "beta" : 0.15,
     "distributionType" : "centered",
-    "friction" : 0.2,
+    "friction" : 0.26,
     "id" : "B2AEE359-C386-4F4D-8DCE-033FF8053364",
     "isBuiltIn" : true,
     "matrixType" : {

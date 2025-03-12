@@ -138,29 +138,21 @@ class BufferManager {
         // No need to recreate species count buffer
         updateSpeciesCountBuffer(speciesCount: speciesCount)
     }
-
-    private func flattenMatrix(_ matrix: [[Float]]) -> [Float] {
-        return matrix.flatMap { $0 }
-    }
 }
 
 // Buffer Updates
 extension BufferManager {
     
     func updateClickBuffer(clickPosition: SIMD2<Float>, force: Float, clear: Bool = false) {
-        var clickData = clear ? ClickData(position: SIMD2<Float>(0, 0), force: 0.0) :
-        ClickData(position: clickPosition, force: force)
+        let clickData = clear ?
+            ClickData(position: SIMD2<Float>(0, 0), force: 0.0) :
+            ClickData(position: clickPosition, force: force)
         
-        guard let buffer = clickBuffer else { return }
-        
-        memcpy(buffer.contents(), &clickData, MemoryLayout<ClickData>.stride)
+        updateBuffer(clickBuffer, with: clickData)
     }
 
     func updateFrameCountBuffer(frameCount: UInt32) {
-        guard let frameBuffer = frameCountBuffer else { return }
-        
-        var mutableFrameCount = frameCount // Create a mutable copy
-        memcpy(frameBuffer.contents(), &mutableFrameCount, MemoryLayout<UInt32>.stride)
+        updateBuffer(frameCountBuffer, with: frameCount)
     }
 
     func updateCameraBuffer(cameraPosition: SIMD2<Float>) {
@@ -205,13 +197,7 @@ extension BufferManager {
         updateBuffer(paletteIndexBuffer, with: settings.paletteIndex)
         updateBuffer(colorEffectIndexBuffer, with: settings.colorEffectIndex)
     }
-        
-    func updateMatrixBuffer(matrix: [[Float]]) {
-        guard let matrixBuffer = matrixBuffer else { return }
-        let flatMatrix = flattenMatrix(matrix)
-        matrixBuffer.contents().copyMemory(from: flatMatrix, byteCount: flatMatrix.count * MemoryLayout<Float>.stride)
-    }
-    
+            
     func updateSpeciesCountBuffer(speciesCount: Int) {
         updateBuffer(speciesCountBuffer, with: speciesCount)
     }
@@ -225,18 +211,19 @@ extension BufferManager {
         updateBuffer(windowSizeBuffer, with: windowSize)
     }
     
-    func updateMatrixAndSpeciesCount(matrix: [[Float]], speciesCount: Int) {
+    func updateMatrixBuffer(matrix: [[Float]]) {
+        guard let matrixBuffer = matrixBuffer else { return }
         let flatMatrix = flattenMatrix(matrix)
-        let matrixSize = flatMatrix.count * MemoryLayout<Float>.stride
-        
-        if matrixBuffer == nil || matrixBuffer!.length != matrixSize {
-            matrixBuffer = device.makeBuffer(length: matrixSize, options: [])
-        }
-        matrixBuffer?.contents().copyMemory(from: flatMatrix, byteCount: matrixSize)
-        
-        updateSpeciesCountBuffer(speciesCount: speciesCount)
+        matrixBuffer.contents().copyMemory(from: flatMatrix, byteCount: flatMatrix.count * MemoryLayout<Float>.stride)
     }
+}
+
+extension BufferManager {
     
+    private func flattenMatrix(_ matrix: [[Float]]) -> [Float] {
+        return matrix.flatMap { $0 }
+    }
+
     private func updateBuffer<T>(_ buffer: MTLBuffer?, with value: T) {
         guard let buffer = buffer else { return }
         withUnsafeBytes(of: value) { rawBuffer in

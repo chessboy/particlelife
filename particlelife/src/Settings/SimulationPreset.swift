@@ -179,7 +179,7 @@ extension SimulationPreset {
     /// Returns an optimized version of the preset based on GPU capabilities.
     func optimized(for gpuCoreCount: Int) -> SimulationPreset {
         let newParticleCount = particleCount.optimizedParticleCount(for: gpuCoreCount, gpuType: SystemCapabilities.shared.gpuType)
-        print("optimizing: preset \(name), particleCount: \(particleCount) -> newParticleCount: \(newParticleCount)")
+        Logger.log("optimizing: preset \(name), particleCount: \(particleCount) -> newParticleCount: \(newParticleCount)", level: .debug)
         return copy(newParticleCount: newParticleCount)
     }
 

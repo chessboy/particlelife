@@ -8,7 +8,6 @@
 import Metal
 import simd
 import SwiftUI
-import Combine
 
 class ParticleSystem: ObservableObject {
     static let shared = ParticleSystem()
@@ -19,7 +18,6 @@ class ParticleSystem: ObservableObject {
     @Published var matrix: [[Float]] = []
     @Published private(set) var speciesColors: [Color] = []
     
-    private var cancellables = Set<AnyCancellable>()
     private var lastUpdateTime: TimeInterval = Date().timeIntervalSince1970
     private var lastDT: Float = 0.001
     
@@ -217,7 +215,7 @@ extension ParticleSystem {
         //Logger.log("Available presets: \n\(availablePresets.joined(separator: "\n"))", level: .debug)
         
         guard let storedPreset = allPresets.first(where: { $0.id == preset.id }) else {
-            Logger.log("ERROR: Preset '\(preset.name)' (ID: \(preset.id)) not found in storage!", level: .error)
+            Logger.log("Preset '\(preset.name)' (ID: \(preset.id)) not found in storage!", level: .error)
             return
         }
         
@@ -260,7 +258,6 @@ extension ParticleSystem {
         
         SimulationSettings.shared.selectedPreset = presetToApply
         SimulationSettings.shared.applyPreset(presetToApply)
-        
         respawn(shouldGenerateNewMatrix: true)
     }
     

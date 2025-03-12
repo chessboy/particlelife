@@ -209,7 +209,7 @@ extension SimulationSettings {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { attemptSelection() }
                 
             } else {
-                Logger.log("ERROR: Preset '\(persistedPreset.name)' (ID: \(persistedPreset.id)) not found after multiple attempts!", level: .error)
+                Logger.log("Preset '\(persistedPreset.name)' (ID: \(persistedPreset.id)) not found after multiple attempts!", level: .error)
             }
         }
         
