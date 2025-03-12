@@ -74,7 +74,7 @@ class KeyEventRouter {
         }
 
         let isCommandDown = event.modifierFlags.contains(.command)
-        //let isShiftDown = event.modifierFlags.contains(.shift)
+        let isShiftDown = event.modifierFlags.contains(.shift)
         let isOptionDown = event.modifierFlags.contains(.option)
         
         //Logger.log("Key pressed: \(event.keyCode)", level: .debug)
@@ -110,6 +110,8 @@ class KeyEventRouter {
             ParticleSystem.shared.incrementSpeciesColorOffset()
         case 8: // C key
             ParticleSystem.shared.toggleColorEffect()
+        case 2: // D key
+            SimulationSettings.shared.nextDistributionType(direction: isShiftDown ? -1 : 1)
         case 35: // P key
             ParticleSystem.shared.selectRandomBuiltInPreset()
         case 46: // M key

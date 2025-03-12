@@ -12,6 +12,15 @@ enum DistributionType: Codable, CaseIterable {
          centeredCircle, ring, rainbowRing, line,
          colorBattle, colorWheel, colorBands, spiral, rainbowSpiral
     
+    func nextDistributionType(direction: Int = 1) -> DistributionType {
+        let allCases = Self.allCases
+        guard let currentIndex = allCases.firstIndex(of: self) else { return self }
+
+        // Wrap around correctly in both directions
+        let newIndex = (currentIndex + direction + allCases.count) % allCases.count
+        return allCases[newIndex]
+    }
+
     /// Determines if the distribution should be recentered after generation
     var shouldRecenter: Bool {
         switch self {

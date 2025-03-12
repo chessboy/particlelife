@@ -113,6 +113,10 @@ class SimulationSettings: ObservableObject {
         paletteIndex = (paletteIndex - 1 + ColorPalette.allCases.count) % ColorPalette.allCases.count
     }
     
+    func nextDistributionType(direction: Int = 1) {
+        updateDistributionType(selectedPreset.distributionType.nextDistributionType(direction: direction))
+    }
+    
     func toggleColorEffect() {
         colorEffectIndex = 1 - colorEffectIndex
     }

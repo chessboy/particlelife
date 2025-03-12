@@ -51,7 +51,7 @@ class ParticleSystem: ObservableObject {
         
         generateParticles(preset: preset)
         if shouldGenerateNewMatrix {
-            generateNewMatrix(preset: preset, speciesColorOffset: SimulationSettings.shared.speciesColorOffset, paletteIndex: SimulationSettings.shared.paletteIndex)
+            generateNewMatrixAndColors(preset: preset, speciesColorOffset: SimulationSettings.shared.speciesColorOffset, paletteIndex: SimulationSettings.shared.paletteIndex)
         }
         updatePhysicsAndBuffers(preset: preset)
     }
@@ -74,11 +74,12 @@ class ParticleSystem: ObservableObject {
         if newPreset.matrixType.isRandom {
             // try to preseve the matrix as much as possible
             matrix = MatrixGenerator.generateMatrix(speciesCount: newPreset.speciesCount, type: .custom(matrix))
-            generateSpeciesColors(speciesCount: newPreset.speciesCount, speciesColorOffset: SimulationSettings.shared.speciesColorOffset, paletteIndex: SimulationSettings.shared.paletteIndex)
         } else {
-            generateNewMatrix(preset: newPreset, speciesColorOffset: SimulationSettings.shared.speciesColorOffset, paletteIndex: SimulationSettings.shared.paletteIndex)
+            generateNewMatrixAndColors(preset: newPreset, speciesColorOffset: SimulationSettings.shared.speciesColorOffset, paletteIndex: SimulationSettings.shared.paletteIndex)
         }
         
+        generateSpeciesColors(speciesCount: newPreset.speciesCount, speciesColorOffset: SimulationSettings.shared.speciesColorOffset, paletteIndex: SimulationSettings.shared.paletteIndex)
+
         generateParticles(preset: newPreset)
         updatePhysicsAndBuffers(preset: newPreset)
         
@@ -140,14 +141,14 @@ class ParticleSystem: ObservableObject {
     }
     
     /// Generates a new matrix and updates colors using species color offset
-    private func generateNewMatrix(preset: SimulationPreset, speciesColorOffset: Int, paletteIndex: Int) {
+    private func generateNewMatrixAndColors(preset: SimulationPreset, speciesColorOffset: Int, paletteIndex: Int) {
         matrix = MatrixGenerator.generateMatrix(speciesCount: preset.speciesCount, type: preset.matrixType)
         generateSpeciesColors(speciesCount: preset.speciesCount, speciesColorOffset: speciesColorOffset, paletteIndex: paletteIndex)
     }
     
     /// Generates colors for each species based on the selected palette
     private func generateSpeciesColors(speciesCount: Int, speciesColorOffset: Int, paletteIndex: Int) {
-        Logger.log("updateSpeciesColors: speciesCount: \(speciesCount), speciesColorOffset: \(speciesColorOffset), paletteIndex: \(paletteIndex)", level: .debug)
+        //Logger.log("updateSpeciesColors: speciesCount: \(speciesCount), speciesColorOffset: \(speciesColorOffset), paletteIndex: \(paletteIndex)", level: .debug)
         
         DispatchQueue.main.async {
             guard let selectedPalette = ColorPalette(rawValue: paletteIndex) else { return }
