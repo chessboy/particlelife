@@ -175,7 +175,7 @@ extension BufferManager {
             worldSize: settings.worldSize.value,
             speciesColorOffset: settings.speciesColorOffset,
             paletteIndex: settings.paletteIndex,
-            colorEffectIndex: settings.colorEffectIndex
+            colorEffect: settings.colorEffect
         )
         
         if let last = lastPhysicsSettings, last.isEqual(to: currentSettings) {
@@ -195,7 +195,7 @@ extension BufferManager {
         updateBuffer(worldSizeBuffer, with: settings.worldSize)
         updateBuffer(speciesColorOffsetBuffer, with: settings.speciesColorOffset)
         updateBuffer(paletteIndexBuffer, with: settings.paletteIndex)
-        updateBuffer(colorEffectIndexBuffer, with: settings.colorEffectIndex)
+        updateBuffer(colorEffectIndexBuffer, with: settings.colorEffect.id)
     }
             
     func updateSpeciesCountBuffer(speciesCount: Int) {
@@ -252,7 +252,7 @@ struct PhysicsSettingsSnapshot {
     let worldSize: Float
     let speciesColorOffset: Int
     let paletteIndex: Int
-    let colorEffectIndex: Int
+    let colorEffect: ColorEffect
 
     /// Compare two snapshots
     func isEqual(to other: PhysicsSettingsSnapshot) -> Bool {
@@ -265,6 +265,6 @@ struct PhysicsSettingsSnapshot {
         worldSize == other.worldSize &&
         speciesColorOffset == other.speciesColorOffset &&
         paletteIndex == other.paletteIndex &&
-        colorEffectIndex == other.colorEffectIndex        
+        colorEffect == other.colorEffect
     }
 }

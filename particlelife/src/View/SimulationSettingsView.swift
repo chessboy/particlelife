@@ -46,8 +46,8 @@ struct SimulationSettingsView: View {
                     renderer: renderer,
                     speciesColors: particleSystem.speciesColors
                 )
-                .frame(width: 300, height: 300)
-                .padding(.top, 10)
+                .frame(width: 300, height: 295)
+                .padding(.top, 16)
                 
                 // Close Button in the Empty Top-Left Space
                 Button(action: {
@@ -61,7 +61,7 @@ struct SimulationSettingsView: View {
                         .background(isCloseButtonHovered ? Color.gray.opacity(0.3) : Color.black)
                         .clipShape(Circle())
                 }
-                .offset(x: -3, y: 7)
+                .offset(x: -3, y: 14)
                 .buttonStyle(PlainButtonStyle())
                 .onHover { hovering in
                     withAnimation(.easeInOut(duration: 0.2)) {
@@ -73,18 +73,23 @@ struct SimulationSettingsView: View {
             
             // Preset, Matrix, Distribution: Grouped neatly
             VStack(spacing: 12) {
+                CustomDivider()
                 PresetPickerView(settings: settings, renderer: renderer, isShowingSaveSheet: $isShowingSaveSheet, isShowingDeleteSheet: $isShowingDeleteSheet)
                 SpeciesPickerView(settings: settings, renderer: renderer)
                 MatrixPickerView(settings: settings, renderer: renderer)
+                CustomDivider()
                 ParticleCountPickerView(settings: settings, renderer: renderer, maxAllowedParticleCount: maxAllowedParticleCount)
                 DistributionPickerView(settings: settings, renderer: renderer)
+                CustomDivider()
                 PalettePickerView(settings: settings, renderer: renderer)
+                ColorEffectPickerView(settings: settings, renderer: renderer)
+                CustomDivider()
             }
             .padding(.top, 15)
             
             // Controls: A little more room for clarity
             SimulationButtonsView(renderer: renderer)
-                .padding(.top, 20)
+                .padding(.top, 12)
                 .padding(.bottom, 8)
             
             PhysicsSettingsView(settings: settings, renderer: renderer, isExpanded: $isExpanded)
@@ -92,7 +97,7 @@ struct SimulationSettingsView: View {
             
             Spacer()
         }
-        .frame(width: 340, height: isExpanded ? 875 : 660)
+        .frame(width: 340, height: isExpanded ? 993 : 775)
         .animation(.easeInOut(duration: 0.3), value: isExpanded)
         .background(renderer.isPaused ? Color(red: 0.2, green: 0, blue: 0).opacity(0.9) : Color(white: 0.07).opacity(0.9))
         .clipShape(RoundedCornerShape(corners: [.topRight, .bottomRight], radius: 20))
@@ -320,34 +325,13 @@ struct DistributionPickerView: View {
 struct PalettePickerView: View {
     @ObservedObject var settings: SimulationSettings
     @ObservedObject var renderer: Renderer
-    @State private var isHovered = false
     
     var body: some View {
         HStack(spacing: 0) {
             
-            Button(action: {
-                // for now we only support 0 (no effect) & 1 (texturizing effect)
-                ParticleSystem.shared.nextColorEffect()
-            }) {
-                Image(systemName: SFSymbols.Name.colorEffect)
-                    .foregroundColor(SimulationSettings.shared.colorEffectIndex == 1 ? .yellow : .white )
-                    .font(.system(size: 14))
-                    .padding(2)
-                    .background(isHovered ? Color.gray.opacity(0.3) : Color.clear)
-                    .clipShape(Circle())
-            }
-            .buttonStyle(PlainButtonStyle())
-            .disabled(renderer.isPaused)
-            .help("Use T key to toggle color effect")
-            .onHover { hovering in
-                withAnimation(.easeInOut(duration: 0.15)) {
-                    isHovered = hovering
-                }
-            }
-            
             Text("Palette:")
                 .foregroundColor(labelColor)
-                .frame(width: pickerLabelWidth - 20, alignment: .trailing)
+                .frame(width: pickerLabelWidth, alignment: .trailing)
             
             Picker("", selection: Binding(
                 get: { settings.paletteIndex },
@@ -375,6 +359,36 @@ struct PalettePickerView: View {
             speciesColorOffset: SimulationSettings.shared.speciesColorOffset,
             paletteIndex: SimulationSettings.shared.paletteIndex
         )
+    }
+}
+
+struct ColorEffectPickerView: View {
+    @ObservedObject var settings: SimulationSettings
+    @ObservedObject var renderer: Renderer
+    
+    var body: some View {
+        HStack(spacing: 0) {
+            
+            Text("Effect:")
+                .foregroundColor(labelColor)
+                .frame(width: pickerLabelWidth, alignment: .trailing)
+            
+            Picker("", selection: Binding(
+                get: { settings.colorEffect },
+                set: { newEffect in
+                    if newEffect != settings.colorEffect {
+                        settings.colorEffect = newEffect
+                    }
+                }
+            )) {
+                ForEach(ColorEffect.allCases, id: \.self) { effect in
+                    Text(effect.displayName).tag(effect)
+                }
+            }
+            .pickerStyle(MenuPickerStyle())
+            .disabled(renderer.isPaused)
+        }
+        .frame(width: pickerViewWidth)
     }
 }
 
@@ -578,7 +592,6 @@ struct SmoothHeightModifier: AnimatableModifier {
     }
 }
 
-
 struct FooterView: View {
     @State private var fps: Int = 0
     @ObservedObject var renderer: Renderer
@@ -604,7 +617,7 @@ struct FooterView: View {
                     NotificationCenter.default.post(name: .lowPerformanceWarning, object: nil)
                 }) {
                     Image(systemName: SFSymbols.Name.warning)
-                        .foregroundColor(SimulationSettings.shared.colorEffectIndex == 0 ? .white : .yellow)
+                        .foregroundColor(.yellow)
                         .font(.system(size: 14))
                         .padding(2)
                         .background(isHovered ? Color.gray.opacity(0.3) : Color.clear)
@@ -831,6 +844,15 @@ struct HoverButton: View {
                 isHovered = hovering
             }
         }
+    }
+}
+
+struct CustomDivider: View {
+    var body: some View {
+        Divider()
+            .background(Color(white: 0.2))
+            .padding(.vertical, 4)
+            .frame(width: 290)
     }
 }
 

@@ -13,7 +13,6 @@ struct UserSettingsKeys {
     static let colorPaletteIndex = "colorPaletteIndex"
     static let speciesColorOffset = "speciesColorOffset"
     static let showingPhysicsPane = "showingPhysicsPane"
-    static let colorEffectIndex = "colorEffectIndex"
     static let matrixValueSliderStep = "matrixValueSliderStep"
 }
 

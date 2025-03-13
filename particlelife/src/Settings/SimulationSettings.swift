@@ -34,9 +34,7 @@ class SimulationSettings: ObservableObject {
     @Published var selectedPreset: SimulationPreset = PresetDefinitions.getDefaultPreset()
     
     private var bufferUpdateWorkItem: DispatchWorkItem?
-    
-    let maxColorEffects = 4
-    
+        
     private func scheduleBufferUpdate() {
         bufferUpdateWorkItem?.cancel()
         let workItem = DispatchWorkItem {
@@ -93,7 +91,7 @@ class SimulationSettings: ObservableObject {
         }
     }
         
-    @Published var colorEffectIndex: Int = 0 {
+    @Published var colorEffect: ColorEffect = .none {
         didSet {
             SimulationSettings.shared.scheduleBufferUpdate()
         }
@@ -120,8 +118,7 @@ class SimulationSettings: ObservableObject {
     }
     
     func nextColorEffect(direction: Int = 1) {
-        colorEffectIndex = (colorEffectIndex + maxColorEffects + direction) % maxColorEffects
-        print("colorEffectIndex: \(colorEffectIndex)")
+        colorEffect = colorEffect.nextColorEffect(direction: direction)
     }
 }
 
@@ -148,7 +145,7 @@ extension SimulationSettings {
         selectedPreset = selectedPreset.copy(newDistributionType: newType)
         ParticleSystem.shared.respawn(shouldGenerateNewMatrix: false)
     }
-    
+        
     private static func handleWorldSizeChange(_ newValue: Float) {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { // 50ms debounce
             if shared.worldSize.value == newValue { // Ensure consistency
@@ -167,7 +164,7 @@ extension SimulationSettings {
         worldSize.value = preset.worldSize
         speciesColorOffset = preset.speciesColorOffset
         paletteIndex = preset.paletteIndex
-        colorEffectIndex = preset.colorEffectIndex
+        colorEffect = preset.colorEffect
     }
 }
 
@@ -190,7 +187,7 @@ extension SimulationSettings {
             preservesUISettings: false,
             speciesColorOffset: speciesColorOffset,
             paletteIndex: paletteIndex,
-            colorEffectIndex: colorEffectIndex
+            colorEffect: colorEffect
         )
         
         // Save preset

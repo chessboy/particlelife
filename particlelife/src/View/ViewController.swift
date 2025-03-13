@@ -24,6 +24,8 @@ class ViewController: NSViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        FeatureFlags.configure()
+        
         setupMetalView()
         setupSettingsButton()
         setupSettingsPanel()

@@ -30,7 +30,6 @@ struct FeatureFlag: CustomStringConvertible {
     
     mutating func turnOn() { state = .on }
     mutating func turnOff() { state = .off }
-    
 }
 
 struct FeatureFlags {
@@ -48,6 +47,15 @@ struct FeatureFlags {
 
     static var allFlags: [FeatureFlag] {
         return [enableLogging, enableFileLogging, forceBoomPreset, noStartupInFullScreen]
+    }
+    
+    static func configure() {
+        // Initialize logging as soon as FeatureFlags is accessed
+        #if DEBUG
+        FeatureFlags.configure(for: .debug)
+        #else
+        FeatureFlags.configure(for: .production)
+        #endif
     }
     
     /// Configures flags dynamically (e.g., at app launch)

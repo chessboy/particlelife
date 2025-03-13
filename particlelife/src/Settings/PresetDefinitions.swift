@@ -11,7 +11,6 @@ class PresetDefinitions {
         
     static let randomPreset = makeRandomPreset(speciesCount: 3)
     static let emptyPreset = makeEmptyPreset(speciesCount: 3)
-    static let testPreset = makeTestPreset()
     static var specialPresets: [SimulationPreset] = []
 
     static func loadSpecialPresets() {
@@ -61,7 +60,8 @@ class PresetDefinitions {
             worldSize: 1.0,
             preservesUISettings: true,
             speciesColorOffset: storedSpeciesColorOffset,
-            paletteIndex: storedPaletteIndex
+            paletteIndex: storedPaletteIndex,
+            colorEffect: .textured
         )
     }
     
@@ -82,29 +82,8 @@ class PresetDefinitions {
             worldSize: 0.5,
             preservesUISettings: true,
             speciesColorOffset: storedSpeciesColorOffset,
-            paletteIndex: storedPaletteIndex
+            paletteIndex: storedPaletteIndex,
+            colorEffect: .textured
         )
     }
-    
-    static func makeTestPreset() -> SimulationPreset {
-
-        return SimulationPreset(
-            name: "Test",
-            speciesCount: 1,
-            particleCount: .k10,
-            matrixType: .custom([[0.7]]),
-            distributionType: .centered,
-            maxDistance: 0.65,
-            minDistance: 0.04,
-            beta: 0.3,
-            friction: 0.14,
-            repulsion: 0.03,
-            pointSize: 9,
-            worldSize: 1.0,
-            preservesUISettings: true,
-            speciesColorOffset: storedSpeciesColorOffset,
-            paletteIndex: storedPaletteIndex
-        )
-    }
-
 }
