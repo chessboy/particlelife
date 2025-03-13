@@ -55,7 +55,7 @@ float3 speciesColor(Particle particle, int speciesColorOffset, int paletteIndex,
     // Get primary color
     float3 baseColor = colorPalettes[palette][adjustedSpecies];
 
-    if (colorEffectIndex >= 1) {
+    if (colorEffectIndex == 1) {
         // --- TEXTURE EFFECT ---
         int neighborOffset = (rand(particle.species, speciesColorOffset, id) > 0.5 ? 1 : -1);
         int neighborSpecies = ((particle.species + neighborOffset) % speciesCount + speciesCount) % speciesCount;
@@ -70,6 +70,21 @@ float3 speciesColor(Particle particle, int speciesColorOffset, int paletteIndex,
         // Apply subtle brightness variation (from 1.4 to 1.6)
         float brightnessFactor = 1.4 + rand(id, speciesColorOffset, particle.species) * 0.2;
         baseColor *= brightnessFactor;
+    }
+    else if (colorEffectIndex >= 2) {
+        float speed = length(particle.velocity); // Compute speed magnitude
+        float speedFactor = fast::clamp(speed * 2.0, 0.0, 1.0); // Normalize speed to [0,1]
+
+        if (colorEffectIndex == 2) {
+            // --- VELOCITY-BASED COLOR ---
+            // Brightness scaling of base color (white at high speed)
+            float3 highlightColor = min(baseColor * 2.0, float3(1.2, 1.2, 1.2)); // Boost saturation while keeping it under control
+            baseColor = mix(baseColor * 0.3, highlightColor, speedFactor * speedFactor);
+        } else { // colorEffectIndex == 3
+            // --- VELOCITY-BASED GRAY ---
+            // Scale brightness from dark gray to hhite (0.2 → 1.0)
+            baseColor = float3(mix(0.2, 1.0, speedFactor));
+        }
     }
         
     // --- FADE-IN EFFECT ---

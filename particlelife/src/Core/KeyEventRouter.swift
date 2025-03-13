@@ -109,7 +109,7 @@ class KeyEventRouter {
         case 121: // page down
             ParticleSystem.shared.incrementSpeciesColorOffset()
         case 8: // C key
-            ParticleSystem.shared.toggleColorEffect()
+            ParticleSystem.shared.nextColorEffect(direction: isShiftDown ? -1 : 1)
         case 2: // D key
             SimulationSettings.shared.nextDistributionType(direction: isShiftDown ? -1 : 1)
         case 35: // P key

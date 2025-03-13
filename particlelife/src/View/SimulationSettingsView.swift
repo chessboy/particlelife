@@ -327,7 +327,7 @@ struct PalettePickerView: View {
             
             Button(action: {
                 // for now we only support 0 (no effect) & 1 (texturizing effect)
-                ParticleSystem.shared.toggleColorEffect()
+                ParticleSystem.shared.nextColorEffect()
             }) {
                 Image(systemName: SFSymbols.Name.colorEffect)
                     .foregroundColor(SimulationSettings.shared.colorEffectIndex == 1 ? .yellow : .white )

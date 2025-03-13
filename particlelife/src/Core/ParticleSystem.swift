@@ -285,8 +285,8 @@ extension ParticleSystem {
         updateSpeciesColorsFromSettings()
     }
     
-    func toggleColorEffect() {
-        SimulationSettings.shared.toggleColorEffect()
+    func nextColorEffect(direction: Int = 1) {
+        SimulationSettings.shared.nextColorEffect(direction: direction)
         UserSettings.shared.set(SimulationSettings.shared.colorEffectIndex, forKey: UserSettingsKeys.colorEffectIndex)
     }
 }

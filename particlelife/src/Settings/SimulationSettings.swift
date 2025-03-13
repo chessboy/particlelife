@@ -34,7 +34,9 @@ class SimulationSettings: ObservableObject {
     @Published var selectedPreset: SimulationPreset = PresetDefinitions.getDefaultPreset()
     
     private var bufferUpdateWorkItem: DispatchWorkItem?
-
+    
+    let maxColorEffects = 4
+    
     private func scheduleBufferUpdate() {
         bufferUpdateWorkItem?.cancel()
         let workItem = DispatchWorkItem {
@@ -117,8 +119,9 @@ class SimulationSettings: ObservableObject {
         updateDistributionType(selectedPreset.distributionType.nextDistributionType(direction: direction))
     }
     
-    func toggleColorEffect() {
-        colorEffectIndex = 1 - colorEffectIndex
+    func nextColorEffect(direction: Int = 1) {
+        colorEffectIndex = (colorEffectIndex + maxColorEffects + direction) % maxColorEffects
+        print("colorEffectIndex: \(colorEffectIndex)")
     }
 }
 
