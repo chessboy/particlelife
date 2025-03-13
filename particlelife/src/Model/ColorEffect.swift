@@ -10,8 +10,8 @@ import Foundation
 enum ColorEffect: UInt32, Codable, CaseIterable, Identifiable {
     case none = 0
     case textured = 1
-    case highlight = 2
-    case grayscaleSpeed = 3
+    case highlights = 2
+    case grayHighlights = 3
 
     var id: UInt32 { rawValue }
 
@@ -19,8 +19,8 @@ enum ColorEffect: UInt32, Codable, CaseIterable, Identifiable {
         switch self {
         case .none: return "None"
         case .textured: return "Textured"
-        case .highlight: return "Highlights"
-        case .grayscaleSpeed: return "Gray Highlights"
+        case .highlights: return "Highlights"
+        case .grayHighlights: return "Gray Highlights"
         }
     }
 
@@ -40,8 +40,8 @@ extension ColorEffect {
         switch self {
         case .none: return "none"
         case .textured: return "textured"
-        case .highlight: return "highlight"
-        case .grayscaleSpeed: return "grayscaleSpeed"
+        case .highlights: return "highlights"
+        case .grayHighlights: return "grayHighlights"
         }
     }
 
@@ -49,8 +49,8 @@ extension ColorEffect {
         switch stringValue {
         case "none": self = .none
         case "textured": self = .textured
-        case "highlight": self = .highlight
-        case "grayscaleSpeed": self = .grayscaleSpeed
+        case "highlights": self = .highlights
+        case "grayHighlights": self = .grayHighlights
         default: return nil
         }
     }

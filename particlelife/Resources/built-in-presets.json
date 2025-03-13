@@ -632,7 +632,7 @@
   },
   {
     "beta" : 0.3,
-    "colorEffect" : "textured",
+    "colorEffect" : "highlights",
     "distributionType" : "perlinNoise",
     "friction" : 0.17999999,
     "id" : "68252FCC-4C8B-412B-91EC-1CC5C6EEB40D",
@@ -699,7 +699,7 @@
     "minDistance" : 0.04,
     "name" : "Bioluminescence",
     "paletteIndex" : 6,
-    "colorEffect" : "highlight",
+    "colorEffect" : "highlights",
     "particleCount" : 20480,
     "pointSize" : 6,
     "preservesUISettings" : false,
