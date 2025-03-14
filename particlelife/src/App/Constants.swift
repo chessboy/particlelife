@@ -8,6 +8,7 @@
 import SwiftUI
 
 let ASPECT_RATIO: CGFloat = 1.7778
+let windowMinHeight: CGFloat = 1050
 
 struct UserSettingsKeys {
     static let colorPaletteIndex = "colorPaletteIndex"

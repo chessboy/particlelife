@@ -39,14 +39,15 @@ struct FeatureFlags {
     static var enableFileLogging = FeatureFlag(name: "Enable File Logging")
     static var forceBoomPreset = FeatureFlag(name: "Force Boom Preset")
     static var noStartupInFullScreen = FeatureFlag(name: "No Startup in Full Screen")
-    
+    static var windowAspectRatioUnlocked = FeatureFlag(name: "Window Aspect Ratio is Unlocked")
+
     // Set to `.cpuOnly`, `.integratedGPU`, or `.dedicatedGPU` (nil allows detection)
     static var debugGPUType: GPUType? = nil
     // Set to a custom core count e.g., 10, 16, 30 (nil allows detection)
     static var debugGPUCoreCount: Int? = nil
 
     static var allFlags: [FeatureFlag] {
-        return [enableLogging, enableFileLogging, forceBoomPreset, noStartupInFullScreen]
+        return [enableLogging, enableFileLogging, forceBoomPreset, noStartupInFullScreen, windowAspectRatioUnlocked]
     }
     
     static func configure() {
@@ -63,6 +64,7 @@ struct FeatureFlags {
         
         if environment == .debug {
             enableLogging.turnOn()
+            //windowAspectRatioUnlocked.turnOn()
             Logger.log("Environment configured for debug")
             logAllFlags()
         } else {
@@ -76,6 +78,7 @@ struct FeatureFlags {
         enableFileLogging.turnOff()
         forceBoomPreset.turnOff()
         noStartupInFullScreen.turnOff()
+        windowAspectRatioUnlocked.turnOff()
         
         debugGPUType = nil
         debugGPUCoreCount = nil

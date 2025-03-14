@@ -47,8 +47,11 @@ class ViewController: NSViewController {
         
         guard let window = view.window else { return }
 
-        window.aspectRatio = NSSize(width: ASPECT_RATIO, height: 1)
-        window.minSize = NSSize(width: ASPECT_RATIO * 940, height: 940)
+        if FeatureFlags.windowAspectRatioUnlocked.isOff {
+            window.aspectRatio = NSSize(width: ASPECT_RATIO, height: 1)
+        }
+        
+        window.minSize = NSSize(width: ASPECT_RATIO * windowMinHeight, height: windowMinHeight)
 
         window.makeFirstResponder(self) // Ensure proper input focus
         window.backgroundColor = .black
