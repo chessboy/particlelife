@@ -2,47 +2,105 @@ import simd
 import GameplayKit
 
 struct ParticleGenerator {
-
-    static func generate(distribution: DistributionType, particleCount: ParticleCount, speciesCount: Int) -> [Particle] {
-        
-        // Logger.log("Distribution: \(distribution), count: \(particleCount.displayString), speciesCount: \(speciesCount)", level: .debug)
+    
+    static func generate(
+        distribution: DistributionType,
+        particleCount: ParticleCount,
+        speciesCount: Int,
+        speciesDistribution: SpeciesDistribution
+    ) -> [Particle] {
         
         let count = particleCount.rawValue
         
+        // Normalize distribution and assign particles
+        let speciesCounts = normalizeAndAssignParticles(
+            speciesCount: speciesCount,
+            particleCount: count,
+            speciesDistribution: speciesDistribution
+        )
+        
+        // Flatten species assignments into a shuffled array
+        var speciesAssignments: [Int] = []
+        for (index, num) in speciesCounts.enumerated() {
+            speciesAssignments.append(contentsOf: Array(repeating: index, count: num))
+        }
+        speciesAssignments.shuffle()
+        
         switch distribution {
         case .centered:
-            return centered(count: count, speciesCount: speciesCount)
+            return centered(count: count, speciesCount: speciesCount, speciesAssignments: &speciesAssignments)
         case .uniform:
-            return uniform(count: count, speciesCount: speciesCount)
+            return uniform(count: count, speciesCount: speciesCount, speciesAssignments: &speciesAssignments)
         case .uniformCircle:
-            return uniformCircle(count: count, speciesCount: speciesCount)
+            return uniformCircle(count: count, speciesCount: speciesCount, speciesAssignments: &speciesAssignments)
         case .centeredCircle:
-            return centeredCircle(count: count, speciesCount: speciesCount)
+            return centeredCircle(count: count, speciesCount: speciesCount, speciesAssignments: &speciesAssignments)
         case .ring:
-            return ring(count: count, speciesCount: speciesCount)
+            return ring(count: count, speciesCount: speciesCount, speciesAssignments: &speciesAssignments)
         case .rainbowRing:
-            return rainbowRing(count: count, speciesCount: speciesCount)
+            return rainbowRing(count: count, speciesCount: speciesCount, speciesAssignments: &speciesAssignments)
         case .colorBattle:
-            return colorBattle(count: count, speciesCount: speciesCount)
+            return colorBattle(count: count, speciesCount: speciesCount, speciesAssignments: &speciesAssignments)
         case .colorWheel:
-            return colorWheel(count: count, speciesCount: speciesCount)
+            return colorWheel(count: count, speciesCount: speciesCount, speciesAssignments: &speciesAssignments)
         case .colorBands:
-            return colorBands(count: count, speciesCount: speciesCount)
+            return colorBands(count: count, speciesCount: speciesCount, speciesAssignments: &speciesAssignments)
         case .line:
-            return line(count: count, speciesCount: speciesCount)
+            return line(count: count, speciesCount: speciesCount, speciesAssignments: &speciesAssignments)
         case .spiral:
-            return spiral(count: count, speciesCount: speciesCount)
+            return spiral(count: count, speciesCount: speciesCount, speciesAssignments: &speciesAssignments)
         case .rainbowSpiral:
-            return rainbowSpiral(count: count, speciesCount: speciesCount)
+            return rainbowSpiral(count: count, speciesCount: speciesCount, speciesAssignments: &speciesAssignments)
         case .perlinNoise:
-            return generatePerlinNoiseParticles(count: count, speciesCount: speciesCount)
+            return generatePerlinNoiseParticles(count: count, speciesCount: speciesCount, speciesAssignments: &speciesAssignments)
         }
+    }
+    
+    static func normalizeAndAssignParticles(
+        speciesCount: Int,
+        particleCount: Int,
+        speciesDistribution: SpeciesDistribution
+    ) -> [Int] {
+        
+        // Use the given speciesDistribution as-is (since it's always valid)
+        let distribution = speciesDistribution
+        
+        // Compute initial species counts
+        var speciesCounts = distribution.toArray().map { Int(Float(particleCount) * $0) }
+        
+        // Ensure total particle count is correct
+        let totalAssigned = speciesCounts.reduce(0, +)
+        let remaining = particleCount - totalAssigned
+        
+        if remaining > 0 {
+            for i in 0..<remaining {
+                speciesCounts[i % speciesCount] += 1
+            }
+        }
+        
+        // Ensure no active species has 0 particles
+        for i in 0..<speciesCount {
+            if speciesCounts[i] == 0 && distribution[i] > 0 {
+                speciesCounts[i] = 1  // Assign at least 1 particle to active species
+            }
+        }
+        
+        // Log the computed values
+        let formattedDistribution = distribution.toArray().map { String(format: "%.3f", $0) }.joined(separator: ", ")
+        let formattedCounts = speciesCounts.map { String($0) }.joined(separator: ", ")
+        
+        Logger.log("Particle Assignment: speciesCount: \(speciesCount), totalParticles: \(particleCount)", level: .debug)
+        Logger.log("Original Distribution: [\(speciesDistribution.toArray())]", level: .debug)
+        Logger.log("Normalized Distribution: [\(formattedDistribution)]", level: .debug)
+        Logger.log("Assigned Particles Per Species: [\(formattedCounts)] (Total: \(speciesCounts.reduce(0, +)))", level: .debug)
+        
+        return speciesCounts
     }
 }
 
 extension ParticleGenerator {
     
-    static func generatePerlinNoiseParticles(count: Int, speciesCount: Int) -> [Particle] {
+    static func generatePerlinNoiseParticles(count: Int, speciesCount: Int, speciesAssignments: inout [Int]) -> [Particle] {
         let rng = GKRandomSource.sharedRandom()
         
         var particles: [Particle] = []
@@ -64,61 +122,61 @@ extension ParticleGenerator {
                 }
             } while true
             
-            let particle = Particle(position: position, velocity: .zero, species: Int32(rng.nextInt(upperBound: speciesCount)))
+            let particle = Particle(position: position, velocity: .zero, species: Int32(speciesAssignments.popLast() ?? 0))
             particles.append(particle)
         }
         return particles
     }
 
-    static func centered(count: Int, speciesCount: Int) -> [Particle] {
+    static func centered(count: Int, speciesCount: Int, speciesAssignments: inout [Int]) -> [Particle] {
         let scale: Float = 0.3
         return (0..<count).map { _ in
             let position = SIMD2<Float>(
                 Float.random(in: -1.0...1.0) * scale * 0.5 + 0.5,
                 Float.random(in: -1.0...1.0) * scale * 0.5 + 0.5
             )
-            return Particle(position: position, velocity: .zero, species: Int32.random(in: 0..<Int32(speciesCount)))
+            return Particle(position: position, velocity: .zero, species: Int32(speciesAssignments.popLast() ?? 0))
         }
     }
-
-    static func uniform(count: Int, speciesCount: Int) -> [Particle] {
+    
+    static func uniform(count: Int, speciesCount: Int, speciesAssignments: inout [Int]) -> [Particle] {
         return (0..<count).map { _ in
             let position = SIMD2<Float>(
                 Float.random(in: -1.0...1.0),
                 Float.random(in: -1.0...1.0)
             )
-            return Particle(position: position, velocity: .zero, species: Int32.random(in: 0..<Int32(speciesCount)))
+            return Particle(position: position, velocity: .zero, species: Int32(speciesAssignments.popLast() ?? 0))
         }
     }
 
-    static func uniformCircle(count: Int, speciesCount: Int) -> [Particle] {
+    static func uniformCircle(count: Int, speciesCount: Int, speciesAssignments: inout [Int]) -> [Particle] {
         return (0..<count).map { _ in
             let angle = Float.random(in: 0...2 * .pi)
             let radius = sqrt(Float.random(in: 0...1)) * 0.5
             let position = SIMD2<Float>(cos(angle) * radius, sin(angle) * radius)
-            return Particle(position: position, velocity: .zero, species: Int32.random(in: 0..<Int32(speciesCount)))
+            return Particle(position: position, velocity: .zero, species: Int32(speciesAssignments.popLast() ?? 0))
         }
     }
 
-    static func centeredCircle(count: Int, speciesCount: Int) -> [Particle] {
+    static func centeredCircle(count: Int, speciesCount: Int, speciesAssignments: inout [Int]) -> [Particle] {
         return (0..<count).map { _ in
             let angle = Float.random(in: 0...2 * .pi)
             let radius = Float.random(in: 0...0.5)
             let position = SIMD2<Float>(cos(angle) * radius, sin(angle) * radius)
-            return Particle(position: position, velocity: .zero, species: Int32.random(in: 0..<Int32(speciesCount)))
+            return Particle(position: position, velocity: .zero, species: Int32(speciesAssignments.popLast() ?? 0))
         }
     }
 
-    static func ring(count: Int, speciesCount: Int) -> [Particle] {
+    static func ring(count: Int, speciesCount: Int, speciesAssignments: inout [Int]) -> [Particle] {
         return (0..<count).map { _ in
             let angle = Float.random(in: 0...2 * .pi)
             let radius = 0.7 + Float.random(in: -0.02...0.02)
             let position = SIMD2<Float>(cos(angle) * radius, sin(angle) * radius)
-            return Particle(position: position, velocity: .zero, species: Int32.random(in: 0..<Int32(speciesCount)))
+            return Particle(position: position, velocity: .zero, species: Int32(speciesAssignments.popLast() ?? 0))
         }
     }
 
-    static func rainbowRing(count: Int, speciesCount: Int) -> [Particle] {
+    static func rainbowRing(count: Int, speciesCount: Int, speciesAssignments: inout [Int]) -> [Particle] {
         return (0..<count).map { i in
             let angle = (0.3 * Float.random(in: -1...1) + Float(i % speciesCount)) / Float(speciesCount) * 2 * .pi
             let radius = 0.7 + Float.random(in: -0.02...0.02)
@@ -127,7 +185,7 @@ extension ParticleGenerator {
         }
     }
 
-    static func colorBattle(count: Int, speciesCount: Int) -> [Particle] {
+    static func colorBattle(count: Int, speciesCount: Int, speciesAssignments: inout [Int]) -> [Particle] {
         return (0..<count).map { i in
             let species = Int32(i % speciesCount)
             let centerAngle = Float(species) / Float(speciesCount) * 2 * .pi
@@ -142,7 +200,7 @@ extension ParticleGenerator {
         }
     }
 
-    static func colorWheel(count: Int, speciesCount: Int) -> [Particle] {
+    static func colorWheel(count: Int, speciesCount: Int, speciesAssignments: inout [Int]) -> [Particle] {
         return (0..<count).map { i in
             let species = Int32(i % speciesCount)
             let centerAngle = Float(species) / Float(speciesCount) * 2 * .pi
@@ -156,7 +214,7 @@ extension ParticleGenerator {
         }
     }
     
-    static func colorBands(count: Int, speciesCount: Int) -> [Particle] {
+    static func colorBands(count: Int, speciesCount: Int, speciesAssignments: inout [Int]) -> [Particle] {
         var particles: [Particle] = []
 
         let bandHeight: Float = 0.4  // Vertical compression
@@ -164,7 +222,7 @@ extension ParticleGenerator {
         let spacing = (2.0 - 2.0 * horizontalPadding) / Float(speciesCount)
 
         for _ in 0..<count {
-            let species = Int32.random(in: 0..<Int32(speciesCount))
+            let species = Int32(speciesAssignments.popLast() ?? 0)
 
             let centerX = -1.0 + horizontalPadding + (Float(species) + 0.5) * spacing
             let xOffset = spacing / 2.0
@@ -182,17 +240,17 @@ extension ParticleGenerator {
         return particles
     }
     
-    static func line(count: Int, speciesCount: Int) -> [Particle] {
+    static func line(count: Int, speciesCount: Int, speciesAssignments: inout [Int]) -> [Particle] {
         return (0..<count).map { _ in
             let position = SIMD2<Float>(
                 Float.random(in: -1.0...1.0),
                 Float.random(in: -0.15...0.15)
             )
-            return Particle(position: position, velocity: .zero, species: Int32.random(in: 0..<Int32(speciesCount)))
+            return Particle(position: position, velocity: .zero, species: Int32(speciesAssignments.popLast() ?? 0))
         }
     }
 
-    static func spiral(count: Int, speciesCount: Int) -> [Particle] {
+    static func spiral(count: Int, speciesCount: Int, speciesAssignments: inout [Int]) -> [Particle] {
         let maxRotations: Float = 2
         return (0..<count).map { _ in
             let f = Float.random(in: 0...1)
@@ -200,11 +258,11 @@ extension ParticleGenerator {
             let spread = 0.5 * min(f, 0.2)
             let radius = 0.9 * f + spread * Float.random(in: -1...1)
             let position = SIMD2<Float>(radius * cos(angle), radius * sin(angle))
-            return Particle(position: position, velocity: .zero, species: Int32.random(in: 0..<Int32(speciesCount)))
+            return Particle(position: position, velocity: .zero, species: Int32(speciesAssignments.popLast() ?? 0))
         }
     }
 
-    static func rainbowSpiral(count: Int, speciesCount: Int) -> [Particle] {
+    static func rainbowSpiral(count: Int, speciesCount: Int, speciesAssignments: inout [Int]) -> [Particle] {
         let maxRotations: Float = 2
         return (0..<count).map { i in
             let typeSpread = 0.3 / Float(speciesCount)

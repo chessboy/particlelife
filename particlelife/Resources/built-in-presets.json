@@ -1015,6 +1015,7 @@
     "paletteIndex" : 2,
     "colorEffect" : "textured",
     "particleCount" : 30720,
+    "speciesDistribution": [0.26666668, 0.26666668, 0.26666668, 0.2],
     "pointSize" : 9,
     "preservesUISettings" : false,
     "repulsion" : 0.03,

@@ -20,13 +20,18 @@ struct SelectedCell: Identifiable, Equatable {
 struct MatrixView: View {
         
     @Binding var matrix: [[Float]]
-    
+    @Binding var speciesDistribution: SpeciesDistribution
+
     @State private var hoveredCell: (row: Int, col: Int)? = nil
     @State private var tooltipPosition: CGPoint? = nil
     @State private var tooltipText: String = ""
     @State private var selectedCell: SelectedCell? = nil
     @State private var sliderPosition: UnitPoint = .zero
     @State private var sliderValue: Float = 0.0
+    
+    @State private var selectedSpeciesIndex: Int? = nil
+    @State private var speciesSliderPosition: UnitPoint = .zero
+    @State private var speciesSliderValue: Float = 0.0
     
     @ObservedObject var renderer: Renderer
         
@@ -39,12 +44,16 @@ struct MatrixView: View {
                 MatrixGrid(
                     speciesColors: speciesColors,
                     matrix: $matrix,
+                    speciesDistribution: $speciesDistribution,
                     hoveredCell: $hoveredCell,
                     tooltipText: $tooltipText,
                     tooltipPosition: $tooltipPosition,
                     selectedCell: $selectedCell,
                     sliderPosition: $sliderPosition,
                     sliderValue: $sliderValue,
+                    selectedSpeciesIndex: $selectedSpeciesIndex,
+                    speciesSliderPosition: $speciesSliderPosition,
+                    speciesSliderValue: $speciesSliderValue,
                     renderer: renderer
                 )
                 .overlay(tooltipView, alignment: .topLeading)
@@ -55,6 +64,7 @@ struct MatrixView: View {
                 ) { selected in
                     SliderPopupView(
                         value: $sliderValue,
+                        mode: .valueSelection,
                         onValueChange: { newValue in
                             if selectedCell == selected {
                                 setMatrixValue(row: selected.row, col: selected.col, newValue: newValue)
@@ -119,7 +129,8 @@ struct MatrixGrid: View {
     let speciesColors: [Color]
     
     @Binding var matrix: [[Float]]
-    
+    @Binding var speciesDistribution: SpeciesDistribution
+
     @Binding var hoveredCell: (row: Int, col: Int)?
     @Binding var tooltipText: String
     @Binding var tooltipPosition: CGPoint?
@@ -127,6 +138,10 @@ struct MatrixGrid: View {
     @Binding var selectedCell: SelectedCell?
     @Binding var sliderPosition: UnitPoint
     @Binding var sliderValue: Float
+    
+    @Binding var selectedSpeciesIndex: Int?
+    @Binding var speciesSliderPosition: UnitPoint
+    @Binding var speciesSliderValue: Float
     
     @ObservedObject var renderer: Renderer
 
@@ -211,16 +226,71 @@ struct MatrixGrid: View {
             }
         }
     }
-        
+    
+    private func dynamicFontSize(for speciesCount: Int) -> CGFloat {
+        let minSize: CGFloat = 10 // Roughly Font.caption
+        let maxSize: CGFloat = 24 // Roughly Font.title
+
+        // Map speciesCount from range [1, 9] to font size [maxSize, minSize]
+        return maxSize - ((maxSize - minSize) * CGFloat(speciesCount - 1) / 8)
+    }
+    
+    @ViewBuilder
+    private func distributionOverlay(row: Int) -> some View {
+        let shouldShow = speciesDistribution.isCustom
+        let fontSize = dynamicFontSize(for: speciesDistribution.toArray().count)
+        let value = Int(speciesDistribution[row] * 100) // Convert to whole percentage
+
+        HStack(alignment: .firstTextBaseline, spacing: 1) {
+            Text("\(value)")
+                .font(Font.system(size: fontSize, weight: .semibold))
+
+            Text("%")
+                .font(Font.system(size: fontSize * 0.6)) // 60% of main font size
+                .baselineOffset(2) // Adjust alignment
+        }
+        .foregroundColor(.white)
+        .shadow(color: .black.opacity(0.6), radius: 2, x: 0, y: 1)
+        .opacity(shouldShow ? 1 : 0)
+        .animation(.smooth(duration: 0.3), value: shouldShow)
+    }
+    
     @ViewBuilder
     private func rowView(row: Int, totalWidth: CGFloat, cellSize: CGFloat) -> some View {
         HStack(spacing: spacing) {
-            // Species color indicator (aligned with header)
+            // Interactive species color circle
             if speciesColors.indices.contains(row) {
                 ShadedCircleView(color: speciesColors[row], cellSize: cellSize, circleScale: circleScale)
+                    .overlay(distributionOverlay(row: row))
+                    .onTapGesture {
+                        selectedSpeciesIndex = row
+                        speciesSliderValue = speciesDistribution[row]
+                        speciesSliderPosition = computeSliderPosition(row: row, col: -1, cellSize: cellSize, speciesCount: speciesColors.count)
+                    }
+                    .popover(
+                        isPresented: Binding(
+                            get: { selectedSpeciesIndex == row },
+                            set: { if !$0 { selectedSpeciesIndex = nil } }
+                        ),
+                        attachmentAnchor: .point(speciesSliderPosition),
+                        arrowEdge: .top
+                    ) {
+                        SliderPopupView(
+                            value: $speciesSliderValue,
+                            mode: .percentageSelection(minimum: 0.05, maximum: 0.95), // Ensure min percentage
+                            onValueChange: { newValue in
+                                updateSpeciesDistribution(index: row, newValue: newValue)
+                            },
+                            onDismiss: {
+                                selectedSpeciesIndex = nil
+                                SimulationSettings.shared.updateSpeciesDistribution(speciesDistribution)
+                            }
+                        )
+                    }
             } else {
                 Color.clear.frame(width: cellSize, height: cellSize) // Placeholder for alignment
             }
+
             // Matrix cells for this row
             ForEach(matrix[row].indices, id: \.self) { col in
                 cellView(row: row, col: col, totalWidth: totalWidth, cellSize: cellSize)
@@ -228,7 +298,20 @@ struct MatrixGrid: View {
         }
         .frame(height: cellSize)
     }
+    
+    private func updateSpeciesDistribution(index: Int, newValue: Float) {
+        guard index >= 0, index < speciesDistribution.toArray().count else {
+            Logger.log("Error: Invalid species index \(index) for update.", level: .error)
+            return
+        }
         
+        speciesDistribution.update(index: index, newValue: newValue)
+
+        // Log updated distribution
+        let formattedDistribution = speciesDistribution.toArray().map { String(format: "%.3f", $0) }.joined(separator: ", ")
+        Logger.log("Updated Species Distribution: [\(formattedDistribution)]", level: .debug)
+    }
+    
     private func strokedRectangle(color: Color, lineWidth: CGFloat, cornerRadius: CGFloat) -> some View {
         RoundedRectangle(cornerRadius: cornerRadius)
             .strokeBorder(color, lineWidth: lineWidth)
@@ -341,6 +424,7 @@ extension MatrixGrid {
 struct MatrixPreviewWrapper: View {
     @State private var n: Int
     @State private var matrix: [[Float]]
+    @State private var speciesDistribution: SpeciesDistribution
 
     let speciesColors: [Color]
     
@@ -351,12 +435,14 @@ struct MatrixPreviewWrapper: View {
         let offset = 0
         let predefinedColors = ColorPalette.muted.colors // Directly access the palette via the enum
         self.speciesColors = (0..<n).map { predefinedColors[($0 + offset) % predefinedColors.count] }
+        speciesDistribution = SpeciesDistribution(count: n)
     }
     
     var body: some View {
         
         MatrixView(
             matrix: $matrix,
+            speciesDistribution: $speciesDistribution,
             renderer: Renderer(fpsMonitor: FPSMonitor()),
             speciesColors: speciesColors
         )

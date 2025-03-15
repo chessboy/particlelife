@@ -43,8 +43,10 @@ struct SimulationSettingsView: View {
             ZStack(alignment: .topLeading) {
                 MatrixView(
                     matrix: $particleSystem.matrix,
+                    speciesDistribution: $particleSystem.speciesDistribution,
                     renderer: renderer,
                     speciesColors: particleSystem.speciesColors
+
                 )
                 .frame(width: 300, height: 295)
                 .padding(.top, 16)
@@ -750,6 +752,7 @@ struct SavePresetSheet: View {
             SimulationSettings.shared.saveCurrentPreset(
                 named: tempPresetName,
                 matrix: ParticleSystem.shared.matrix,
+                speciesDistribution: ParticleSystem.shared.speciesDistribution,
                 replaceExisting: overwrite
             )
             

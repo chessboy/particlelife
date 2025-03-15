@@ -16,6 +16,7 @@ class ParticleSystem: ObservableObject {
     private var particles: [Particle] = []
     
     @Published var matrix: [[Float]] = []
+    @Published var speciesDistribution = SpeciesDistribution(count: 1)
     @Published private(set) var speciesColors: [Color] = []
     
     private var lastUpdateTime: TimeInterval = Date().timeIntervalSince1970
@@ -56,17 +57,16 @@ class ParticleSystem: ObservableObject {
     
     func speciesCountWillChange(newCount: Int) {
         let settings = SimulationSettings.shared
-        guard newCount != settings.selectedPreset.speciesCount else { return }
-
-        if let renderer = renderer {
-            renderer.resetFrameCount()
-        }
         
         guard newCount != settings.selectedPreset.speciesCount else {
             Logger.log("No change needed, speciesCount is already \(settings.selectedPreset.speciesCount)", level: .debug)
             return
         }
         
+        if let renderer = renderer {
+            renderer.resetFrameCount()
+        }
+
         let newPreset = settings.selectedPreset.copy(newSpeciesCount: newCount)
         
         if newPreset.matrixType.isRandom {
@@ -77,6 +77,7 @@ class ParticleSystem: ObservableObject {
         }
         
         generateSpeciesColors(speciesCount: newPreset.speciesCount, speciesColorOffset: SimulationSettings.shared.speciesColorOffset, paletteIndex: SimulationSettings.shared.paletteIndex)
+        speciesDistribution = SpeciesDistribution(count: newPreset.speciesCount, initialValues: speciesDistribution.toArray())
 
         generateParticles(preset: newPreset)
         updatePhysicsAndBuffers(preset: newPreset)
@@ -104,7 +105,8 @@ class ParticleSystem: ObservableObject {
         particles = ParticleGenerator.generate(
             distribution: preset.distributionType,
             particleCount: preset.particleCount,
-            speciesCount: preset.speciesCount
+            speciesCount: preset.speciesCount,
+            speciesDistribution: preset.speciesDistribution
         )
         
         //let uniqueSpecies = Set(particles.map { $0.species })
@@ -135,13 +137,14 @@ class ParticleSystem: ObservableObject {
             }
         }
         
-        Logger.log("particles generated: speciesCount: \(preset.speciesCount), particleCount: \(preset.particleCount), matrixType: \(preset.matrixType.shortString)")
+        Logger.log("particles generated: speciesCount: \(preset.speciesCount), particleCount: \(preset.particleCount), matrixType: \(preset.matrixType.shortString), speciesDistribution: \(preset.speciesDistribution)")
     }
     
     /// Generates a new matrix and updates colors using species color offset
     private func generateNewMatrixAndColors(preset: SimulationPreset, speciesColorOffset: Int, paletteIndex: Int) {
         matrix = MatrixGenerator.generateMatrix(speciesCount: preset.speciesCount, type: preset.matrixType)
         generateSpeciesColors(speciesCount: preset.speciesCount, speciesColorOffset: speciesColorOffset, paletteIndex: paletteIndex)
+        speciesDistribution = SpeciesDistribution(count: preset.speciesCount, initialValues: preset.speciesDistribution.toArray())
     }
     
     /// Generates colors for each species based on the selected palette
@@ -238,6 +241,7 @@ extension ParticleSystem {
                 // preserve these from current preset
                 newSpeciesCount: selectedPreset.speciesCount,
                 newParticleCount: selectedPreset.particleCount,
+                newSpeciesDistribution: selectedPreset.speciesDistribution,
                 newDistributionType: selectedPreset.distributionType,
                 
                 // preserve these from current UI
@@ -303,6 +307,7 @@ extension ParticleSystem {
             name: preset.name,
             speciesCount: preset.speciesCount,
             particleCount: preset.particleCount,
+            speciesDistribution: speciesDistribution,
             matrixType: matrixType,
             distributionType: preset.distributionType,
             maxDistance: settings.maxDistance.value,
