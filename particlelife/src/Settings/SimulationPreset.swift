@@ -119,9 +119,9 @@ extension SimulationPreset: Codable {
         particleCount = try container.decode(ParticleCount.self, forKey: .particleCount)
 
         // Decode species distribution and let `SpeciesDistribution` handle any issues
-        let decodedValues = try? container.decode([Float].self, forKey: .speciesDistribution)
-        speciesDistribution = SpeciesDistribution(count: speciesCount, initialValues: decodedValues)
-
+        speciesDistribution = (try? container.decode(SpeciesDistribution.self, forKey: .speciesDistribution))
+            ?? SpeciesDistribution(count: speciesCount) // Fallback to even distribution if missing
+        
         matrixType = try container.decode(MatrixType.self, forKey: .matrixType)
         distributionType = try container.decode(DistributionType.self, forKey: .distributionType)
         maxDistance = try container.decode(Float.self, forKey: .maxDistance)

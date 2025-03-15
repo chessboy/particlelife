@@ -66,21 +66,16 @@ struct SpeciesDistribution: Equatable, Codable {
         set { update(index: index, newValue: newValue) }
     }
 
-    // MARK: - Codable Conformance
-    enum CodingKeys: String, CodingKey {
-        case values
-    }
-
+    /// Custom Decoding: Decode directly as an array
     init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        let decodedValues = try container.decode([Float].self, forKey: .values)
-        
-        let count = decodedValues.count > 0 ? decodedValues.count : 1 // Ensure at least 1 species
-        resize(to: count, with: decodedValues) // Normalize and resize automatically
+        let container = try decoder.singleValueContainer()
+        let decodedValues = try container.decode([Float].self)
+        resize(to: decodedValues.count, with: decodedValues)
     }
 
+    /// Custom Encoding: Encode directly as an array
     func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(values, forKey: .values)
+        var container = encoder.singleValueContainer()
+        try container.encode(values)
     }
 }
