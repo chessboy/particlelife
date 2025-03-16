@@ -141,6 +141,13 @@ extension SimulationSettings {
         ParticleSystem.shared.respawn(shouldGenerateNewMatrix: true)
     }
     
+    func updateSpeciesDistribution(_ newDistribution: SpeciesDistribution) {
+        guard selectedPreset.speciesDistribution != newDistribution else { return }
+        
+        selectedPreset = selectedPreset.copy(newSpeciesDistribution: newDistribution)
+        ParticleSystem.shared.respawn(shouldGenerateNewMatrix: false)
+    }
+    
     func updateDistributionType(_ newType: DistributionType) {
         selectedPreset = selectedPreset.copy(newDistributionType: newType)
         ParticleSystem.shared.respawn(shouldGenerateNewMatrix: false)
@@ -169,11 +176,12 @@ extension SimulationSettings {
 }
 
 extension SimulationSettings {
-    func saveCurrentPreset(named presetName: String, matrix: [[Float]], replaceExisting: Bool = false) {
+    func saveCurrentPreset(named presetName: String, matrix: [[Float]], speciesDistribution: SpeciesDistribution, replaceExisting: Bool = false) {
         let newPreset = SimulationPreset(
             name: presetName,
             speciesCount: selectedPreset.speciesCount,
             particleCount: selectedPreset.particleCount,
+            speciesDistribution: speciesDistribution,
             matrixType: .custom(matrix),
             distributionType: selectedPreset.distributionType,
             maxDistance: maxDistance.value,

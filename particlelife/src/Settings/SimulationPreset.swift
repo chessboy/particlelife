@@ -11,7 +11,8 @@ struct SimulationPreset: Identifiable {
     let id: UUID
     let name: String
     let speciesCount: Int
-    var particleCount: ParticleCount
+    let particleCount: ParticleCount
+    let speciesDistribution: SpeciesDistribution
     let matrixType: MatrixType
     let distributionType: DistributionType
     let maxDistance: Float
@@ -32,6 +33,7 @@ struct SimulationPreset: Identifiable {
         name: String,
         speciesCount: Int,
         particleCount: ParticleCount,
+        speciesDistribution: SpeciesDistribution,
         matrixType: MatrixType,
         distributionType: DistributionType,
         maxDistance: Float,
@@ -51,6 +53,7 @@ struct SimulationPreset: Identifiable {
         self.name = name
         self.speciesCount = speciesCount
         self.particleCount = particleCount
+        self.speciesDistribution = speciesDistribution
         self.matrixType = matrixType
         self.distributionType = distributionType
         self.maxDistance = maxDistance
@@ -78,6 +81,7 @@ extension SimulationPreset: Hashable {
         return lhs.name == rhs.name &&
         lhs.speciesCount == rhs.speciesCount &&
         lhs.particleCount == rhs.particleCount &&
+        lhs.speciesDistribution == rhs.speciesDistribution &&
         lhs.matrixType == rhs.matrixType &&
         lhs.distributionType == rhs.distributionType &&
         lhs.maxDistance == rhs.maxDistance &&
@@ -98,7 +102,7 @@ extension SimulationPreset: Hashable {
 extension SimulationPreset: Codable {
     /// Coding keys (needed for custom decoding)
     enum CodingKeys: String, CodingKey {
-        case id, name, speciesCount, particleCount, matrixType, distributionType
+        case id, name, speciesCount, speciesDistribution, particleCount, matrixType, distributionType
         case maxDistance, minDistance, beta, friction, repulsion
         case pointSize, worldSize, isBuiltIn, preservesUISettings
         case speciesColorOffset, paletteIndex, colorEffect
@@ -107,12 +111,17 @@ extension SimulationPreset: Codable {
     /// Custom decoding to handle missing fields
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        
+
         // **Ensure UUID is decoded properly, otherwise generate one**
         id = (try? container.decode(UUID.self, forKey: .id)) ?? UUID()
         name = try container.decode(String.self, forKey: .name)
         speciesCount = try container.decode(Int.self, forKey: .speciesCount)
         particleCount = try container.decode(ParticleCount.self, forKey: .particleCount)
+
+        // Decode species distribution and let `SpeciesDistribution` handle any issues
+        speciesDistribution = (try? container.decode(SpeciesDistribution.self, forKey: .speciesDistribution))
+            ?? SpeciesDistribution(count: speciesCount) // Fallback to even distribution if missing
+        
         matrixType = try container.decode(MatrixType.self, forKey: .matrixType)
         distributionType = try container.decode(DistributionType.self, forKey: .distributionType)
         maxDistance = try container.decode(Float.self, forKey: .maxDistance)
@@ -128,7 +137,7 @@ extension SimulationPreset: Codable {
         paletteIndex = try container.decode(Int.self, forKey: .paletteIndex)
         colorEffect = try container.decode(ColorEffect.self, forKey: .colorEffect)
     }
-
+    
     /// Custom encoding (ensures all fields are saved)
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
@@ -136,6 +145,7 @@ extension SimulationPreset: Codable {
         try container.encode(name, forKey: .name)
         try container.encode(speciesCount, forKey: .speciesCount)
         try container.encode(particleCount, forKey: .particleCount)
+        try container.encode(speciesDistribution, forKey: .speciesDistribution)
         try container.encode(matrixType, forKey: .matrixType)
         try container.encode(distributionType, forKey: .distributionType)
         try container.encode(maxDistance, forKey: .maxDistance)
@@ -160,6 +170,7 @@ extension SimulationPreset {
             Preset: \(name) (\(id))
             ├─ Species Count: \(speciesCount)
             ├─ Particle Count: \(particleCount)
+            ├─ Species Distribution: \(speciesDistribution)
             ├─ Distribution: \(distributionType)
             ├─ Matrix Type: \(matrixType)
             ├─ Max Distance: \(maxDistance), Min Distance: \(minDistance)
@@ -182,13 +193,14 @@ extension SimulationPreset {
         Logger.log("optimizing: preset \(name), particleCount: \(particleCount) -> newParticleCount: \(newParticleCount)", level: .debug)
         return copy(newParticleCount: newParticleCount)
     }
-
+    
     /// Creates a modified copy of the preset, with special handling for custom matrices
     func copy(
-        id: UUID? = nil,  // Allow overriding the UUID (default = keep original)
+        id: UUID? = nil,
         withName newName: String? = nil,
         newSpeciesCount: Int? = nil,
         newParticleCount: ParticleCount? = nil,
+        newSpeciesDistribution: SpeciesDistribution? = nil,
         newMatrixType: MatrixType? = nil,
         newDistributionType: DistributionType? = nil,
         newMaxDistance: Float? = nil,
@@ -204,32 +216,52 @@ extension SimulationPreset {
         newPaletteIndex: Int? = nil,
         newColorEffect: ColorEffect? = nil
     ) -> SimulationPreset {
-        var copiedMatrixType = newMatrixType ?? matrixType  // Use new matrix if provided
         
-        // Ensure deep copy of custom matrices
+        let updatedId = id ?? self.id
+        let updatedName = newName ?? self.name
+        let updatedSpeciesCount = newSpeciesCount ?? self.speciesCount
+        let updatedParticleCount = newParticleCount ?? self.particleCount
+        let updatedSpeciesDistribution = SpeciesDistribution(count: updatedSpeciesCount, initialValues: newSpeciesDistribution?.toArray() ?? self.speciesDistribution.toArray())
+        let updatedMatrixType = newMatrixType ?? self.matrixType
+        let updatedDistributionType = newDistributionType ?? self.distributionType
+        let updatedMaxDistance = newMaxDistance ?? self.maxDistance
+        let updatedMinDistance = newMinDistance ?? self.minDistance
+        let updatedBeta = newBeta ?? self.beta
+        let updatedFriction = newFriction ?? self.friction
+        let updatedRepulsion = newRepulsion ?? self.repulsion
+        let updatedPointSize = newPointSize ?? self.pointSize
+        let updatedWorldSize = newWorldSize ?? self.worldSize
+        let updatedIsBuiltIn = newIsBuiltIn ?? self.isBuiltIn
+        let updatedPreservesUISettings = newPreservesUISettings ?? self.preservesUISettings
+        let updatedSpeciesColorOffset = newSpeciesColorOffset ?? self.speciesColorOffset
+        let updatedPaletteIndex = newPaletteIndex ?? self.paletteIndex
+        let updatedColorEffect = newColorEffect ?? self.colorEffect
+        
+        var copiedMatrixType = updatedMatrixType
         if case .custom(let matrix) = copiedMatrixType {
             copiedMatrixType = .custom(matrix.map { $0.map { $0 } })  // Deep copy
         }
         
         return SimulationPreset(
-            id: id ?? self.id,  // Preserve existing UUID unless explicitly changed
-            name: newName ?? name,
-            speciesCount: newSpeciesCount ?? speciesCount,
-            particleCount: newParticleCount ?? particleCount,
+            id: updatedId,
+            name: updatedName,
+            speciesCount: updatedSpeciesCount,
+            particleCount: updatedParticleCount,
+            speciesDistribution: updatedSpeciesDistribution,
             matrixType: copiedMatrixType,
-            distributionType: newDistributionType ?? distributionType,
-            maxDistance: newMaxDistance ?? maxDistance,
-            minDistance: newMinDistance ?? minDistance,
-            beta: newBeta ?? beta,
-            friction: newFriction ?? friction,
-            repulsion: newRepulsion ?? repulsion,
-            pointSize: newPointSize ?? pointSize,
-            worldSize: newWorldSize ?? worldSize,
-            isBuiltIn: newIsBuiltIn ?? isBuiltIn,
-            preservesUISettings: newPreservesUISettings ?? preservesUISettings,
-            speciesColorOffset: newSpeciesColorOffset ?? speciesColorOffset,
-            paletteIndex: newPaletteIndex ?? paletteIndex,
-            colorEffect: newColorEffect ?? colorEffect
+            distributionType: updatedDistributionType,
+            maxDistance: updatedMaxDistance,
+            minDistance: updatedMinDistance,
+            beta: updatedBeta,
+            friction: updatedFriction,
+            repulsion: updatedRepulsion,
+            pointSize: updatedPointSize,
+            worldSize: updatedWorldSize,
+            isBuiltIn: updatedIsBuiltIn,
+            preservesUISettings: updatedPreservesUISettings,
+            speciesColorOffset: updatedSpeciesColorOffset,
+            paletteIndex: updatedPaletteIndex,
+            colorEffect: updatedColorEffect
         )
     }
 }

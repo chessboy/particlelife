@@ -7,13 +7,47 @@
 
 import SwiftUI
 
-struct SliderPopupView: View {
-    @Binding var value: Float
-    let onValueChange: (Float) -> Void
-    let onDismiss: () -> Void
+enum SliderMode: Equatable {
+    case valueSelection
+    case percentageSelection(minimum: Float, maximum: Float)
 
+    static func == (lhs: SliderMode, rhs: SliderMode) -> Bool {
+        switch (lhs, rhs) {
+        case (.valueSelection, .valueSelection):
+            return true
+        case let (.percentageSelection(lhsMin, lhsMax), .percentageSelection(rhsMin, rhsMax)):
+            return lhsMin == rhsMin && lhsMax == rhsMax
+        default:
+            return false
+        }
+    }
+}
+
+struct SliderPopupView: View {
+
+    @Binding var value: Float
+    @State private var isAllEvenHovered = false
+    @State private var isStepSizeHovered = false
+    @State private var hoveredQuickValue: Float?
+
+    let mode: SliderMode  // New mode property
+
+    let onValueChange: (Float) -> Void
+    let onAllEven: () -> Void
+    let onDismiss: () -> Void
+    
     @State private var stepSize: Float = UserSettings.shared.float(forKey: UserSettingsKeys.matrixValueSliderStep, defaultValue: 0.05)
+    
     let quickValues: [Float] = [-1.0, -0.5, 0.0, 0.5, 1.0] // Quick select values
+    
+    var sliderRange: ClosedRange<Float> {
+        switch mode {
+        case .valueSelection:
+            return -1.0...1.0
+        case .percentageSelection(let minimum, let maximum):
+            return minimum...maximum // Uses both min and max values
+        }
+    }
     
     var iconForStepSize: String {
         return (stepSize == 0.01) ? SFSymbols.Name.stepSize01 : SFSymbols.Name.stepSize05
@@ -21,79 +55,37 @@ struct SliderPopupView: View {
     
     var body: some View {
         VStack(spacing: 16) {
-            // Header with Step Toggle Button
+            // Header
             HStack(spacing: 0) {
-                Button(action: {
-                    stepSize = (stepSize == 0.05) ? 0.01 : 0.05
-                    UserSettings.shared.set(stepSize, forKey: UserSettingsKeys.matrixValueSliderStep)
-                }) {
-                    HStack(spacing: 5) {
-                        let icon = iconForStepSize
-                        Image(systemName: icon)
-                            .font(.body)
-                        Text(stepSize.formattedTo2Places)
-                            .font(.body)
-                            .bold()
-                            .frame(width: 38)
-                    }
-                    
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .frame(width: 80)
-                    .background(Color.white.opacity(0.2))
-                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                stepSizeButton
+                Spacer()
+                displayedValue
+                Spacer()
+                if mode != .valueSelection {
+                    allEvenButton
+                        .onTapGesture {
+                            onAllEven()
+                        }
+                } else {
+                    Rectangle()
+                        .frame(width: 80, height: 10)
+                        .foregroundColor(Color.clear)
                 }
-                .buttonStyle(PlainButtonStyle())
-
-                Spacer()
-                
-                Text(value.formattedTo2Places)
-                    .font(.title3)
-                    .bold()
-                    .foregroundColor(.white)
-                    .frame(width: 80)
-
-                Spacer()
-                
-                Rectangle()
-                    .frame(width: 80, height: 10)
-                    .foregroundColor(Color.clear)
             }
             .frame(width: 280) // Ensure alignment
-    
-            Slider(value: $value, in: -1.0...1.0, step: stepSize)
+
+            // Slider
+            Slider(value: $value, in: sliderRange, step: stepSize)
                 .frame(width: 280)
                 .accentColor(.white)
                 .onChange(of: value) { oldValue, newValue in
                     onValueChange(value)
                 }
 
-            HStack(spacing: 15) {
-                ForEach(quickValues, id: \.self) { quickValue in
-                    Button(action: {
-                        value = quickValue
-                        onValueChange(quickValue)
-                        onDismiss()
-                    }) {
-                        Text(quickValue.formatted)
-                            .font(.headline)
-                            .foregroundColor(.white)
-                            .shadow(color: .black.opacity(0.6), radius: 2, x: 0, y: 1)
-                            .frame(width: 44, height: 28)
-                            .background(
-                                RoundedRectangle(cornerRadius: 6)
-                                    .fill(colorForValue(quickValue))
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 6)
-                                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
-                            )
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                }
+            // Quick Value Buttons (Only for .valueSelection Mode)
+            if mode == .valueSelection {
+                quickValueButtons
             }
-            .frame(width: 280)
         }
         .padding(20)
         .background(
@@ -109,6 +101,120 @@ struct SliderPopupView: View {
                 onDismiss()
             }
         }
+    }
+
+    // Step Size Button
+    private var stepSizeButton: some View {
+        Button(action: {
+            stepSize = (stepSize == 0.05) ? 0.01 : 0.05
+            UserSettings.shared.set(stepSize, forKey: UserSettingsKeys.matrixValueSliderStep)
+        }) {
+            HStack(spacing: 5) {
+                let icon = iconForStepSize
+                Image(systemName: icon)
+                    .font(.body)
+                Text(stepSize.formattedTo2Places)
+                    .font(.body)
+                    .bold()
+                    .frame(width: 38)
+            }
+            .foregroundColor(.white)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .frame(width: 80)
+            .background(isStepSizeHovered ? Color.white.opacity(0.12) : Color.white.opacity(0.08)) // Slight brightness increase on hover
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .scaleEffect(isStepSizeHovered ? 1.05 : 1.0) // Slight scale-up effect on hover
+            .animation(.easeInOut(duration: 0.2), value: isStepSizeHovered)
+        }
+        .buttonStyle(PlainButtonStyle())
+        .onHover { hovering in
+            withAnimation {
+                isStepSizeHovered = hovering
+            }
+        }
+    }
+    
+    // Step Size Button
+    private var allEvenButton: some View {
+
+        Button(action: {
+            onAllEven()
+        }) {
+            HStack(spacing: 5) {
+                Text("All Even")
+                    .font(.body)
+                    .bold()
+                    .frame(width: 80)
+            }
+            .foregroundColor(.white)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .frame(width: 80)
+            .background(isAllEvenHovered ? Color.white.opacity(0.12) : Color.white.opacity(0.08)) // Slight brightness increase on hover
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .scaleEffect(isAllEvenHovered ? 1.05 : 1.0) // Slight scale-up effect on hover
+            .animation(.easeInOut(duration: 0.2), value: isAllEvenHovered)
+        }
+        .buttonStyle(PlainButtonStyle())
+        .onHover { hovering in
+            withAnimation {
+                isAllEvenHovered = hovering
+            }
+        }
+    }
+
+
+    // Displayed Value (Handles Different Modes)
+    private var displayedValue: some View {
+        Text(mode == .valueSelection ? value.formattedTo2Places : value.formattedToPercent2Places)
+            .font(.title3)
+            .bold()
+            .foregroundColor(.white)
+            .frame(width: 80)
+    }
+
+    // Quick Value Buttons
+    private var quickValueButtons: some View {
+        HStack(spacing: 15) {
+            ForEach(quickValues, id: \.self) { quickValue in
+                Button(action: {
+                    value = quickValue
+                    onValueChange(quickValue)
+                    onDismiss()
+                }) {
+                    Text(quickValue.formatted)
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .shadow(color: .black.opacity(0.6), radius: 2, x: 0, y: 1)
+                        .frame(width: 44, height: 28)
+                        .background(
+                            RoundedRectangle(cornerRadius: 6)
+                                .fill(colorForValue(quickValue))
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 6)
+                                .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                        )
+                }
+                .buttonStyle(PlainButtonStyle())
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(isHovered(for: quickValue) ? Color.white.opacity(0.12) : Color.white.opacity(0.08))
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .scaleEffect(isHovered(for: quickValue) ? 1.1 : 1.0)
+                .animation(.easeInOut(duration: 0.2), value: isHovered(for: quickValue))
+                .onHover { hovering in
+                    hoveredQuickValue = hovering ? quickValue : nil
+                }
+            }
+        }
+        .frame(width: 280)
+    }
+
+    private func isHovered(for value: Float) -> Bool {
+        return hoveredQuickValue == value
     }
     
     /// Determines color based on interaction value (consistent with matrix grid)
@@ -132,9 +238,7 @@ struct SliderPopupView: View {
                 Color.black.opacity(0.5) // Background for contrast
                     .ignoresSafeArea()
 
-                SliderPopupView(value: $sliderValue) { newValue in
-                    print("Slider value changed: \(newValue)")
-                } onDismiss: {}
+                SliderPopupView(value: $sliderValue, mode: .percentageSelection(minimum: 0.05, maximum: 0.95), onValueChange: { _ in }, onAllEven: { }, onDismiss: { })
             }
         }
     }
