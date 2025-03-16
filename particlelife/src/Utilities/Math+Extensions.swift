@@ -104,6 +104,10 @@ extension Float {
         String(format: "%.1f", locale: Locale.current, self.clamped(to: 0...1) * 100) + "%"
     }
 
+    var formattedToPercent2Places: String { return
+        String(format: "%.2f", locale: Locale.current, self.clamped(to: 0...1) * 100) + "%"
+    }
+
     var formattedToPercentNoDecimal: String { return
         String(format: "%.0f", locale: Locale.current, self.clamped(to: 0...1) * 100) + "%"
     }

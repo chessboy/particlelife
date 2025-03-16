@@ -28,6 +28,7 @@ struct SliderPopupView: View {
     let mode: SliderMode  // New mode property
 
     let onValueChange: (Float) -> Void
+    let onAllEven: () -> Void
     let onDismiss: () -> Void
     
     @State private var stepSize: Float = UserSettings.shared.float(forKey: UserSettingsKeys.matrixValueSliderStep, defaultValue: 0.05)
@@ -55,9 +56,16 @@ struct SliderPopupView: View {
                 Spacer()
                 displayedValue
                 Spacer()
-                Rectangle()
-                    .frame(width: 80, height: 10)
-                    .foregroundColor(Color.clear)
+                if mode != .valueSelection {
+                    allEvenButton
+                        .onTapGesture {
+                            onAllEven()
+                        }
+                } else {
+                    Rectangle()
+                        .frame(width: 80, height: 10)
+                        .foregroundColor(Color.clear)
+                }
             }
             .frame(width: 280) // Ensure alignment
 
@@ -114,10 +122,32 @@ struct SliderPopupView: View {
         }
         .buttonStyle(PlainButtonStyle())
     }
+    
+    // Step Size Button
+    private var allEvenButton: some View {
+        Button(action: {
+            onAllEven()
+        }) {
+            HStack(spacing: 5) {
+                Text("All Even")
+                    .font(.body)
+                    .bold()
+                    .frame(width: 80)
+            }
+            .foregroundColor(.white)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .frame(width: 80)
+            .background(Color.white.opacity(0.2))
+            .clipShape(RoundedRectangle(cornerRadius: 6))
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+
 
     // Displayed Value (Handles Different Modes)
     private var displayedValue: some View {
-        Text(mode == .valueSelection ? value.formattedTo2Places : value.formattedToPercentNoDecimal)
+        Text(mode == .valueSelection ? value.formattedTo2Places : value.formattedToPercent2Places)
             .font(.title3)
             .bold()
             .foregroundColor(.white)
@@ -174,9 +204,7 @@ struct SliderPopupView: View {
                 Color.black.opacity(0.5) // Background for contrast
                     .ignoresSafeArea()
 
-                SliderPopupView(value: $sliderValue, mode: .percentageSelection(minimum: 0.05, maximum: 0.95)) { newValue in
-                    print("Slider value changed: \(newValue)")
-                } onDismiss: {}
+                SliderPopupView(value: $sliderValue, mode: .percentageSelection(minimum: 0.05, maximum: 0.95), onValueChange: { _ in }, onAllEven: { }, onDismiss: { })
             }
         }
     }

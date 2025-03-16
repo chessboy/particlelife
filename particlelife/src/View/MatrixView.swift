@@ -70,6 +70,7 @@ struct MatrixView: View {
                                 setMatrixValue(row: selected.row, col: selected.col, newValue: newValue)
                             }
                         },
+                        onAllEven: { },
                         onDismiss: {
                             clearSelection()
                         }
@@ -239,10 +240,10 @@ struct MatrixGrid: View {
     private func distributionOverlay(row: Int) -> some View {
         let shouldShow = speciesDistribution.isCustom
         let fontSize = dynamicFontSize(for: speciesDistribution.toArray().count)
-        let value = Int(speciesDistribution[row] * 100) // Convert to whole percentage
+        let value = round(speciesDistribution[row] * 100) // Convert to whole percentage
 
         HStack(alignment: .firstTextBaseline, spacing: 1) {
-            Text("\(value)")
+            Text(value.formattedNoDecimal)
                 .font(Font.system(size: fontSize, weight: .semibold))
 
             Text("%")
@@ -265,7 +266,7 @@ struct MatrixGrid: View {
                     .onTapGesture {
                         selectedSpeciesIndex = row
                         speciesSliderValue = speciesDistribution[row]
-                        speciesSliderPosition = computeSliderPosition(row: row, col: -1, cellSize: cellSize, speciesCount: speciesColors.count)
+                        speciesSliderPosition = computeSliderPositionSpecies(row: row, cellSize: cellSize, speciesCount: speciesColors.count)
                     }
                     .popover(
                         isPresented: Binding(
@@ -273,13 +274,17 @@ struct MatrixGrid: View {
                             set: { if !$0 { selectedSpeciesIndex = nil } }
                         ),
                         attachmentAnchor: .point(speciesSliderPosition),
-                        arrowEdge: .top
+                        arrowEdge: .trailing
                     ) {
                         SliderPopupView(
                             value: $speciesSliderValue,
-                            mode: .percentageSelection(minimum: 0.05, maximum: 0.95), // Ensure min percentage
+                            mode: .percentageSelection(minimum: 0.05, maximum: 0.95),
                             onValueChange: { newValue in
                                 updateSpeciesDistribution(index: row, newValue: newValue)
+                            },
+                            onAllEven: {
+                                speciesDistribution.resize(to: speciesColors.count)
+                                selectedSpeciesIndex = nil
                             },
                             onDismiss: {
                                 selectedSpeciesIndex = nil
@@ -358,7 +363,7 @@ struct MatrixGrid: View {
             DispatchQueue.main.async {
                 selectedCell = SelectedCell(row: row, col: col)
                 sliderValue = value
-                sliderPosition = computeSliderPosition(
+                sliderPosition = computeSliderPositionMatrix(
                     row: row, col: col,
                     cellSize: cellSize,
                     speciesCount: max(1, speciesColors.count)
@@ -399,15 +404,31 @@ extension MatrixGrid {
         return CGPoint(x: x, y: y)
     }
     
-    private func computeSliderPosition(row: Int, col: Int, cellSize: CGFloat, speciesCount: Int) -> UnitPoint {
+    private func computeSliderPositionMatrix(row: Int, col: Int, cellSize: CGFloat, speciesCount: Int) -> UnitPoint {
         let totalCells = CGFloat(speciesCount + 1)
 
         let unitX = (CGFloat(col + 1) / totalCells) + (0.5 / (totalCells + 0.5))
         let unitY = (CGFloat(row + 1) / totalCells)
 
+        Logger.log("row: \(row), totalCells: \(totalCells),  cellSize: \(cellSize), speciesCount: \(speciesCount), unitX: \(unitX.formattedTo3Places), unitY: \(unitY.formattedTo3Places)", level: .debug)
+
         return UnitPoint(x: unitX, y: unitY)
     }
 
+    private func computeSliderPositionSpecies(row: Int, cellSize: CGFloat, speciesCount: Int) -> UnitPoint {
+        let totalCells = CGFloat(speciesCount + 1)
+
+        // Adjust X to push the slider towards the right edge of the species circle
+        let unitX = (1 / totalCells) + (0.5 / (totalCells + 0.5))
+
+        // Keep Y positioning the same
+        let unitY = (CGFloat(row + 1) / totalCells)
+
+        Logger.log("row: \(row), totalCells: \(totalCells), cellSize: \(cellSize), speciesCount: \(speciesCount), unitX: \(unitX.formattedTo3Places), unitY: \(unitY.formattedTo3Places)", level: .debug)
+
+        return UnitPoint(x: unitX, y: unitY)
+    }
+    
     /// Determines color based on interaction value
     func colorForValue(_ value: Float) -> Color {
         switch value {
@@ -452,5 +473,5 @@ struct MatrixPreviewWrapper: View {
 }
 
 #Preview {
-    MatrixPreviewWrapper(n: 2)
+    MatrixPreviewWrapper(n: 4)
 }
