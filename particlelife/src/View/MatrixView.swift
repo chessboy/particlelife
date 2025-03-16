@@ -147,8 +147,9 @@ struct MatrixGrid: View {
     @ObservedObject var renderer: Renderer
 
     @State private var lastMouseButton: Int = 0
-    @State private var hoverIndex: Int? = nil
-    
+    @State private var rowHoverIndex: Int? = nil
+    @State private var columnHoverIndex: Int? = nil
+
     private var spacing: CGFloat {
         let count = max(1, speciesColors.count)
         return max(3, 16 / CGFloat(count))
@@ -167,7 +168,7 @@ struct MatrixGrid: View {
     // Helper function for overlaying arrows
     @ViewBuilder
     private func arrowOverlay(for index: Int, cellSize: CGFloat) -> some View {
-        if hoverIndex == index {
+        if rowHoverIndex == index {
             let arrowName = (index == 0) ? "arrow.right" : "arrow.left"
             Image(systemName: arrowName)
                 .resizable()
@@ -179,12 +180,7 @@ struct MatrixGrid: View {
 
         }
     }
-    
-    // Helper function for scale effect
-    private func scaleEffectForIndex(_ index: Int) -> CGFloat {
-        (index == 0 || index == speciesColors.count - 1) && hoverIndex == index ? 1.15 : 1.0
-    }
-    
+   
     var body: some View {
         GeometryReader { geometry in
             let speciesCount = max(1, matrix.count)
@@ -198,13 +194,13 @@ struct MatrixGrid: View {
                     ForEach(speciesColors.indices, id: \.self) { index in
                         ShadedCircleView(color: speciesColors[index], cellSize: cellSize, circleScale: circleScale)
                             .overlay(arrowOverlay(for: index, cellSize: cellSize))
-                            .scaleEffect((index == 0 || index == speciesColors.count - 1) && hoverIndex == index ? 1.15 : 1.0) // Slight pop effect
-                            .animation(.easeInOut(duration: 0.2), value: hoverIndex)
+                            .scaleEffect((index == 0 || index == speciesColors.count - 1) && rowHoverIndex == index ? 1.15 : 1.0) // Slight pop effect
+                            .animation(.easeInOut(duration: 0.2), value: rowHoverIndex)
                             .onHover { hovering in
                                 if hovering && (index == 0 || index == speciesColors.count - 1) {
-                                    hoverIndex = index
-                                } else if hoverIndex == index {
-                                    hoverIndex = nil
+                                    rowHoverIndex = index
+                                } else if rowHoverIndex == index {
+                                    rowHoverIndex = nil
                                 }
                             }
                             .onTapGesture {
@@ -259,49 +255,67 @@ struct MatrixGrid: View {
     @ViewBuilder
     private func rowView(row: Int, totalWidth: CGFloat, cellSize: CGFloat) -> some View {
         HStack(spacing: spacing) {
-            // Interactive species color circle
-            if speciesColors.indices.contains(row) {
-                ShadedCircleView(color: speciesColors[row], cellSize: cellSize, circleScale: circleScale)
-                    .overlay(distributionOverlay(row: row))
-                    .onTapGesture {
-                        selectedSpeciesIndex = row
-                        speciesSliderValue = speciesDistribution[row]
-                        speciesSliderPosition = computeSliderPositionSpecies(row: row, cellSize: cellSize, speciesCount: speciesColors.count)
-                    }
-                    .popover(
-                        isPresented: Binding(
-                            get: { selectedSpeciesIndex == row },
-                            set: { if !$0 { selectedSpeciesIndex = nil } }
-                        ),
-                        attachmentAnchor: .point(speciesSliderPosition),
-                        arrowEdge: .trailing
-                    ) {
-                        SliderPopupView(
-                            value: $speciesSliderValue,
-                            mode: .percentageSelection(minimum: 0.05, maximum: 0.95),
-                            onValueChange: { newValue in
-                                updateSpeciesDistribution(index: row, newValue: newValue)
-                            },
-                            onAllEven: {
-                                speciesDistribution.resize(to: speciesColors.count)
-                                selectedSpeciesIndex = nil
-                            },
-                            onDismiss: {
-                                selectedSpeciesIndex = nil
-                                SimulationSettings.shared.updateSpeciesDistribution(speciesDistribution)
-                            }
-                        )
-                    }
-            } else {
-                Color.clear.frame(width: cellSize, height: cellSize) // Placeholder for alignment
-            }
-
-            // Matrix cells for this row
-            ForEach(matrix[row].indices, id: \.self) { col in
-                cellView(row: row, col: col, totalWidth: totalWidth, cellSize: cellSize)
-            }
+            speciesCircleView(row: row, cellSize: cellSize)
+            matrixCellsView(row: row, totalWidth: totalWidth, cellSize: cellSize)
         }
         .frame(height: cellSize)
+    }
+
+    // MARK: - Species Circle View
+    @ViewBuilder
+    private func speciesCircleView(row: Int, cellSize: CGFloat) -> some View {
+        if speciesColors.indices.contains(row) {
+            ShadedCircleView(color: speciesColors[row], cellSize: cellSize, circleScale: circleScale)
+                .overlay(distributionOverlay(row: row))
+                .onTapGesture {
+                    selectedSpeciesIndex = row
+                    speciesSliderValue = speciesDistribution[row]
+                    speciesSliderPosition = UnitPoint(x: 0.85, y: 0.5)
+                }
+                .scaleEffect(columnHoverIndex == row ? 1.15 : 1.0)
+                .animation(.easeInOut(duration: 0.2), value: columnHoverIndex)
+                .onHover { hovering in
+                    if hovering {
+                        columnHoverIndex = row
+                    } else if columnHoverIndex == row {
+                        columnHoverIndex = nil
+                    }
+                }
+                .popover(
+                    isPresented: Binding(
+                        get: { selectedSpeciesIndex == row },
+                        set: { if !$0 { selectedSpeciesIndex = nil } }
+                    ),
+                    attachmentAnchor: .point(speciesSliderPosition),
+                    arrowEdge: .trailing
+                ) {
+                    SliderPopupView(
+                        value: $speciesSliderValue,
+                        mode: .percentageSelection(minimum: 0.05, maximum: 0.95),
+                        onValueChange: { newValue in
+                            updateSpeciesDistribution(index: row, newValue: newValue)
+                        },
+                        onAllEven: {
+                            speciesDistribution.resize(to: speciesColors.count)
+                            selectedSpeciesIndex = nil
+                        },
+                        onDismiss: {
+                            selectedSpeciesIndex = nil
+                            SimulationSettings.shared.updateSpeciesDistribution(speciesDistribution)
+                        }
+                    )
+                }
+        } else {
+            Color.clear.frame(width: cellSize, height: cellSize) // Placeholder for alignment
+        }
+    }
+
+    // MARK: - Matrix Cells View
+    @ViewBuilder
+    private func matrixCellsView(row: Int, totalWidth: CGFloat, cellSize: CGFloat) -> some View {
+        ForEach(matrix[row].indices, id: \.self) { col in
+            cellView(row: row, col: col, totalWidth: totalWidth, cellSize: cellSize)
+        }
     }
     
     private func updateSpeciesDistribution(index: Int, newValue: Float) {
@@ -412,21 +426,8 @@ extension MatrixGrid {
 
         Logger.log("row: \(row), totalCells: \(totalCells),  cellSize: \(cellSize), speciesCount: \(speciesCount), unitX: \(unitX.formattedTo3Places), unitY: \(unitY.formattedTo3Places)", level: .debug)
 
-        return UnitPoint(x: unitX, y: unitY)
-    }
-
-    private func computeSliderPositionSpecies(row: Int, cellSize: CGFloat, speciesCount: Int) -> UnitPoint {
-        let totalCells = CGFloat(speciesCount + 1)
-
-        // Adjust X to push the slider towards the right edge of the species circle
-        let unitX = (1 / totalCells) + (0.5 / (totalCells + 0.5))
-
-        // Keep Y positioning the same
-        let unitY = (CGFloat(row + 1) / totalCells)
-
-        Logger.log("row: \(row), totalCells: \(totalCells), cellSize: \(cellSize), speciesCount: \(speciesCount), unitX: \(unitX.formattedTo3Places), unitY: \(unitY.formattedTo3Places)", level: .debug)
-
-        return UnitPoint(x: unitX, y: unitY)
+        //return UnitPoint(x: unitX, y: unitY)
+        return UnitPoint(x: 0.5, y: 0)
     }
     
     /// Determines color based on interaction value

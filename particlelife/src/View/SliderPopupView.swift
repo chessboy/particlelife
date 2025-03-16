@@ -24,7 +24,12 @@ enum SliderMode: Equatable {
 }
 
 struct SliderPopupView: View {
+
     @Binding var value: Float
+    @State private var isAllEvenHovered = false
+    @State private var isStepSizeHovered = false
+    @State private var hoveredQuickValue: Float?
+
     let mode: SliderMode  // New mode property
 
     let onValueChange: (Float) -> Void
@@ -117,14 +122,22 @@ struct SliderPopupView: View {
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
             .frame(width: 80)
-            .background(Color.white.opacity(0.2))
-            .clipShape(RoundedRectangle(cornerRadius: 6))
+            .background(isStepSizeHovered ? Color.white.opacity(0.12) : Color.white.opacity(0.08)) // Slight brightness increase on hover
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .scaleEffect(isStepSizeHovered ? 1.05 : 1.0) // Slight scale-up effect on hover
+            .animation(.easeInOut(duration: 0.2), value: isStepSizeHovered)
         }
         .buttonStyle(PlainButtonStyle())
+        .onHover { hovering in
+            withAnimation {
+                isStepSizeHovered = hovering
+            }
+        }
     }
     
     // Step Size Button
     private var allEvenButton: some View {
+
         Button(action: {
             onAllEven()
         }) {
@@ -138,10 +151,17 @@ struct SliderPopupView: View {
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
             .frame(width: 80)
-            .background(Color.white.opacity(0.2))
-            .clipShape(RoundedRectangle(cornerRadius: 6))
+            .background(isAllEvenHovered ? Color.white.opacity(0.12) : Color.white.opacity(0.08)) // Slight brightness increase on hover
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .scaleEffect(isAllEvenHovered ? 1.05 : 1.0) // Slight scale-up effect on hover
+            .animation(.easeInOut(duration: 0.2), value: isAllEvenHovered)
         }
         .buttonStyle(PlainButtonStyle())
+        .onHover { hovering in
+            withAnimation {
+                isAllEvenHovered = hovering
+            }
+        }
     }
 
 
@@ -178,9 +198,23 @@ struct SliderPopupView: View {
                         )
                 }
                 .buttonStyle(PlainButtonStyle())
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(isHovered(for: quickValue) ? Color.white.opacity(0.12) : Color.white.opacity(0.08))
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .scaleEffect(isHovered(for: quickValue) ? 1.1 : 1.0)
+                .animation(.easeInOut(duration: 0.2), value: isHovered(for: quickValue))
+                .onHover { hovering in
+                    hoveredQuickValue = hovering ? quickValue : nil
+                }
             }
         }
         .frame(width: 280)
+    }
+
+    private func isHovered(for value: Float) -> Bool {
+        return hoveredQuickValue == value
     }
     
     /// Determines color based on interaction value (consistent with matrix grid)
