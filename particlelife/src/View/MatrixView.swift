@@ -293,7 +293,9 @@ struct MatrixGrid: View {
                         value: $speciesSliderValue,
                         mode: .percentageSelection(minimum: 0.05, maximum: 0.95),
                         onValueChange: { newValue in
-                            updateSpeciesDistribution(index: row, newValue: newValue)
+                            if row == selectedSpeciesIndex {
+                                updateSpeciesDistribution(index: row, newValue: newValue)
+                            }
                         },
                         onAllEven: {
                             speciesDistribution.resize(to: speciesColors.count)
@@ -424,10 +426,7 @@ extension MatrixGrid {
         let unitX = (CGFloat(col + 1) / totalCells) + (0.5 / (totalCells + 0.5))
         let unitY = (CGFloat(row + 1) / totalCells)
 
-        Logger.log("row: \(row), totalCells: \(totalCells),  cellSize: \(cellSize), speciesCount: \(speciesCount), unitX: \(unitX.formattedTo3Places), unitY: \(unitY.formattedTo3Places)", level: .debug)
-
-        //return UnitPoint(x: unitX, y: unitY)
-        return UnitPoint(x: 0.5, y: 0)
+        return UnitPoint(x: unitX, y: unitY)
     }
     
     /// Determines color based on interaction value
