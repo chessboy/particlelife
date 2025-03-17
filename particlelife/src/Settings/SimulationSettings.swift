@@ -60,7 +60,7 @@ class SimulationSettings: ObservableObject {
     )
     
     @Published var friction = ConfigurableSetting(
-        value: 0.1, defaultValue: 0.1, min: 0.02, max: 0.3, step: 0.02, format: "%.2f",
+        value: 0.1, defaultValue: 0.1, min: 0.01, max: 0.3, step: 0.01, format: "%.2f",
         onChange: { _ in SimulationSettings.shared.scheduleBufferUpdate() }
     )
     
@@ -70,7 +70,7 @@ class SimulationSettings: ObservableObject {
     )
     
     @Published var pointSize = ConfigurableSetting(
-        value: 11.0, defaultValue: 5, min: 1.0, max: 25.0, step: 1.0, format: "%.0f",
+        value: 11.0, defaultValue: 11.0, min: 1.0, max: 30.0, step: 1.0, format: "%.0f",
         onChange:{ newValue in handlePointSizeChange(newValue) }
     )
     

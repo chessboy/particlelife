@@ -18,7 +18,7 @@ struct SpeciesDistribution: Equatable, Codable {
     var isCustom: Bool {
         guard values.count > 1 else { return false } // Single species is always even
         let evenValue = 1.0 / Float(values.count)
-        return values.contains { abs($0 - evenValue) > 0.01 } // Allow minor floating-point variance
+        return values.contains { abs($0 - evenValue) > 0.001 } // Allow minor floating-point variance
     }
 
     /// Ensures the distribution array has the correct count and sums to 1.0

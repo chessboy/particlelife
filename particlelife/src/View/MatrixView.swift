@@ -267,11 +267,21 @@ struct MatrixGrid: View {
         if speciesColors.indices.contains(row) {
             ShadedCircleView(color: speciesColors[row], cellSize: cellSize, circleScale: circleScale)
                 .overlay(distributionOverlay(row: row))
-                .onTapGesture {
-                    selectedSpeciesIndex = row
-                    speciesSliderValue = speciesDistribution[row]
-                    speciesSliderPosition = UnitPoint(x: 0.85, y: 0.5)
-                }
+                .gesture(
+                    TapGesture()
+                        .onEnded {
+                            if NSEvent.modifierFlags.contains(.option) {
+                                // option down -> resize species distribution to even split
+                                speciesDistribution.resize(to: speciesColors.count)
+                                SimulationSettings.shared.updateSpeciesDistribution(speciesDistribution)
+                            } else {
+                                // editing species distribiution
+                                selectedSpeciesIndex = row
+                                speciesSliderValue = speciesDistribution[row]
+                                speciesSliderPosition = UnitPoint(x: 0.85, y: 0.5)
+                            }
+                        }
+                )
                 .scaleEffect(columnHoverIndex == row ? 1.15 : 1.0)
                 .animation(.easeInOut(duration: 0.2), value: columnHoverIndex)
                 .onHover { hovering in
@@ -294,12 +304,12 @@ struct MatrixGrid: View {
                         mode: .percentageSelection(minimum: 0.05, maximum: 0.95),
                         onValueChange: { newValue in
                             if row == selectedSpeciesIndex {
-                                updateSpeciesDistribution(index: row, newValue: newValue)
+                                speciesDistribution.update(index: row, newValue: newValue)
                             }
                         },
                         onAllEven: {
-                            speciesDistribution.resize(to: speciesColors.count)
                             selectedSpeciesIndex = nil
+                            speciesDistribution.resize(to: speciesColors.count)
                         },
                         onDismiss: {
                             selectedSpeciesIndex = nil
@@ -359,7 +369,7 @@ struct MatrixGrid: View {
                 handleHover(isHovering: isHovering, row: row, col: col, value: value, cellSize: cellSize)
             }
             .onTapGesture {
-                handleTap(row: row, col: col, value: value, cellSize: cellSize)
+                handleCellTap(row: row, col: col, value: value, cellSize: cellSize)
             }
     }
     
@@ -372,7 +382,7 @@ struct MatrixGrid: View {
             .animation(.smooth(duration: 0.3), value: shouldShow)
     }
     
-    private func handleTap(row: Int, col: Int, value: Float, cellSize: CGFloat) {
+    private func handleCellTap(row: Int, col: Int, value: Float, cellSize: CGFloat) {
         guard !renderer.isPaused else { return }
         
         if selectedCell == nil {
