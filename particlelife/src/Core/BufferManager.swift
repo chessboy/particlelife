@@ -228,16 +228,7 @@ extension BufferManager {
         guard let buffer = buffer else { return }
         withUnsafeBytes(of: value) { rawBuffer in
             guard let baseAddress = rawBuffer.baseAddress else { return }
-            buffer.contents().copyMemory(from: baseAddress, byteCount: MemoryLayout<T>.stride)
-        }
-    }
-    
-    // Overload for SIMD types (SIMD2<Float>, etc.)
-    private func updateBuffer<T: SIMD>(_ buffer: MTLBuffer?, with value: T) {
-        guard let buffer = buffer else { return }
-        withUnsafeBytes(of: value) { rawBuffer in
-            guard let baseAddress = rawBuffer.baseAddress else { return }
-            buffer.contents().copyMemory(from: baseAddress, byteCount: MemoryLayout<T>.stride)
+            memcpy(buffer.contents(), baseAddress, MemoryLayout<T>.stride)
         }
     }
 }
