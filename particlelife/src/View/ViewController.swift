@@ -12,8 +12,9 @@ import MetalKit
 class ViewController: NSViewController {
     private var metalView: MTKView!
     private var renderer: Renderer!
-    private var fpsMonitor = FPSMonitor()
+    private var simulationManager: SimulationManager?
     private var keyEventRouter: KeyEventRouter?
+    private var fpsMonitor: FPSMonitor?
     private var didShowSplash = false
 
     private var settingsButton: NSHostingView<SettingsButtonView>?
@@ -25,6 +26,9 @@ class ViewController: NSViewController {
         super.viewDidLoad()
         
         FeatureFlags.configure()
+        
+        simulationManager = SimulationManager()
+        fpsMonitor = FPSMonitor()
         
         setupMetalView()
         setupSettingsButton()
@@ -74,12 +78,12 @@ class ViewController: NSViewController {
     }
         
     override func viewDidAppear() {
-        fpsMonitor.startMonitoring()
+        fpsMonitor?.startMonitoring()
     }
         
     override func viewWillDisappear() {
         super.viewWillDisappear()
-        fpsMonitor.stopMonitoring()
+        fpsMonitor?.stopMonitoring()
         keyEventRouter?.stopListeningForEvents()
     }
     
@@ -189,7 +193,12 @@ extension ViewController {
         
         view.addSubview(metalView)
 
-        renderer = Renderer(metalView: metalView, fpsMonitor: fpsMonitor)
+        guard let fpsMonitor = fpsMonitor, let simulationManager = simulationManager else {
+            Logger.log("fpsMonitor or simulationManager is nil", level: .error)
+            return
+        }
+        
+        renderer = Renderer(metalView: metalView, fpsMonitor: fpsMonitor, simulationManager: simulationManager)
         ParticleSystem.shared.renderer = renderer
     }
     
@@ -203,9 +212,14 @@ extension ViewController {
 // MARK: Settings Panel
 
 extension ViewController {
-    
     private func setupSettingsPanel() {
-        let settingsView = SimulationSettingsView(renderer: renderer)
+        
+        guard let simulationManager = simulationManager else {
+            Logger.log("simulationManager is nil", level: .error)
+            return
+        }
+
+        let settingsView = SimulationSettingsView(simulationManager: simulationManager)
         
         settingsPanel = NSHostingView(rootView: settingsView)
         settingsPanel.translatesAutoresizingMaskIntoConstraints = false
@@ -373,28 +387,39 @@ extension ViewController {
     }
     
     private func handleMouseEvent(_ event: NSEvent, isRightClick: Bool) {
+        guard let simulationManager = simulationManager else {
+            Logger.log("simulationManager is nil", level: .error)
+            return
+        }
+
         let location = event.locationInWindow
         let convertedLocation = metalView.convert(location, from: nil)
-        renderer.handleMouseClick(at: convertedLocation, in: metalView, isRightClick: isRightClick)
+        let worldPosition = simulationManager.screenToWorld(screenPosition: convertedLocation,
+                                                                     drawableSize: metalView.drawableSize,
+                                                                     viewSize: metalView.frame.size)
+        let effectRadius: Float = isRightClick ? 3.0 : 1.0
+        simulationManager.handleMouseClick(at: worldPosition, effectRadius: effectRadius)
     }
-    
+
     // MARK: Key Events
     
     private func setupKeyboardTracking() {
-        keyEventRouter = KeyEventRouter(renderer: renderer, toggleSettingsPanelAction: { self.toggleSettingsPanel() })
-    }
-
-    override func keyDown(with event: NSEvent) {
-        guard let keyEventRouter = keyEventRouter else { return }
-        if keyEventRouter.handleMovementKey(event, isKeyDown: true) {
+        guard let simulationManager = simulationManager else {
+            Logger.log("simulationManager is nil", level: .error)
             return
         }
-        keyEventRouter.handleOtherKeyDown(with: event)
+
+        keyEventRouter = KeyEventRouter(renderer: renderer,
+                                        simulationManager: simulationManager,
+                                        toggleSettingsPanelAction: { self.toggleSettingsPanel() })
+    }
+    
+    override func keyDown(with event: NSEvent) {
+        keyEventRouter?.keyDown(with: event)
     }
     
     override func keyUp(with event: NSEvent) {
-        guard let keyEventRouter = keyEventRouter else { return }
-        _ = keyEventRouter.handleMovementKey(event, isKeyDown: false)
+        keyEventRouter?.keyUp(with: event)
     }
 }
 

@@ -17,7 +17,7 @@ struct SimulationSettingsView: View {
     
     @ObservedObject var particleSystem = ParticleSystem.shared
     @ObservedObject var settings = SimulationSettings.shared
-    @ObservedObject var renderer: Renderer
+    @ObservedObject var simulationManager: SimulationManager
     
     @State private var isShowingSaveSheet = false
     @State private var isShowingDeleteSheet = false
@@ -28,8 +28,8 @@ struct SimulationSettingsView: View {
     
     private let maxAllowedParticleCount: ParticleCount
 
-    init(renderer: Renderer) {
-        self.renderer = renderer
+    init(simulationManager: SimulationManager) {
+        self.simulationManager = simulationManager
 
         let gpuCoreCount = SystemCapabilities.shared.gpuCoreCount
         let gpuType = SystemCapabilities.shared.gpuType
@@ -44,7 +44,7 @@ struct SimulationSettingsView: View {
                 MatrixView(
                     matrix: $particleSystem.matrix,
                     speciesDistribution: $particleSystem.speciesDistribution,
-                    renderer: renderer,
+                    simulationManager: simulationManager,
                     speciesColors: particleSystem.speciesColors
 
                 )
@@ -76,32 +76,32 @@ struct SimulationSettingsView: View {
             // Preset, Matrix, Distribution: Grouped neatly
             VStack(spacing: 12) {
                 CustomDivider()
-                PresetPickerView(settings: settings, renderer: renderer, isShowingSaveSheet: $isShowingSaveSheet, isShowingDeleteSheet: $isShowingDeleteSheet)
-                SpeciesPickerView(settings: settings, renderer: renderer)
-                MatrixPickerView(settings: settings, renderer: renderer)
+                PresetPickerView(settings: settings, simulationManager: simulationManager, isShowingSaveSheet: $isShowingSaveSheet, isShowingDeleteSheet: $isShowingDeleteSheet)
+                SpeciesPickerView(settings: settings, simulationManager: simulationManager)
+                MatrixPickerView(settings: settings, simulationManager: simulationManager)
                 CustomDivider()
-                ParticleCountPickerView(settings: settings, renderer: renderer, maxAllowedParticleCount: maxAllowedParticleCount)
-                DistributionPickerView(settings: settings, renderer: renderer)
+                ParticleCountPickerView(settings: settings, simulationManager: simulationManager, maxAllowedParticleCount: maxAllowedParticleCount)
+                DistributionPickerView(settings: settings, simulationManager: simulationManager)
                 CustomDivider()
-                PalettePickerView(settings: settings, renderer: renderer)
-                ColorEffectPickerView(settings: settings, renderer: renderer)
+                PalettePickerView(settings: settings, simulationManager: simulationManager)
+                ColorEffectPickerView(settings: settings, simulationManager: simulationManager)
                 CustomDivider()
             }
             .padding(.top, 15)
             
             // Controls: A little more room for clarity
-            SimulationButtonsView(renderer: renderer)
+            SimulationButtonsView(simulationManager: simulationManager)
                 .padding(.top, 12)
                 .padding(.bottom, 8)
             
-            PhysicsSettingsView(settings: settings, renderer: renderer, isExpanded: $isExpanded)
-            FooterView(renderer: renderer)
+            PhysicsSettingsView(settings: settings, simulationManager: simulationManager, isExpanded: $isExpanded)
+            FooterView(simulationManager: simulationManager)
             
             Spacer()
         }
         .frame(width: 340, height: isExpanded ? 993 : 775)
         .animation(.easeInOut(duration: 0.3), value: isExpanded)
-        .background(renderer.isPaused ? Color(red: 0.2, green: 0, blue: 0).opacity(0.9) : Color(white: 0.07).opacity(0.9))
+        .background(simulationManager.isPaused ? Color(red: 0.2, green: 0, blue: 0).opacity(0.9) : Color(white: 0.07).opacity(0.9))
         .clipShape(RoundedCornerShape(corners: [.topRight, .bottomRight], radius: 20))
         .overlay(
             RoundedCornerShape(corners: [.topRight, .bottomRight], radius: 20)
@@ -113,7 +113,7 @@ struct SimulationSettingsView: View {
 
 struct PresetPickerView: View {
     @ObservedObject var settings: SimulationSettings
-    @ObservedObject var renderer: Renderer
+    @ObservedObject var simulationManager: SimulationManager
     
     @Binding var isShowingSaveSheet: Bool
     @Binding var isShowingDeleteSheet: Bool
@@ -132,10 +132,13 @@ struct PresetPickerView: View {
                     .clipShape(Circle())
             }
             .buttonStyle(PlainButtonStyle())
+            .disabled(simulationManager.isPaused)
             .help("Use P key to select a random built-in preset")
             .onHover { hovering in
                 withAnimation(.easeInOut(duration: 0.15)) {
-                    isHovered = hovering
+                    if !simulationManager.isPaused {
+                        isHovered = hovering
+                    }
                 }
             }
             
@@ -228,7 +231,7 @@ struct PresetPickerView: View {
                 Text(settings.selectedPreset.name)
             }
             .pickerStyle(MenuPickerStyle())
-            .disabled(renderer.isPaused)
+            .disabled(simulationManager.isPaused)
             .onReceive(NotificationCenter.default.publisher(for: .saveTriggered)) { _ in
                 Logger.log("received save notification: isShowingDeleteSheet: \(isShowingDeleteSheet)")
                 if !isShowingDeleteSheet {
@@ -248,7 +251,7 @@ struct PresetPickerView: View {
 
 struct MatrixPickerView: View {
     @ObservedObject var settings: SimulationSettings
-    @ObservedObject var renderer: Renderer
+    @ObservedObject var simulationManager: SimulationManager
     @State private var isHovered = false
     
     var body: some View {
@@ -266,10 +269,13 @@ struct MatrixPickerView: View {
                         .clipShape(Circle())
                 }
                 .buttonStyle(PlainButtonStyle())
+                .disabled(simulationManager.isPaused)
                 .help("Use M key to generate a new random matrix")
                 .onHover { hovering in
                     withAnimation(.easeInOut(duration: 0.15)) {
-                        isHovered = hovering
+                        if !simulationManager.isPaused {
+                            isHovered = hovering
+                        }
                     }
                 }
             }
@@ -290,7 +296,7 @@ struct MatrixPickerView: View {
                 }
             }
             .pickerStyle(MenuPickerStyle())
-            .disabled(renderer.isPaused)
+            .disabled(simulationManager.isPaused)
         }
         .frame(width: pickerViewWidth)
     }
@@ -298,7 +304,7 @@ struct MatrixPickerView: View {
 
 struct DistributionPickerView: View {
     @ObservedObject var settings: SimulationSettings
-    @ObservedObject var renderer: Renderer
+    @ObservedObject var simulationManager: SimulationManager
     
     var body: some View {
         HStack(spacing: 0) {
@@ -318,7 +324,7 @@ struct DistributionPickerView: View {
                 }
             }
             .pickerStyle(MenuPickerStyle())
-            .disabled(renderer.isPaused)
+            .disabled(simulationManager.isPaused)
         }
         .frame(width: pickerViewWidth)
     }
@@ -326,7 +332,7 @@ struct DistributionPickerView: View {
 
 struct PalettePickerView: View {
     @ObservedObject var settings: SimulationSettings
-    @ObservedObject var renderer: Renderer
+    @ObservedObject var simulationManager: SimulationManager
     
     var body: some View {
         HStack(spacing: 0) {
@@ -350,7 +356,7 @@ struct PalettePickerView: View {
                 }
             }
             .pickerStyle(MenuPickerStyle())
-            .disabled(renderer.isPaused)
+            .disabled(simulationManager.isPaused)
         }
         .frame(width: pickerViewWidth)
     }
@@ -366,7 +372,7 @@ struct PalettePickerView: View {
 
 struct ColorEffectPickerView: View {
     @ObservedObject var settings: SimulationSettings
-    @ObservedObject var renderer: Renderer
+    @ObservedObject var simulationManager: SimulationManager
     
     var body: some View {
         HStack(spacing: 0) {
@@ -388,14 +394,14 @@ struct ColorEffectPickerView: View {
                 }
             }
             .pickerStyle(MenuPickerStyle())
-            .disabled(renderer.isPaused)
+            .disabled(simulationManager.isPaused)
         }
         .frame(width: pickerViewWidth)
     }
 }
 
 struct SimulationButtonsView: View {
-    @ObservedObject var renderer: Renderer
+    @ObservedObject var simulationManager: SimulationManager
     @State private var isResetHovered = false
     @State private var isRespawnHovered = false
     
@@ -411,19 +417,19 @@ struct SimulationButtonsView: View {
                     ParticleSystem.shared.selectPreset(SimulationSettings.shared.selectedPreset)
                 }
             }
-            .disabled(renderer.isPaused)
+            .disabled(simulationManager.isPaused)
             
             HoverButton(title: "Respawn", systemImage: SFSymbols.Name.respawn) {
                 ParticleSystem.shared.respawn(shouldGenerateNewMatrix: false)
             }
-            .disabled(renderer.isPaused)
+            .disabled(simulationManager.isPaused)
         }
     }
 }
 
 struct SpeciesPickerView: View {
     @ObservedObject var settings: SimulationSettings
-    @ObservedObject var renderer: Renderer
+    @ObservedObject var simulationManager: SimulationManager
     
     var body: some View {
         HStack(spacing: 0) {
@@ -442,7 +448,7 @@ struct SpeciesPickerView: View {
                 }
             }
             .pickerStyle(MenuPickerStyle())
-            .disabled(renderer.isPaused)
+            .disabled(simulationManager.isPaused)
             
         }
         .frame(width: pickerViewWidth)
@@ -451,7 +457,7 @@ struct SpeciesPickerView: View {
 
 struct ParticleCountPickerView: View {
     @ObservedObject var settings: SimulationSettings
-    @ObservedObject var renderer: Renderer
+    @ObservedObject var simulationManager: SimulationManager
 
     var maxAllowedParticleCount: ParticleCount
 
@@ -475,7 +481,7 @@ struct ParticleCountPickerView: View {
                 }
             }
             .pickerStyle(MenuPickerStyle())
-            .disabled(renderer.isPaused)
+            .disabled(simulationManager.isPaused)
         }
         .frame(width: pickerViewWidth)
     }
@@ -483,7 +489,7 @@ struct ParticleCountPickerView: View {
 
 struct SimulationSlidersView: View {
     @ObservedObject var settings: SimulationSettings
-    @ObservedObject var renderer: Renderer
+    @ObservedObject var simulationManager: SimulationManager
     
     var body: some View {
         VStack(spacing: 10) {
@@ -513,7 +519,7 @@ struct SimulationSlidersView: View {
         }
         
         .padding(.horizontal, 16)
-        .disabled(renderer.isPaused)
+        .disabled(simulationManager.isPaused)
     }
 }
 
@@ -529,7 +535,7 @@ struct LogoView: View {
 
 struct PhysicsSettingsView: View {
     @ObservedObject var settings: SimulationSettings
-    @ObservedObject var renderer: Renderer
+    @ObservedObject var simulationManager: SimulationManager
     @Binding var isExpanded: Bool
     @State private var isButtonHovered = false
 
@@ -566,7 +572,7 @@ struct PhysicsSettingsView: View {
             .frame(width: pickerViewWidth)
             
             // Smooth Expand/Collapse - Always in View, Just Fades and Moves
-            SimulationSlidersView(settings: settings, renderer: renderer)
+            SimulationSlidersView(settings: settings, simulationManager: simulationManager)
                 .padding(.top, 16)
                 .padding(.bottom, 16)
                 .frame(height: isExpanded ? 216 : 0) // Animate Height
@@ -596,15 +602,15 @@ struct SmoothHeightModifier: AnimatableModifier {
 
 struct FooterView: View {
     @State private var fps: Int = 0
-    @ObservedObject var renderer: Renderer
+    @ObservedObject var simulationManager: SimulationManager
     @State private var isHovered = false
 
     var body: some View {
         HStack {
             
-            Text(renderer.isPaused ? "PAUSED" : "FPS: \(fps)")
+            Text(simulationManager.isPaused ? "PAUSED" : "FPS: \(fps)")
                 .font(.system(size: 14, weight: .bold, design: .monospaced))
-                .foregroundColor(renderer.isPaused || fps < 30 ? .red : .green)
+                .foregroundColor(simulationManager.isPaused || fps < 30 ? .red : .green)
             
             Spacer()
             LogoView()
@@ -633,7 +639,6 @@ struct FooterView: View {
                 }
             }
         }
-//        .padding(.top, 8)
         .padding(.bottom, 4)
         .padding(.horizontal, 8)
         .frame(width: 300)
@@ -860,12 +865,9 @@ struct CustomDivider: View {
 }
 
 #Preview {
-    let mtkView = MTKView()
-    let renderer = Renderer(metalView: mtkView, fpsMonitor: FPSMonitor())
-    
     NSHostingView(
         rootView: SimulationSettingsView(
-            renderer: renderer
+            simulationManager: SimulationManager()
         )
     )
 }

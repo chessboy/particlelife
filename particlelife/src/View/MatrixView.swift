@@ -33,7 +33,7 @@ struct MatrixView: View {
     @State private var speciesSliderPosition: UnitPoint = .zero
     @State private var speciesSliderValue: Float = 0.0
     
-    @ObservedObject var renderer: Renderer
+    @ObservedObject var simulationManager: SimulationManager
         
     let speciesColors: [Color]
     
@@ -54,7 +54,7 @@ struct MatrixView: View {
                     selectedSpeciesIndex: $selectedSpeciesIndex,
                     speciesSliderPosition: $speciesSliderPosition,
                     speciesSliderValue: $speciesSliderValue,
-                    renderer: renderer
+                    simulationManager: simulationManager
                 )
                 .overlay(tooltipView, alignment: .topLeading)
                 .popover(
@@ -144,7 +144,7 @@ struct MatrixGrid: View {
     @Binding var speciesSliderPosition: UnitPoint
     @Binding var speciesSliderValue: Float
     
-    @ObservedObject var renderer: Renderer
+    @ObservedObject var simulationManager: SimulationManager
 
     @State private var lastMouseButton: Int = 0
     @State private var rowHoverIndex: Int? = nil
@@ -197,17 +197,21 @@ struct MatrixGrid: View {
                             .scaleEffect((index == 0 || index == speciesColors.count - 1) && rowHoverIndex == index ? 1.15 : 1.0) // Slight pop effect
                             .animation(.easeInOut(duration: 0.2), value: rowHoverIndex)
                             .onHover { hovering in
-                                if hovering && (index == 0 || index == speciesColors.count - 1) {
-                                    rowHoverIndex = index
-                                } else if rowHoverIndex == index {
-                                    rowHoverIndex = nil
+                                if !simulationManager.isPaused {
+                                    if hovering && (index == 0 || index == speciesColors.count - 1) {
+                                        rowHoverIndex = index
+                                    } else if rowHoverIndex == index {
+                                        rowHoverIndex = nil
+                                    }
                                 }
                             }
                             .onTapGesture {
-                                if index == 0 {
-                                    ParticleSystem.shared.incrementSpeciesColorOffset()
-                                } else if index == speciesColors.count - 1 {
-                                    ParticleSystem.shared.decrementSpeciesColorOffset()
+                                if !simulationManager.isPaused {
+                                    if index == 0 {
+                                        ParticleSystem.shared.incrementSpeciesColorOffset()
+                                    } else if index == speciesColors.count - 1 {
+                                        ParticleSystem.shared.decrementSpeciesColorOffset()
+                                    }
                                 }
                             }
                     }
@@ -270,25 +274,29 @@ struct MatrixGrid: View {
                 .gesture(
                     TapGesture()
                         .onEnded {
-                            if NSEvent.modifierFlags.contains(.option) {
-                                // option down -> resize species distribution to even split
-                                speciesDistribution.resize(to: speciesColors.count)
-                                SimulationSettings.shared.updateSpeciesDistribution(speciesDistribution)
-                            } else {
-                                // editing species distribiution
-                                selectedSpeciesIndex = row
-                                speciesSliderValue = speciesDistribution[row]
-                                speciesSliderPosition = UnitPoint(x: 0.85, y: 0.5)
+                            if !simulationManager.isPaused {
+                                if NSEvent.modifierFlags.contains(.option) {
+                                    // option down -> resize species distribution to even split
+                                    speciesDistribution.resize(to: speciesColors.count)
+                                    SimulationSettings.shared.updateSpeciesDistribution(speciesDistribution)
+                                } else {
+                                    // editing species distribiution
+                                    selectedSpeciesIndex = row
+                                    speciesSliderValue = speciesDistribution[row]
+                                    speciesSliderPosition = UnitPoint(x: 0.85, y: 0.5)
+                                }
                             }
                         }
                 )
                 .scaleEffect(columnHoverIndex == row ? 1.15 : 1.0)
                 .animation(.easeInOut(duration: 0.2), value: columnHoverIndex)
                 .onHover { hovering in
-                    if hovering {
-                        columnHoverIndex = row
-                    } else if columnHoverIndex == row {
-                        columnHoverIndex = nil
+                    if !simulationManager.isPaused {
+                        if hovering {
+                            columnHoverIndex = row
+                        } else if columnHoverIndex == row {
+                            columnHoverIndex = nil
+                        }
                     }
                 }
                 .popover(
@@ -383,7 +391,7 @@ struct MatrixGrid: View {
     }
     
     private func handleCellTap(row: Int, col: Int, value: Float, cellSize: CGFloat) {
-        guard !renderer.isPaused else { return }
+        guard !simulationManager.isPaused else { return }
         
         if selectedCell == nil {
             DispatchQueue.main.async {
@@ -474,7 +482,7 @@ struct MatrixPreviewWrapper: View {
         MatrixView(
             matrix: $matrix,
             speciesDistribution: $speciesDistribution,
-            renderer: Renderer(fpsMonitor: FPSMonitor()),
+            simulationManager: SimulationManager(),
             speciesColors: speciesColors
         )
         .frame(width: 300, height: 300)

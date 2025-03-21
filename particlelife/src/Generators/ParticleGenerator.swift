@@ -86,13 +86,13 @@ struct ParticleGenerator {
         }
         
         // Log the computed values
-        let formattedDistribution = distribution.toArray().map { String(format: "%.3f", $0) }.joined(separator: ", ")
-        let formattedCounts = speciesCounts.map { String($0) }.joined(separator: ", ")
+//        let formattedDistribution = distribution.toArray().map { String(format: "%.3f", $0) }.joined(separator: ", ")
+//        let formattedCounts = speciesCounts.map { String($0) }.joined(separator: ", ")
         
-        Logger.log("Particle Assignment: speciesCount: \(speciesCount), totalParticles: \(particleCount)", level: .debug)
-        Logger.log("Original Distribution: [\(speciesDistribution.toArray())]", level: .debug)
-        Logger.log("Normalized Distribution: [\(formattedDistribution)]", level: .debug)
-        Logger.log("Assigned Particles Per Species: [\(formattedCounts)] (Total: \(speciesCounts.reduce(0, +)))", level: .debug)
+//        Logger.log("Particle Assignment: speciesCount: \(speciesCount), totalParticles: \(particleCount)", level: .debug)
+//        Logger.log("Original Distribution: [\(speciesDistribution.toArray())]", level: .debug)
+//        Logger.log("Normalized Distribution: [\(formattedDistribution)]", level: .debug)
+//        Logger.log("Assigned Particles Per Species: [\(formattedCounts)] (Total: \(speciesCounts.reduce(0, +)))", level: .debug)
         
         return speciesCounts
     }

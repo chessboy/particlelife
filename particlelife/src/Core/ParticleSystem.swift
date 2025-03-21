@@ -39,8 +39,6 @@ class ParticleSystem: ObservableObject {
             speciesCount: preset.speciesCount
         )
         BufferManager.shared.updatePhysicsBuffers()
-        BufferManager.shared.updateCameraBuffer(cameraPosition: .zero)
-        BufferManager.shared.updateZoomBuffer(zoomLevel: 1.0)
     }
     
     /// Resets the simulation and regenerates particles

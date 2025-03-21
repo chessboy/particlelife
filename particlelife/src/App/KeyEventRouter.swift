@@ -1,12 +1,6 @@
-//
-//  KeyEventRouter.swift
-//  particlelife
-//
-//  Created by Rob Silverman on 3/6/25.
-//
-
 import Foundation
 import Cocoa
+import simd
 
 class KeyEventRouter {
     
@@ -17,15 +11,24 @@ class KeyEventRouter {
     private var panningUp = false
     private var panningDown = false
     
-    private var renderer: Renderer
-    private var toggleSettingsPanelAction: () -> Void
+    private let simulationManager: SimulationManager
+    private let renderer: Renderer
+    private let toggleSettingsPanelAction: () -> Void
     private var actionTimer: Timer?
-
-    init(renderer: Renderer, toggleSettingsPanelAction: @escaping () -> Void) {
+    
+    init(renderer: Renderer,
+         simulationManager: SimulationManager,
+         toggleSettingsPanelAction: @escaping () -> Void) {
         self.renderer = renderer
+        self.simulationManager = simulationManager
         self.toggleSettingsPanelAction = toggleSettingsPanelAction
         
-        actionTimer = Timer.scheduledTimer(timeInterval: 0.016, target: self, selector: #selector(updateCamera), userInfo: nil, repeats: true)
+        // Run at roughly 60fps.
+        actionTimer = Timer.scheduledTimer(timeInterval: 0.016,
+                                           target: self,
+                                           selector: #selector(updateCamera),
+                                           userInfo: nil,
+                                           repeats: true)
     }
     
     func stopListeningForEvents() {
@@ -44,69 +47,76 @@ class KeyEventRouter {
         _ = handleMovementKey(event, isKeyDown: false)
     }
     
+    @discardableResult
     func handleMovementKey(_ event: NSEvent, isKeyDown: Bool) -> Bool {
         switch event.keyCode {
-        case 24: zoomingIn = isKeyDown          // + key
-        case 27: zoomingOut = isKeyDown         // - key
-        case 123: panningLeft = isKeyDown       // Left arrow
-        case 124: panningRight = isKeyDown      // Right arrow
-        case 125: panningDown = isKeyDown       // Down arrow
-        case 126: panningUp = isKeyDown         // Up arrow
-        default: return false // Return false if key was not handled
+        case 24: // + key
+            zoomingIn = isKeyDown
+        case 27: // - key
+            zoomingOut = isKeyDown
+        case 123: // Left arrow
+            panningLeft = isKeyDown
+        case 124: // Right arrow
+            panningRight = isKeyDown
+        case 125: // Down arrow
+            panningDown = isKeyDown
+        case 126: // Up arrow
+            panningUp = isKeyDown
+        case 29: // Zero key – reset pan/zoom
+            if isKeyDown {
+                simulationManager.resetPanAndZoom()
+            }
+        default:
+            return false
         }
-        return true // Return true if key was handled
+        return true
     }
     
-    func handleOtherKeyDown(with event: NSEvent) {
-        
-        // handle keys allowed while paused
-        if event.keyCode == 49 { // Space bar
-            renderer.togglePaused()
+    private func handleOtherKeyDown(with event: NSEvent) {
+        // Keys that work even when paused.
+        if event.keyCode == 49 { // Space bar toggles pause
+            simulationManager.togglePaused()
             return
-        } else if event.keyCode == 48 { // Tab
+        } else if event.keyCode == 48 { // Tab toggles settings panel
             toggleSettingsPanelAction()
             return
         }
         
-        // now bail if paused
-        if renderer.isPaused {
+        // If paused, ignore other keys.
+        if simulationManager.isPaused {
             return
         }
-
+        
         let isCommandDown = event.modifierFlags.contains(.command)
         let isShiftDown = event.modifierFlags.contains(.shift)
         let isOptionDown = event.modifierFlags.contains(.option)
         
-        //Logger.log("Key pressed: \(event.keyCode)", level: .debug)
         switch event.keyCode {
-
-        case 15: // R
+        case 15: // R key
             if isCommandDown {
                 ParticleSystem.shared.respawn(shouldGenerateNewMatrix: false)
             } else if isOptionDown {
                 ParticleSystem.shared.selectPreset(SimulationSettings.shared.selectedPreset)
             }
-        case 1: // S
+        case 1: // S key
             if isCommandDown {
                 NotificationCenter.default.post(name: .saveTriggered, object: nil)
             }
-        case 45: // N
+        case 45: // N key
             if isCommandDown {
                 ParticleSystem.shared.selectPreset(PresetDefinitions.emptyPreset)
             }
-        case 44: // ?
+        case 44: // ? key
             if isCommandDown {
                 ParticleSystem.shared.selectPreset(PresetDefinitions.randomPreset)
             }
-        case 33: // [
+        case 33: // [ key
             ParticleSystem.shared.decrementPaletteIndex()
-        case 30: // ]
+        case 30: // ] key
             ParticleSystem.shared.incrementPaletteIndex()
-        case 29: // Zero
-            renderer.resetPanAndZoom()
-        case 116: // page up
+        case 116: // Page Up
             ParticleSystem.shared.decrementSpeciesColorOffset()
-        case 121: // page down
+        case 121: // Page Down
             ParticleSystem.shared.incrementSpeciesColorOffset()
         case 8: // C key
             ParticleSystem.shared.nextColorEffect(direction: isShiftDown ? -1 : 1)
@@ -119,28 +129,28 @@ class KeyEventRouter {
                 ParticleSystem.shared.respawn(shouldGenerateNewMatrix: true)
             }
         default:
-            return // Do NOT call super.keyDown(with: event) to prevent beep
+            break
         }
     }
     
     @objc private func updateCamera() {
         if zoomingIn {
-            renderer.zoomIn()  // Small zoom step for smooth effect
+            simulationManager.zoomIn(step: 1.01)
         }
         if zoomingOut {
-            renderer.zoomOut() // Small zoom step for smooth effect
+            simulationManager.zoomOut(step: 1.01)
         }
         if panningLeft {
-            renderer.panLeft()  // Smooth panning left
+            simulationManager.pan(by: simd_float2(-0.01 / simulationManager.zoomLevel, 0))
         }
         if panningRight {
-            renderer.panRight()  // Smooth panning right
+            simulationManager.pan(by: simd_float2(0.01 / simulationManager.zoomLevel, 0))
         }
         if panningUp {
-            renderer.panUp()  // Smooth panning up
+            simulationManager.pan(by: simd_float2(0, 0.01 / simulationManager.zoomLevel))
         }
         if panningDown {
-            renderer.panDown()  // Smooth panning down
+            simulationManager.pan(by: simd_float2(0, -0.01 / simulationManager.zoomLevel))
         }
     }
 }
