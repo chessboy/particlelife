@@ -38,6 +38,8 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         if let device = self.device, let library = device.makeDefaultLibrary() {
             self.computePass = ComputePass(device: device, library: library)
             self.renderPass = RenderPass(device: device, library: library)
+        } else {
+            Logger.log("Failed to initialize Metal resources.", level: .error)
         }
         
         // Forward changes from simulationManager so Renderer emits its own change notifications.
@@ -52,17 +54,19 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
     }
     
     func draw(in view: MTKView) {
+        let bufferManager = BufferManager.shared
+        
         guard !simulationManager.isPaused,
-              BufferManager.shared.areBuffersInitialized,
+              bufferManager.areBuffersInitialized,
               let commandQueue = commandQueue,
               let commandBuffer = commandQueue.makeCommandBuffer() else { return }
         
         updateSimulationState()
         
         frameCount &+= 1
-        BufferManager.shared.updateFrameCountBuffer(frameCount: frameCount)
+        bufferManager.updateFrameCountBuffer(frameCount: frameCount)
         
-        computePass?.encode(commandBuffer: commandBuffer, bufferManager: BufferManager.shared)
+        computePass?.encode(commandBuffer: commandBuffer, bufferManager: bufferManager)
         
         if let renderPassDescriptor = view.currentRenderPassDescriptor,
            let drawable = view.currentDrawable {
@@ -71,7 +75,7 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
             renderPass?.encode(commandBuffer: commandBuffer,
                                renderPassDescriptor: renderPassDescriptor,
                                drawable: drawable,
-                               bufferManager: BufferManager.shared)
+                               bufferManager: bufferManager)
         }
         
         commandBuffer.commit()

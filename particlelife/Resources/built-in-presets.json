@@ -2,45 +2,6 @@
   {
     "beta" : 0.3,
     "distributionType" : "centeredCircle",
-    "friction" : 0.26,
-    "id" : "28F562C7-1A8D-4950-8C03-3F487E1122E3",
-    "isBuiltIn" : true,
-    "matrixType" : {
-      "data" : [
-        [
-          0,
-          0,
-          -0.5
-        ],
-        [
-          0,
-          0.5,
-          0
-        ],
-        [
-          0,
-          0,
-          0
-        ]
-      ],
-      "type" : "custom"
-    },
-    "maxDistance" : 0.65,
-    "minDistance" : 0.04,
-    "name" : "Boom",
-    "paletteIndex" : 2,
-    "colorEffect" : "textured",
-    "particleCount" : 30720,
-    "pointSize" : 5,
-    "preservesUISettings" : false,
-    "repulsion" : 0.03,
-    "speciesColorOffset" : 6,
-    "speciesCount" : 3,
-    "worldSize" : 0.5
-  },
-  {
-    "beta" : 0.3,
-    "distributionType" : "centeredCircle",
     "friction" : 0.1,
     "id" : "9BA2A01A-3EC8-4DFB-8320-20F23F3935C0",
     "isBuiltIn" : true,
@@ -973,6 +934,140 @@
     "speciesColorOffset" : 5,
     "speciesCount" : 9,
     "worldSize" : 3
+  },
+  {
+    "beta" : 0.3,
+    "colorEffect" : "textured",
+    "distributionType" : "centered",
+    "friction" : 0.16,
+    "id" : "EE847FED-BBAC-4BA5-845B-5FE907F5AC8F",
+    "isBuiltIn" : true,
+    "matrixType" : {
+      "data" : [
+        [
+          0.13999999,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0.12230231,
+          0,
+          0
+        ],
+        [
+          0,
+          0.75,
+          -0.21000004,
+          0,
+          0,
+          -0.110000014,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0.41999996,
+          0.14013635,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          -0.13949557,
+          0.120000005,
+          0,
+          0.16518666,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0.1110331,
+          0,
+          0.14081107,
+          -0.016481116,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0.16262166,
+          0.120000005,
+          0,
+          0,
+          0
+        ],
+        [
+          -0.107978635,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0.37,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0.5,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0.19999993,
+          0.5
+        ]
+      ],
+      "type" : "custom"
+    },
+    "maxDistance" : 0.65,
+    "minDistance" : 0.02,
+    "name" : "Rovers",
+    "paletteIndex" : 0,
+    "particleCount" : 30720,
+    "pointSize" : 5,
+    "preservesUISettings" : false,
+    "repulsion" : 0.03,
+    "speciesColorOffset" : 5,
+    "speciesCount" : 9,
+    "speciesDistribution" : [
+      0.11111111,
+      0.11111111,
+      0.11111111,
+      0.11111111,
+      0.11111111,
+      0.11111111,
+      0.11111111,
+      0.11111111,
+      0.11111111
+    ],
+    "worldSize" : 0.75
   },
   {
     "beta" : 0.3,
