@@ -44,11 +44,9 @@ kernel void compute_particle_movement(
     constant float* beta [[buffer(6)]],
     constant float* friction [[buffer(7)]],
     constant float* repulsion [[buffer(8)]],
-    constant float2* cameraPosition [[buffer(9)]],
-    constant float* zoomLevel [[buffer(10)]],
-    constant float* worldSize [[buffer(11)]],
-    constant ClickData* clickData [[buffer(12)]],
-    constant uint &frameCount [[buffer(13)]],
+    constant float* worldSize [[buffer(9)]],
+    constant ClickData* clickData [[buffer(10)]],
+    constant uint &frameCount [[buffer(11)]],
     uint id [[thread_position_in_grid]],
     uint totalParticles [[threads_per_grid]]) {
 

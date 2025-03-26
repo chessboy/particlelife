@@ -19,6 +19,7 @@ class KeyEventRouter {
     init(renderer: Renderer,
          simulationManager: SimulationManager,
          toggleSettingsPanelAction: @escaping () -> Void) {
+        
         self.renderer = renderer
         self.simulationManager = simulationManager
         self.toggleSettingsPanelAction = toggleSettingsPanelAction
