@@ -18,10 +18,7 @@ class ParticleSystem: ObservableObject {
     @Published var matrix: [[Float]] = []
     @Published var speciesDistribution = SpeciesDistribution(count: 1)
     @Published private(set) var speciesColors: [Color] = []
-    
-    private var lastUpdateTime: TimeInterval = Date().timeIntervalSince1970
-    private var lastDT: Float = 0.001
-    
+        
     init() {
         
         PresetDefinitions.loadSpecialPresets()
@@ -171,28 +168,6 @@ class ParticleSystem: ObservableObject {
     
     func dumpCurrentPresetAsJson() {
         UserPresetStorage.printPresetsAsJSON([asPreset])
-    }
-        
-    /// Updates delta time for particle movement
-    func update() {
-        let currentTime = Date().timeIntervalSince1970
-        var dt = Float(currentTime - lastUpdateTime)
-        dt = max(0.0001, min(dt, 0.0105)) // Clamp dt was 0.01
-        
-        let smoothingFactor = SystemCapabilities.shared.smoothingFactor
-        
-        dt = (1.0 - smoothingFactor) * lastDT + smoothingFactor * dt
-        
-        // Quantize dt to avoid micro jitter
-        let quantizationStep: Float = 0.0004 // was 0.0005
-        dt = round(dt / quantizationStep) * quantizationStep
-        
-        if abs(dt - lastDT) > 0.00005 {
-            BufferManager.shared.updateDeltaTimeBuffer(dt: &dt)
-            lastDT = dt
-        }
-                
-        lastUpdateTime = currentTime
     }
 }
 

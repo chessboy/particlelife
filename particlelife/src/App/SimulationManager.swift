@@ -13,6 +13,9 @@ import Combine
 class SimulationManager: ObservableObject {
     @Published var isPaused: Bool = false
     
+    private var lastUpdateTime: TimeInterval = Date().timeIntervalSince1970
+    private var lastDT: Float = 0.001
+
     // Camera and zoom state.
     var cameraPosition: simd_float2 = .zero {
         didSet {
@@ -45,8 +48,26 @@ class SimulationManager: ObservableObject {
         isPaused.toggle()
     }
     
+    /// Updates delta time for particle movement
     func update() {
-        ParticleSystem.shared.update()
+        let currentTime = Date().timeIntervalSince1970
+        var dt = Float(currentTime - lastUpdateTime)
+        dt = max(0.0001, min(dt, 0.0105)) // Clamp dt was 0.01
+        
+        let smoothingFactor = SystemCapabilities.shared.smoothingFactor
+        
+        dt = (1.0 - smoothingFactor) * lastDT + smoothingFactor * dt
+        
+        // Quantize dt to avoid micro jitter
+        let quantizationStep: Float = 0.0004 // was 0.0005
+        dt = round(dt / quantizationStep) * quantizationStep
+        
+        if abs(dt - lastDT) > 0.00005 {
+            BufferManager.shared.updateDeltaTimeBuffer(dt: &dt)
+            lastDT = dt
+        }
+        lastUpdateTime = currentTime
+
         monitorClickBuffer()
     }
     
