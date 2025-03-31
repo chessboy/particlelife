@@ -17,7 +17,7 @@ class SimulationManager: ObservableObject {
     private var lastDT: Float = 0.001
 
     // Camera and zoom state.
-    var cameraPosition: simd_float2 = .zero {
+    var cameraPosition: SIMD2<Float> = .zero {
         didSet {
             BufferManager.shared.updateCameraBuffer(cameraPosition: cameraPosition)
         }
@@ -75,7 +75,7 @@ class SimulationManager: ObservableObject {
         if clickPersistenceFrames > 0 {
             clickPersistenceFrames -= 1
         } else if clickPersistenceFrames == 0 {
-            BufferManager.shared.updateClickBuffer(clickPosition: SIMD2<Float>(0, 0), force: 0.0, clear: true)
+            BufferManager.shared.clearClickBuffer()
             clickPersistenceFrames = -1
         }
     }
@@ -103,7 +103,7 @@ class SimulationManager: ObservableObject {
     
     /// Adjusts zoom level and resets camera position based on the new world size.
     func adjustZoomAndCameraForWorldSize(_ newWorldSize: Float) {
-        Logger.log("adjusting zoom and camera: \(newWorldSize)", level: .debug)
+        //Logger.log("adjusting zoom and camera: \(newWorldSize)", level: .debug)
         
         let baseSize: Float = 1.0
         let minZoom: Float = 0.1
@@ -128,7 +128,7 @@ class SimulationManager: ObservableObject {
     
     // MARK: - Camera & Zoom Manipulation
     
-    func pan(by delta: simd_float2) {
+    func pan(by delta: SIMD2<Float>) {
         cameraPosition += delta
     }
     

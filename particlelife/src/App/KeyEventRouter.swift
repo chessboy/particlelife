@@ -142,16 +142,16 @@ class KeyEventRouter {
             simulationManager.zoomOut(step: 1.01)
         }
         if panningLeft {
-            simulationManager.pan(by: simd_float2(-0.01 / simulationManager.zoomLevel, 0))
+            simulationManager.pan(by: SIMD2<Float>(-0.01 / simulationManager.zoomLevel, 0))
         }
         if panningRight {
-            simulationManager.pan(by: simd_float2(0.01 / simulationManager.zoomLevel, 0))
+            simulationManager.pan(by: SIMD2<Float>(0.01 / simulationManager.zoomLevel, 0))
         }
         if panningUp {
-            simulationManager.pan(by: simd_float2(0, 0.01 / simulationManager.zoomLevel))
+            simulationManager.pan(by: SIMD2<Float>(0, 0.01 / simulationManager.zoomLevel))
         }
         if panningDown {
-            simulationManager.pan(by: simd_float2(0, -0.01 / simulationManager.zoomLevel))
+            simulationManager.pan(by: SIMD2<Float>(0, -0.01 / simulationManager.zoomLevel))
         }
     }
 }

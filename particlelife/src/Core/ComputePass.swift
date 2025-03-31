@@ -36,15 +36,10 @@ class ComputePass {
         computeEncoder.setBuffer(bufferManager.matrixBuffer, offset: 0, index: 1)
         computeEncoder.setBuffer(bufferManager.speciesCountBuffer, offset: 0, index: 2)
         computeEncoder.setBuffer(bufferManager.deltaTimeBuffer, offset: 0, index: 3)
-        computeEncoder.setBuffer(bufferManager.maxDistanceBuffer, offset: 0, index: 4)
-        computeEncoder.setBuffer(bufferManager.minDistanceBuffer, offset: 0, index: 5)
-        computeEncoder.setBuffer(bufferManager.betaBuffer, offset: 0, index: 6)
-        computeEncoder.setBuffer(bufferManager.frictionBuffer, offset: 0, index: 7)
-        computeEncoder.setBuffer(bufferManager.repulsionBuffer, offset: 0, index: 8)
-        computeEncoder.setBuffer(bufferManager.worldSizeBuffer, offset: 0, index: 9)
-        computeEncoder.setBuffer(bufferManager.clickBuffer, offset: 0, index: 10)
-        computeEncoder.setBuffer(bufferManager.frameCountBuffer, offset: 0, index: 11)
-        
+        computeEncoder.setBuffer(bufferManager.clickBuffer, offset: 0, index: 4)
+        computeEncoder.setBuffer(bufferManager.frameCountBuffer, offset: 0, index: 5)
+        computeEncoder.setBuffer(bufferManager.settingsBuffer, offset: 0, index: 6)
+
         let threadGroupSize = 256
         let particleCount = SimulationSettings.shared.selectedPreset.particleCount.rawValue
         let threadGroups = (particleCount + threadGroupSize - 1) / threadGroupSize

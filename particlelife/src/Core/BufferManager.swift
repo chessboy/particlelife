@@ -8,34 +8,12 @@
 import Metal
 import simd
 
-struct ClickData {
-    var position: SIMD2<Float>
-    var force: Float
-}
-
 class BufferManager {
     static let shared = BufferManager()
     
     var device: MTLDevice
     var commandQueue: MTLCommandQueue
     
-    // UI Buffers
-    private(set) var deltaTimeBuffer: MTLBuffer?
-    private(set) var cameraBuffer: MTLBuffer?
-    private(set) var zoomBuffer: MTLBuffer?
-    private(set) var clickBuffer: MTLBuffer?
-    private(set) var windowSizeBuffer: MTLBuffer?
-    private(set) var frameCountBuffer: MTLBuffer?
-
-    // Physics Settings Buffers
-    private(set) var maxDistanceBuffer: MTLBuffer?
-    private(set) var minDistanceBuffer: MTLBuffer?
-    private(set) var betaBuffer: MTLBuffer?
-    private(set) var frictionBuffer: MTLBuffer?
-    private(set) var repulsionBuffer: MTLBuffer?
-    private(set) var pointSizeBuffer: MTLBuffer?
-    private(set) var worldSizeBuffer: MTLBuffer?
-
     // Particle & Matrix Buffers
     private(set) var particleBuffer: MTLBuffer?
     private(set) var matrixBuffer: MTLBuffer?
@@ -43,20 +21,22 @@ class BufferManager {
     private var matrixBuffers: [MTLBuffer?] = [nil, nil]  // Double buffering for the matrix
     private var activeBufferIndex = 0  // Tracks which buffer is in use
 
+    // UI Buffers
+    private(set) var deltaTimeBuffer: MTLBuffer?
+    private(set) var frameCountBuffer: MTLBuffer?
     private(set) var speciesCountBuffer: MTLBuffer?
-    private(set) var speciesColorOffsetBuffer: MTLBuffer?
-    private(set) var paletteIndexBuffer: MTLBuffer?
-    private(set) var colorEffectIndexBuffer: MTLBuffer?
+    private(set) var clickBuffer: MTLBuffer?
+    private(set) var settingsBuffer: MTLBuffer?
+    private(set) var viewSettingsBuffer: MTLBuffer?
 
-    // prevent unecessary buffer copy if nothing's changed
-    private var lastPhysicsSettings: PhysicsSettingsSnapshot?
+    // Settings Model
+    private var lastSettings: ParticleSettings? // Prevent unecessary buffer copy if nothing's changed
+    private var viewSettings: ViewSettings = ViewSettings()
 
     var areBuffersInitialized: Bool {
         let requiredBuffers: [MTLBuffer?] = [
             frameCountBuffer, particleBuffer, matrixBuffer, speciesCountBuffer, deltaTimeBuffer,
-            maxDistanceBuffer, minDistanceBuffer, betaBuffer, frictionBuffer, repulsionBuffer,
-            pointSizeBuffer, worldSizeBuffer, windowSizeBuffer, cameraBuffer, zoomBuffer,
-            clickBuffer, speciesColorOffsetBuffer, paletteIndexBuffer, colorEffectIndexBuffer
+            settingsBuffer, viewSettingsBuffer, clickBuffer
         ]
         return requiredBuffers.allSatisfy { $0 != nil }
     }
@@ -72,38 +52,96 @@ class BufferManager {
         initializeBuffers()
     }
     
-    // Initialize all buffers
-    private func initializeBuffers() {
-        frameCountBuffer = createBuffer(type: UInt32.self)
-        deltaTimeBuffer = createBuffer(type: Float.self)
-        maxDistanceBuffer = createBuffer(type: Float.self)
-        minDistanceBuffer = createBuffer(type: Float.self)
-        betaBuffer = createBuffer(type: Float.self)
-        frictionBuffer = createBuffer(type: Float.self)
-        repulsionBuffer = createBuffer(type: Float.self)
-        cameraBuffer = createBuffer(type: SIMD2<Float>.self)
-        zoomBuffer = createBuffer(type: Float.self)
-        pointSizeBuffer = createBuffer(type: Float.self)
-        speciesColorOffsetBuffer = createBuffer(type: UInt32.self)
-        paletteIndexBuffer = createBuffer(type: UInt32.self)
-        colorEffectIndexBuffer = createBuffer(type: UInt32.self)
-        worldSizeBuffer = createBuffer(type: Float.self)
-        windowSizeBuffer = createBuffer(type: SIMD2<Float>.self)
-        speciesCountBuffer = createBuffer(type: UInt32.self)
-        initializeClickBuffer()
-    }
-    
+}
+
+// Initialize all buffers
+extension BufferManager {
     private func createBuffer<T>(type: T.Type, count: Int = 1) -> MTLBuffer? {
         return device.makeBuffer(length: MemoryLayout<T>.stride * count, options: [])
     }
 
-    func initializeClickBuffer() {
-        guard clickBuffer == nil else { return }
+    private func initializeBuffers() {
+        speciesCountBuffer = createBuffer(type: UInt32.self)
+        frameCountBuffer = createBuffer(type: UInt32.self)
+        deltaTimeBuffer = createBuffer(type: Float.self)
+        viewSettingsBuffer = createBuffer(type: ViewSettings.self)
+        settingsBuffer = createBuffer(type: ParticleSettings.self)
+        
         clickBuffer = createBuffer(type: ClickData.self)
-        var defaultClickData = ClickData(position: SIMD2<Float>(0, 0), force: 0.0)
-        clickBuffer?.contents().copyMemory(from: &defaultClickData, byteCount: MemoryLayout<ClickData>.stride)
+        clearClickBuffer()
+    }
+}
+
+// Buffer Updates
+extension BufferManager {
+    
+    func updateSpeciesCountBuffer(speciesCount: Int) {
+        updateBuffer(speciesCountBuffer, with: speciesCount)
     }
         
+    func updateDeltaTimeBuffer(dt: inout Float) {
+        updateBuffer(deltaTimeBuffer, with: dt)
+    }
+        
+    func updateFrameCountBuffer(frameCount: UInt32) {
+        updateBuffer(frameCountBuffer, with: frameCount)
+    }
+
+    func clearClickBuffer() {
+        updateClickBuffer(clickPosition: .zero, force: .zero)
+    }
+    
+    func updateClickBuffer(clickPosition: SIMD2<Float>, force: Float) {
+        updateBuffer(clickBuffer, with: ClickData(position: clickPosition, force: force))
+    }
+    
+    func updateCameraBuffer(cameraPosition: SIMD2<Float>) {
+        viewSettings.cameraPosition = cameraPosition
+        updateBuffer(viewSettingsBuffer, with: viewSettings)
+    }
+    
+    func updateZoomBuffer(zoomLevel: Float) {
+        viewSettings.zoomLevel = zoomLevel
+        updateBuffer(viewSettingsBuffer, with: viewSettings)
+    }
+    
+    func updateWindowSizeBuffer(width: Float, height: Float) {
+        viewSettings.windowSize = SIMD2<Float>(width, height)
+        updateBuffer(viewSettingsBuffer, with: viewSettings)
+    }
+    
+    func updatePhysicsBuffers() {
+        let settings = SimulationSettings.shared
+        let currentSettings = ParticleSettings(
+            maxDistance: settings.maxDistance.value,
+            minDistance: settings.minDistance.value,
+            beta: settings.beta.value,
+            friction: settings.friction.value,
+            repulsion: settings.repulsion.value,
+            pointSize: settings.pointSize.value,
+            worldSize: settings.worldSize.value,
+            speciesColorOffset: UInt32(settings.speciesColorOffset),
+            paletteIndex: UInt32(settings.paletteIndex),
+            colorEffect: UInt32(settings.colorEffect.rawValue)
+        )
+        
+        if let last = lastSettings, last == currentSettings {
+            return // No change, skip update
+        }
+        
+        lastSettings = currentSettings
+        
+        //Logger.log("Updated settings", level: .debug, showCaller: true)
+        
+        updateBuffer(settingsBuffer, with: currentSettings)
+    }
+    
+    func updateMatrixBuffer(matrix: [[Float]]) {
+        guard let matrixBuffer = matrixBuffer else { return }
+        let flatMatrix = flattenMatrix(matrix)
+        matrixBuffer.contents().copyMemory(from: flatMatrix, byteCount: flatMatrix.count * MemoryLayout<Float>.stride)
+    }
+
     func updateParticleBuffers(particles: [Particle], matrix: [[Float]], speciesCount: Int) {
         let particleSize = MemoryLayout<Particle>.stride * particles.count
         let flatMatrix = flattenMatrix(matrix)
@@ -140,84 +178,6 @@ class BufferManager {
     }
 }
 
-// Buffer Updates
-extension BufferManager {
-    
-    func updateClickBuffer(clickPosition: SIMD2<Float>, force: Float, clear: Bool = false) {
-        let clickData = clear ?
-            ClickData(position: SIMD2<Float>(0, 0), force: 0.0) :
-            ClickData(position: clickPosition, force: force)
-        
-        updateBuffer(clickBuffer, with: clickData)
-    }
-
-    func updateFrameCountBuffer(frameCount: UInt32) {
-        updateBuffer(frameCountBuffer, with: frameCount)
-    }
-
-    func updateCameraBuffer(cameraPosition: SIMD2<Float>) {
-        updateBuffer(cameraBuffer, with: cameraPosition)
-    }
-    
-    func updateZoomBuffer(zoomLevel: Float) {
-        updateBuffer(zoomBuffer, with: zoomLevel)
-    }
-    
-    func updatePhysicsBuffers() {
-        let settings = SimulationSettings.shared
-        let currentSettings = PhysicsSettingsSnapshot(
-            maxDistance: settings.maxDistance.value,
-            minDistance: settings.minDistance.value,
-            beta: settings.beta.value,
-            friction: settings.friction.value,
-            repulsion: settings.repulsion.value,
-            pointSize: settings.pointSize.value,
-            worldSize: settings.worldSize.value,
-            speciesColorOffset: settings.speciesColorOffset,
-            paletteIndex: settings.paletteIndex,
-            colorEffect: settings.colorEffect
-        )
-        
-        if let last = lastPhysicsSettings, last.isEqual(to: currentSettings) {
-            return // No change, skip update
-        }
-        
-        lastPhysicsSettings = currentSettings
-        
-        //Logger.log("Updated physics buffers", level: .debug, showCaller: true)
-        
-        updateBuffer(maxDistanceBuffer, with: settings.maxDistance)
-        updateBuffer(minDistanceBuffer, with: settings.minDistance)
-        updateBuffer(betaBuffer, with: settings.beta)
-        updateBuffer(frictionBuffer, with: settings.friction)
-        updateBuffer(repulsionBuffer, with: settings.repulsion)
-        updateBuffer(pointSizeBuffer, with: settings.pointSize)
-        updateBuffer(worldSizeBuffer, with: settings.worldSize)
-        updateBuffer(speciesColorOffsetBuffer, with: settings.speciesColorOffset)
-        updateBuffer(paletteIndexBuffer, with: settings.paletteIndex)
-        updateBuffer(colorEffectIndexBuffer, with: settings.colorEffect.id)
-    }
-            
-    func updateSpeciesCountBuffer(speciesCount: Int) {
-        updateBuffer(speciesCountBuffer, with: speciesCount)
-    }
-        
-    func updateDeltaTimeBuffer(dt: inout Float) {
-        updateBuffer(deltaTimeBuffer, with: dt)
-    }
-    
-    func updateWindowSizeBuffer(width: Float, height: Float) {
-        let windowSize = SIMD2<Float>(width, height)
-        updateBuffer(windowSizeBuffer, with: windowSize)
-    }
-    
-    func updateMatrixBuffer(matrix: [[Float]]) {
-        guard let matrixBuffer = matrixBuffer else { return }
-        let flatMatrix = flattenMatrix(matrix)
-        matrixBuffer.contents().copyMemory(from: flatMatrix, byteCount: flatMatrix.count * MemoryLayout<Float>.stride)
-    }
-}
-
 extension BufferManager {
     
     private func flattenMatrix(_ matrix: [[Float]]) -> [Float] {
@@ -230,32 +190,5 @@ extension BufferManager {
             guard let baseAddress = rawBuffer.baseAddress else { return }
             memcpy(buffer.contents(), baseAddress, MemoryLayout<T>.stride)
         }
-    }
-}
-
-struct PhysicsSettingsSnapshot {
-    let maxDistance: Float
-    let minDistance: Float
-    let beta: Float
-    let friction: Float
-    let repulsion: Float
-    let pointSize: Float
-    let worldSize: Float
-    let speciesColorOffset: Int
-    let paletteIndex: Int
-    let colorEffect: ColorEffect
-
-    /// Compare two snapshots
-    func isEqual(to other: PhysicsSettingsSnapshot) -> Bool {
-        return maxDistance == other.maxDistance &&
-        minDistance == other.minDistance &&
-        beta == other.beta &&
-        friction == other.friction &&
-        repulsion == other.repulsion &&
-        pointSize == other.pointSize &&
-        worldSize == other.worldSize &&
-        speciesColorOffset == other.speciesColorOffset &&
-        paletteIndex == other.paletteIndex &&
-        colorEffect == other.colorEffect
     }
 }

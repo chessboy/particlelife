@@ -39,14 +39,9 @@ kernel void compute_particle_movement(
     constant float* interactionMatrix [[buffer(1)]],
     constant uint* speciesCount [[buffer(2)]],
     constant float* dt [[buffer(3)]],
-    constant float* maxDistance [[buffer(4)]],
-    constant float* minDistance [[buffer(5)]],
-    constant float* beta [[buffer(6)]],
-    constant float* friction [[buffer(7)]],
-    constant float* repulsion [[buffer(8)]],
-    constant float* worldSize [[buffer(9)]],
-    constant ClickData* clickData [[buffer(10)]],
-    constant uint &frameCount [[buffer(11)]],
+    constant ClickData* clickData [[buffer(4)]],
+    constant uint &frameCount [[buffer(5)]],
+    constant ParticleSettings &settings [[buffer(6)]],
     uint id [[thread_position_in_grid]],
     uint totalParticles [[threads_per_grid]]) {
 
@@ -54,12 +49,13 @@ kernel void compute_particle_movement(
 
     // Load values once (avoid redundant memory access)
     const int c_speciesCount = *speciesCount;
-    const float c_maxDistance = *maxDistance;
-    const float c_minDistance = *minDistance;
-    const float c_worldSize = *worldSize;
-    const float c_repulsion = *repulsion;
-    const float c_beta = *beta;
     const float c_dt = *dt;
+    const float c_maxDistance = settings.maxDistance;
+    const float c_minDistance = settings.minDistance;
+    const float c_worldSize = settings.worldSize;
+    const float c_repulsion = settings.repulsion;
+    const float c_beta = settings.beta;
+    const float c_friction = settings.friction;
 
     float2 force = float2(0.0, 0.0);
     Particle selfParticle = particles[id];
@@ -145,7 +141,7 @@ kernel void compute_particle_movement(
     }
 
         // Precompute friction factor
-        const float frictionFactor = 1.0 - (*friction * 1.1);
+        const float frictionFactor = 1.0 - (c_friction * 1.1);
 
         // Apply final force
         selfParticle.velocity += force * 0.175;

@@ -46,17 +46,12 @@ class RenderPass {
         
         renderEncoder.setRenderPipelineState(renderPipelineState)
         renderEncoder.setVertexBuffer(bufferManager.particleBuffer, offset: 0, index: 0)
-        renderEncoder.setVertexBuffer(bufferManager.cameraBuffer, offset: 0, index: 1)
-        renderEncoder.setVertexBuffer(bufferManager.zoomBuffer, offset: 0, index: 2)
-        renderEncoder.setVertexBuffer(bufferManager.pointSizeBuffer, offset: 0, index: 3)
-        renderEncoder.setVertexBuffer(bufferManager.speciesColorOffsetBuffer, offset: 0, index: 4)
-        renderEncoder.setVertexBuffer(bufferManager.paletteIndexBuffer, offset: 0, index: 5)
-        renderEncoder.setVertexBuffer(bufferManager.windowSizeBuffer, offset: 0, index: 6)
-        renderEncoder.setVertexBuffer(bufferManager.frameCountBuffer, offset: 0, index: 7)
-        renderEncoder.setVertexBuffer(bufferManager.colorEffectIndexBuffer, offset: 0, index: 8)
-        renderEncoder.setVertexBuffer(bufferManager.speciesCountBuffer, offset: 0, index: 9)
-        
-        renderEncoder.setFragmentBuffer(bufferManager.colorEffectIndexBuffer, offset: 0, index: 0)
+        renderEncoder.setVertexBuffer(bufferManager.frameCountBuffer, offset: 0, index: 1)
+        renderEncoder.setVertexBuffer(bufferManager.speciesCountBuffer, offset: 0, index: 2)
+        renderEncoder.setVertexBuffer(bufferManager.settingsBuffer, offset: 0, index: 3)
+        renderEncoder.setVertexBuffer(bufferManager.viewSettingsBuffer, offset: 0, index: 4)
+
+        renderEncoder.setFragmentBuffer(bufferManager.settingsBuffer, offset: 0, index: 0)
         
         let particleCount = SimulationSettings.shared.selectedPreset.particleCount.rawValue
         renderEncoder.drawPrimitives(type: .point, vertexStart: 0, vertexCount: particleCount)

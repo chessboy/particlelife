@@ -122,7 +122,7 @@ extension ParticleGenerator {
                 }
             } while true
             
-            let particle = Particle(position: position, velocity: .zero, species: Int32(speciesAssignments.popLast() ?? 0))
+            let particle = Particle(position: position, velocity: .zero, species: UInt32(speciesAssignments.popLast() ?? 0))
             particles.append(particle)
         }
         return particles
@@ -135,7 +135,7 @@ extension ParticleGenerator {
                 Float.random(in: -1.0...1.0) * scale * 0.5 + 0.5,
                 Float.random(in: -1.0...1.0) * scale * 0.5 + 0.5
             )
-            return Particle(position: position, velocity: .zero, species: Int32(speciesAssignments.popLast() ?? 0))
+            return Particle(position: position, velocity: .zero, species: UInt32(speciesAssignments.popLast() ?? 0))
         }
     }
     
@@ -145,7 +145,7 @@ extension ParticleGenerator {
                 Float.random(in: -1.0...1.0),
                 Float.random(in: -1.0...1.0)
             )
-            return Particle(position: position, velocity: .zero, species: Int32(speciesAssignments.popLast() ?? 0))
+            return Particle(position: position, velocity: .zero, species: UInt32(speciesAssignments.popLast() ?? 0))
         }
     }
 
@@ -154,7 +154,7 @@ extension ParticleGenerator {
             let angle = Float.random(in: 0...2 * .pi)
             let radius = sqrt(Float.random(in: 0...1)) * 0.5
             let position = SIMD2<Float>(cos(angle) * radius, sin(angle) * radius)
-            return Particle(position: position, velocity: .zero, species: Int32(speciesAssignments.popLast() ?? 0))
+            return Particle(position: position, velocity: .zero, species: UInt32(speciesAssignments.popLast() ?? 0))
         }
     }
 
@@ -163,7 +163,7 @@ extension ParticleGenerator {
             let angle = Float.random(in: 0...2 * .pi)
             let radius = Float.random(in: 0...0.5)
             let position = SIMD2<Float>(cos(angle) * radius, sin(angle) * radius)
-            return Particle(position: position, velocity: .zero, species: Int32(speciesAssignments.popLast() ?? 0))
+            return Particle(position: position, velocity: .zero, species: UInt32(speciesAssignments.popLast() ?? 0))
         }
     }
 
@@ -172,7 +172,7 @@ extension ParticleGenerator {
             let angle = Float.random(in: 0...2 * .pi)
             let radius = 0.7 + Float.random(in: -0.02...0.02)
             let position = SIMD2<Float>(cos(angle) * radius, sin(angle) * radius)
-            return Particle(position: position, velocity: .zero, species: Int32(speciesAssignments.popLast() ?? 0))
+            return Particle(position: position, velocity: .zero, species: UInt32(speciesAssignments.popLast() ?? 0))
         }
     }
 
@@ -181,13 +181,13 @@ extension ParticleGenerator {
             let angle = (0.3 * Float.random(in: -1...1) + Float(i % speciesCount)) / Float(speciesCount) * 2 * .pi
             let radius = 0.7 + Float.random(in: -0.02...0.02)
             let position = SIMD2<Float>(cos(angle) * radius, sin(angle) * radius)
-            return Particle(position: position, velocity: .zero, species: Int32(i % speciesCount))
+            return Particle(position: position, velocity: .zero, species: UInt32(i % speciesCount))
         }
     }
 
     static func colorBattle(count: Int, speciesCount: Int, speciesAssignments: inout [Int]) -> [Particle] {
         return (0..<count).map { i in
-            let species = Int32(i % speciesCount)
+            let species = UInt32(i % speciesCount)
             let centerAngle = Float(species) / Float(speciesCount) * 2 * .pi
             let centerRadius: Float = 0.5
             let angle = Float.random(in: 0...2 * .pi)
@@ -202,7 +202,7 @@ extension ParticleGenerator {
 
     static func colorWheel(count: Int, speciesCount: Int, speciesAssignments: inout [Int]) -> [Particle] {
         return (0..<count).map { i in
-            let species = Int32(i % speciesCount)
+            let species = UInt32(i % speciesCount)
             let centerAngle = Float(species) / Float(speciesCount) * 2 * .pi
             let centerRadius: Float = 0.3
             let individualRadius: Float = 0.2
@@ -222,7 +222,7 @@ extension ParticleGenerator {
         let spacing = (2.0 - 2.0 * horizontalPadding) / Float(speciesCount)
 
         for _ in 0..<count {
-            let species = Int32(speciesAssignments.popLast() ?? 0)
+            let species = UInt32(speciesAssignments.popLast() ?? 0)
 
             let centerX = -1.0 + horizontalPadding + (Float(species) + 0.5) * spacing
             let xOffset = spacing / 2.0
@@ -246,7 +246,7 @@ extension ParticleGenerator {
                 Float.random(in: -1.0...1.0),
                 Float.random(in: -0.15...0.15)
             )
-            return Particle(position: position, velocity: .zero, species: Int32(speciesAssignments.popLast() ?? 0))
+            return Particle(position: position, velocity: .zero, species: UInt32(speciesAssignments.popLast() ?? 0))
         }
     }
 
@@ -258,7 +258,7 @@ extension ParticleGenerator {
             let spread = 0.5 * min(f, 0.2)
             let radius = 0.9 * f + spread * Float.random(in: -1...1)
             let position = SIMD2<Float>(radius * cos(angle), radius * sin(angle))
-            return Particle(position: position, velocity: .zero, species: Int32(speciesAssignments.popLast() ?? 0))
+            return Particle(position: position, velocity: .zero, species: UInt32(speciesAssignments.popLast() ?? 0))
         }
     }
 
@@ -272,7 +272,7 @@ extension ParticleGenerator {
             let spread = 0.5 * min(f, 0.2)
             let radius = 0.9 * f + spread * Float.random(in: -1...1)
             let position = SIMD2<Float>(radius * cos(angle), radius * sin(angle))
-            return Particle(position: position, velocity: .zero, species: Int32(i % speciesCount))
+            return Particle(position: position, velocity: .zero, species: UInt32(i % speciesCount))
         }
     }
 }

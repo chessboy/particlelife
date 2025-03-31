@@ -9,7 +9,8 @@ import Foundation
 import simd
 
 struct Particle {
-    var position: simd_float2
-    var velocity: simd_float2
-    var species: Int32
+    var position: SIMD2<Float>
+    var velocity: SIMD2<Float>
+    var species: UInt32
+    var _padding: UInt32 = 0
 }
