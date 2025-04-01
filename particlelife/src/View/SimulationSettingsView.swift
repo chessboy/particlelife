@@ -364,7 +364,7 @@ struct PalettePickerView: View {
     private func updateSpeciesColors() {
         ParticleSystem.shared.updateSpeciesColors(
             speciesCount: SimulationSettings.shared.selectedPreset.speciesCount,
-            speciesColorOffset: SimulationSettings.shared.speciesColorOffset,
+            colorOffset: SimulationSettings.shared.colorOffset,
             paletteIndex: SimulationSettings.shared.paletteIndex
         )
     }

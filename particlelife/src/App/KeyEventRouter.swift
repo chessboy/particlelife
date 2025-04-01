@@ -116,9 +116,9 @@ class KeyEventRouter {
         case 30: // ] key
             ParticleSystem.shared.incrementPaletteIndex()
         case 116: // Page Up
-            ParticleSystem.shared.decrementSpeciesColorOffset()
+            ParticleSystem.shared.decrementColorOffset()
         case 121: // Page Down
-            ParticleSystem.shared.incrementSpeciesColorOffset()
+            ParticleSystem.shared.incrementColorOffset()
         case 8: // C key
             ParticleSystem.shared.nextColorEffect(direction: isShiftDown ? -1 : 1)
         case 2: // D key

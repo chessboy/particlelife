@@ -12,13 +12,7 @@ struct Particle {
     float2 position;     // 8 bytes
     float2 velocity;     // 8 bytes
     int species;         // 4 bytes
-    int _padding;        // 4 bytes to make it aligned to 32
-};
-
-struct ClickData {
-    float2 position;     // 8 bytes
-    float force;         // 4 bytes
-    int _padding;        // 4 bytes to make it aligned to 16
+    int _padding;        // 4 bytes → total = 32 bytes
 };
 
 struct PhysicsSettings {
@@ -39,8 +33,14 @@ struct RenderSettings {
 
     float2 windowSize;           // 8 bytes
     float  pointSize;            // 4 bytes
-    uint   speciesColorOffset;   // 4 bytes
+    uint   colorOffset;          // 4 bytes
     uint   paletteIndex;         // 4 bytes
     uint   colorEffect;          // 4 bytes
     float2 _padding2;            // 8 bytes → total = 48 bytes
+};
+
+struct ClickData {
+    float2 position;     // 8 bytes
+    float force;         // 4 bytes
+    int _padding;        // 4 bytes → total = 16 bytes
 };

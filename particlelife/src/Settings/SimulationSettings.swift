@@ -79,9 +79,9 @@ class SimulationSettings: ObservableObject {
         onChange: { newValue in handleWorldSizeChange(newValue) }
     )
     
-    @Published var speciesColorOffset: Int = 0 {
+    @Published var colorOffset: Int = 0 {
         didSet {
-            BufferManager.shared.updateSpeciesColorOffset(speciesColorOffset: speciesColorOffset)
+            BufferManager.shared.updateColorOffset(colorOffset: colorOffset)
         }
     }
     
@@ -97,12 +97,12 @@ class SimulationSettings: ObservableObject {
         }
     }
     
-    func incrementSpeciesColorOffset() {
-        speciesColorOffset = (speciesColorOffset + 1) % ColorPalette.speciesCount
+    func incrementColorOffset() {
+        colorOffset = (colorOffset + 1) % ColorPalette.speciesCount
     }
     
-    func decrementSpeciesColorOffset() {
-        speciesColorOffset = (speciesColorOffset - 1 + ColorPalette.speciesCount) % ColorPalette.speciesCount
+    func decrementColorOffset() {
+        colorOffset = (colorOffset - 1 + ColorPalette.speciesCount) % ColorPalette.speciesCount
     }
     
     func incrementPaletteIndex() {
@@ -169,7 +169,7 @@ extension SimulationSettings {
         repulsion.value = preset.repulsion
         pointSize.value = preset.pointSize
         worldSize.value = preset.worldSize
-        speciesColorOffset = preset.speciesColorOffset
+        colorOffset = preset.colorOffset
         paletteIndex = preset.paletteIndex
         colorEffect = preset.colorEffect
     }
@@ -193,7 +193,7 @@ extension SimulationSettings {
             worldSize: worldSize.value,
             isBuiltIn: false,
             preservesUISettings: false,
-            speciesColorOffset: speciesColorOffset,
+            colorOffset: colorOffset,
             paletteIndex: paletteIndex,
             colorEffect: colorEffect
         )

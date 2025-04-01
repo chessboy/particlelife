@@ -41,11 +41,11 @@ fragment float4 fragment_main(VertexOut in
 // Species colors are tweaked by blending its color with neighboring colors
 float4 speciesColor(Particle particle, RenderSettings renderSettings, uint frameCount, uint id, int speciesCount) {
     
-    const uint c_speciesColorOffset = renderSettings.speciesColorOffset;
+    const uint c_colorOffset = renderSettings.colorOffset;
     const uint c_paletteIndex = renderSettings.paletteIndex;
     const uint c_colorEffect = renderSettings.colorEffect;
 
-    int adjustedSpecies = ((particle.species % speciesCount) + c_speciesColorOffset) % TOTAL_SPECIES;
+    int adjustedSpecies = ((particle.species % speciesCount) + c_colorOffset) % TOTAL_SPECIES;
     int palette = fast::clamp(c_paletteIndex, 0, int(sizeof(colorPalettes) / sizeof(colorPalettes[0])) - 1);
     
     // Get primary color
@@ -53,18 +53,18 @@ float4 speciesColor(Particle particle, RenderSettings renderSettings, uint frame
 
     if (c_colorEffect == 1) {
         // --- TEXTURE EFFECT ---
-        int neighborOffset = (rand(particle.species, c_speciesColorOffset, id) > 0.5 ? 1 : -1);
+        int neighborOffset = (rand(particle.species, c_colorOffset, id) > 0.5 ? 1 : -1);
         int neighborSpecies = ((particle.species + neighborOffset) % speciesCount + speciesCount) % speciesCount;
-        neighborSpecies = (neighborSpecies + c_speciesColorOffset) % TOTAL_SPECIES;
+        neighborSpecies = (neighborSpecies + c_colorOffset) % TOTAL_SPECIES;
         
         float3 neighborColor = colorPalettes[palette][neighborSpecies];
         
         // Blend base & neighbor between 0 and 20%
-        float blendAmount = rand(id, c_speciesColorOffset, particle.species) * 0.2;
+        float blendAmount = rand(id, c_colorOffset, particle.species) * 0.2;
         baseColor = mix(baseColor, neighborColor, blendAmount);
         
         // Apply subtle brightness variation (from 1.4 to 1.6)
-        float brightnessFactor = 1.4 + rand(id, c_speciesColorOffset, particle.species) * 0.2;
+        float brightnessFactor = 1.4 + rand(id, c_colorOffset, particle.species) * 0.2;
         baseColor *= brightnessFactor;
     }
     else if (c_colorEffect >= 2) {

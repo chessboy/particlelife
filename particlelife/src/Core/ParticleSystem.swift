@@ -45,7 +45,7 @@ class ParticleSystem: ObservableObject {
         
         generateParticles(preset: preset)
         if shouldGenerateNewMatrix {
-            generateNewMatrixAndColors(preset: preset, speciesColorOffset: SimulationSettings.shared.speciesColorOffset, paletteIndex: SimulationSettings.shared.paletteIndex)
+            generateNewMatrixAndColors(preset: preset, colorOffset: SimulationSettings.shared.colorOffset, paletteIndex: SimulationSettings.shared.paletteIndex)
         }
         updatePhysicsAndBuffers(preset: preset)
     }
@@ -68,10 +68,10 @@ class ParticleSystem: ObservableObject {
             // try to preseve the matrix as much as possible
             matrix = MatrixGenerator.generateMatrix(speciesCount: newPreset.speciesCount, type: .custom(matrix))
         } else {
-            generateNewMatrixAndColors(preset: newPreset, speciesColorOffset: SimulationSettings.shared.speciesColorOffset, paletteIndex: SimulationSettings.shared.paletteIndex)
+            generateNewMatrixAndColors(preset: newPreset, colorOffset: SimulationSettings.shared.colorOffset, paletteIndex: SimulationSettings.shared.paletteIndex)
         }
         
-        generateSpeciesColors(speciesCount: newPreset.speciesCount, speciesColorOffset: SimulationSettings.shared.speciesColorOffset, paletteIndex: SimulationSettings.shared.paletteIndex)
+        generateSpeciesColors(speciesCount: newPreset.speciesCount, colorOffset: SimulationSettings.shared.colorOffset, paletteIndex: SimulationSettings.shared.paletteIndex)
         speciesDistribution = SpeciesDistribution(count: newPreset.speciesCount, initialValues: speciesDistribution.toArray())
 
         generateParticles(preset: newPreset)
@@ -136,32 +136,32 @@ class ParticleSystem: ObservableObject {
     }
     
     /// Generates a new matrix and updates colors using species color offset
-    private func generateNewMatrixAndColors(preset: SimulationPreset, speciesColorOffset: Int, paletteIndex: Int) {
+    private func generateNewMatrixAndColors(preset: SimulationPreset, colorOffset: Int, paletteIndex: Int) {
         matrix = MatrixGenerator.generateMatrix(speciesCount: preset.speciesCount, type: preset.matrixType)
-        generateSpeciesColors(speciesCount: preset.speciesCount, speciesColorOffset: speciesColorOffset, paletteIndex: paletteIndex)
+        generateSpeciesColors(speciesCount: preset.speciesCount, colorOffset: colorOffset, paletteIndex: paletteIndex)
         speciesDistribution = SpeciesDistribution(count: preset.speciesCount, initialValues: preset.speciesDistribution.toArray())
     }
     
     /// Generates colors for each species based on the selected palette
-    private func generateSpeciesColors(speciesCount: Int, speciesColorOffset: Int, paletteIndex: Int) {
-        //Logger.log("updateSpeciesColors: speciesCount: \(speciesCount), speciesColorOffset: \(speciesColorOffset), paletteIndex: \(paletteIndex)", level: .debug)
+    private func generateSpeciesColors(speciesCount: Int, colorOffset: Int, paletteIndex: Int) {
+        //Logger.log("updateSpeciesColors: speciesCount: \(speciesCount), colorOffset: \(colorOffset), paletteIndex: \(paletteIndex)", level: .debug)
         
         DispatchQueue.main.async {
             guard let selectedPalette = ColorPalette(rawValue: paletteIndex) else { return }
             let predefinedColors = selectedPalette.colors // Get colors directly from the enum
             
-            self.speciesColors = (0..<speciesCount).map { predefinedColors[($0 + speciesColorOffset) % predefinedColors.count] }
+            self.speciesColors = (0..<speciesCount).map { predefinedColors[($0 + colorOffset) % predefinedColors.count] }
             self.objectWillChange.send()
         }
     }
     
-    func updateSpeciesColors(speciesCount: Int, speciesColorOffset: Int, paletteIndex: Int) {
-        generateSpeciesColors(speciesCount: speciesCount, speciesColorOffset: speciesColorOffset, paletteIndex: paletteIndex)
+    func updateSpeciesColors(speciesCount: Int, colorOffset: Int, paletteIndex: Int) {
+        generateSpeciesColors(speciesCount: speciesCount, colorOffset: colorOffset, paletteIndex: paletteIndex)
     }
     
     private func updateSpeciesColorsFromSettings() {
         updateSpeciesColors(speciesCount: speciesColors.count,
-            speciesColorOffset: SimulationSettings.shared.speciesColorOffset,
+            colorOffset: SimulationSettings.shared.colorOffset,
             paletteIndex: SimulationSettings.shared.paletteIndex
         )
     }
@@ -225,7 +225,7 @@ extension ParticleSystem {
                 newRepulsion: settings.repulsion.value,
                 newPointSize: settings.pointSize.value,
                 newWorldSize: settings.worldSize.value,
-                newSpeciesColorOffset: settings.speciesColorOffset,
+                newColorOffset: settings.colorOffset,
                 newPaletteIndex: settings.paletteIndex,
                 newColorEffect: settings.colorEffect
             )
@@ -238,15 +238,15 @@ extension ParticleSystem {
         respawn(shouldGenerateNewMatrix: true)
     }
     
-    func incrementSpeciesColorOffset() {
-        SimulationSettings.shared.incrementSpeciesColorOffset()
-        UserSettings.shared.set(SimulationSettings.shared.speciesColorOffset, forKey: UserSettingsKeys.speciesColorOffset)
+    func incrementColorOffset() {
+        SimulationSettings.shared.incrementColorOffset()
+        UserSettings.shared.set(SimulationSettings.shared.colorOffset, forKey: UserSettingsKeys.colorOffset)
         updateSpeciesColorsFromSettings()
     }
     
-    func decrementSpeciesColorOffset() {
-        SimulationSettings.shared.decrementSpeciesColorOffset()
-        UserSettings.shared.set(SimulationSettings.shared.speciesColorOffset, forKey: UserSettingsKeys.speciesColorOffset)
+    func decrementColorOffset() {
+        SimulationSettings.shared.decrementColorOffset()
+        UserSettings.shared.set(SimulationSettings.shared.colorOffset, forKey: UserSettingsKeys.colorOffset)
         updateSpeciesColorsFromSettings()
     }
     
@@ -292,7 +292,7 @@ extension ParticleSystem {
             worldSize: settings.worldSize.value,
             isBuiltIn: preset.isBuiltIn,
             preservesUISettings: preset.preservesUISettings,
-            speciesColorOffset: settings.speciesColorOffset,
+            colorOffset: settings.colorOffset,
             paletteIndex: settings.paletteIndex,
             colorEffect: settings.colorEffect
         )

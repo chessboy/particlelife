@@ -15,7 +15,7 @@ struct RenderSettings {
 
     var windowSize: SIMD2<Float> = .zero            // 8 bytes
     var pointSize: Float = 1.0                      // 4 bytes
-    var speciesColorOffset: UInt32 = .zero          // 4 bytes
+    var colorOffset: UInt32 = .zero          // 4 bytes
     var paletteIndex: UInt32 = .zero                // 4 bytes
     var colorEffect: UInt32 = .zero                 // 4 byt    es
     var _padding2: SIMD2<Float> = .zero             // 8 bytes → total = 48 bytes
@@ -27,7 +27,7 @@ extension RenderSettings: Equatable {
                lhs.zoomLevel == rhs.zoomLevel &&
                lhs.windowSize == rhs.windowSize &&
                lhs.pointSize == rhs.pointSize &&
-               lhs.speciesColorOffset == rhs.speciesColorOffset &&
+               lhs.colorOffset == rhs.colorOffset &&
                lhs.paletteIndex == rhs.paletteIndex &&
                lhs.colorEffect == rhs.colorEffect
     }

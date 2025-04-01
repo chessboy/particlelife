@@ -24,7 +24,7 @@ struct SimulationPreset: Identifiable {
     let worldSize: Float
     let isBuiltIn: Bool
     let preservesUISettings: Bool
-    let speciesColorOffset: Int
+    let colorOffset: Int
     let paletteIndex: Int
     let colorEffect: ColorEffect
 
@@ -45,7 +45,7 @@ struct SimulationPreset: Identifiable {
         worldSize: Float,
         isBuiltIn: Bool = true,
         preservesUISettings: Bool,
-        speciesColorOffset: Int,
+        colorOffset: Int,
         paletteIndex: Int,
         colorEffect: ColorEffect
     ) {
@@ -65,7 +65,7 @@ struct SimulationPreset: Identifiable {
         self.worldSize = worldSize
         self.isBuiltIn = isBuiltIn
         self.preservesUISettings = preservesUISettings
-        self.speciesColorOffset = speciesColorOffset
+        self.colorOffset = colorOffset
         self.paletteIndex = paletteIndex
         self.colorEffect = colorEffect
     }
@@ -93,7 +93,7 @@ extension SimulationPreset: Hashable {
         lhs.worldSize == rhs.worldSize &&
         lhs.isBuiltIn == rhs.isBuiltIn &&
         lhs.preservesUISettings == rhs.preservesUISettings &&
-        lhs.speciesColorOffset == rhs.speciesColorOffset &&
+        lhs.colorOffset == rhs.colorOffset &&
         lhs.paletteIndex == rhs.paletteIndex &&
         lhs.colorEffect == rhs.colorEffect
     }
@@ -105,7 +105,7 @@ extension SimulationPreset: Codable {
         case id, name, speciesCount, speciesDistribution, particleCount, matrixType, distributionType
         case maxDistance, minDistance, beta, friction, repulsion
         case pointSize, worldSize, isBuiltIn, preservesUISettings
-        case speciesColorOffset, paletteIndex, colorEffect
+        case colorOffset, paletteIndex, colorEffect
     }
 
     /// Custom decoding to handle missing fields
@@ -133,7 +133,7 @@ extension SimulationPreset: Codable {
         worldSize = try container.decode(Float.self, forKey: .worldSize)
         isBuiltIn = try container.decode(Bool.self, forKey: .isBuiltIn)
         preservesUISettings = try container.decode(Bool.self, forKey: .preservesUISettings)
-        speciesColorOffset = try container.decode(Int.self, forKey: .speciesColorOffset)
+        colorOffset = try container.decode(Int.self, forKey: .colorOffset)
         paletteIndex = try container.decode(Int.self, forKey: .paletteIndex)
         colorEffect = try container.decode(ColorEffect.self, forKey: .colorEffect)
     }
@@ -157,7 +157,7 @@ extension SimulationPreset: Codable {
         try container.encode(worldSize, forKey: .worldSize)
         try container.encode(isBuiltIn, forKey: .isBuiltIn)
         try container.encode(preservesUISettings, forKey: .preservesUISettings)
-        try container.encode(speciesColorOffset, forKey: .speciesColorOffset)
+        try container.encode(colorOffset, forKey: .colorOffset)
         try container.encode(paletteIndex, forKey: .paletteIndex)
         try container.encode(colorEffect, forKey: .colorEffect)
     }
@@ -178,7 +178,7 @@ extension SimulationPreset {
             ├─ Point Size: \(pointSize), World Size: \(worldSize)
             ├─ Built-in: \(isBuiltIn)
             ├─ Preserve UI Settings: \(preservesUISettings)
-            ├─ Species Color Offset: \(speciesColorOffset)
+            ├─ Species Color Offset: \(colorOffset)
             ├─ Palette Index: \(paletteIndex)
             └─ Color Effect: \(colorEffect)
             """
@@ -212,7 +212,7 @@ extension SimulationPreset {
         newWorldSize: Float? = nil,
         newIsBuiltIn: Bool? = nil,
         newPreservesUISettings: Bool? = nil,
-        newSpeciesColorOffset: Int? = nil,
+        newColorOffset: Int? = nil,
         newPaletteIndex: Int? = nil,
         newColorEffect: ColorEffect? = nil
     ) -> SimulationPreset {
@@ -233,7 +233,7 @@ extension SimulationPreset {
         let updatedWorldSize = newWorldSize ?? self.worldSize
         let updatedIsBuiltIn = newIsBuiltIn ?? self.isBuiltIn
         let updatedPreservesUISettings = newPreservesUISettings ?? self.preservesUISettings
-        let updatedSpeciesColorOffset = newSpeciesColorOffset ?? self.speciesColorOffset
+        let updatedColorOffset = newColorOffset ?? self.colorOffset
         let updatedPaletteIndex = newPaletteIndex ?? self.paletteIndex
         let updatedColorEffect = newColorEffect ?? self.colorEffect
         
@@ -259,7 +259,7 @@ extension SimulationPreset {
             worldSize: updatedWorldSize,
             isBuiltIn: updatedIsBuiltIn,
             preservesUISettings: updatedPreservesUISettings,
-            speciesColorOffset: updatedSpeciesColorOffset,
+            colorOffset: updatedColorOffset,
             paletteIndex: updatedPaletteIndex,
             colorEffect: updatedColorEffect
         )

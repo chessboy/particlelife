@@ -12,7 +12,7 @@ let windowMinHeight: CGFloat = 1050
 
 struct UserSettingsKeys {
     static let colorPaletteIndex = "colorPaletteIndex"
-    static let speciesColorOffset = "speciesColorOffset"
+    static let colorOffset = "colorOffset"
     static let showingPhysicsPane = "showingPhysicsPane"
     static let matrixValueSliderStep = "matrixValueSliderStep"
 }

@@ -115,8 +115,8 @@ extension BufferManager {
         updateBuffer(renderSettingsBuffer, with: renderSettings)
     }
 
-    func updateSpeciesColorOffset(speciesColorOffset: Int) {
-        renderSettings.speciesColorOffset = UInt32(speciesColorOffset)
+    func updateColorOffset(colorOffset: Int) {
+        renderSettings.colorOffset = UInt32(colorOffset)
         updateBuffer(renderSettingsBuffer, with: renderSettings)
     }
     

@@ -208,9 +208,9 @@ struct MatrixGrid: View {
                             .onTapGesture {
                                 if !simulationManager.isPaused {
                                     if index == 0 {
-                                        ParticleSystem.shared.incrementSpeciesColorOffset()
+                                        ParticleSystem.shared.incrementColorOffset()
                                     } else if index == speciesColors.count - 1 {
-                                        ParticleSystem.shared.decrementSpeciesColorOffset()
+                                        ParticleSystem.shared.decrementColorOffset()
                                     }
                                 }
                             }
