@@ -26,14 +26,14 @@ fragment float4 fragment_main(VertexOut in
     
     float2 coord = pointCoord - 0.5;
     float distSquared = dot(coord, coord);
-
+    
     // Use colorEffectIndex to modify behavior
     float alpha = 1.0 - smoothstep(0.2, 0.25, distSquared);  // Default smooth transition
-
+    
     if (renderSettings.colorEffect >= 1) {
         alpha *= 0.75;
         return float4(in.color.rgb * alpha * 1.25, alpha);
-   }
+    }
     
     return float4(in.color.rgb, alpha);
 }
@@ -44,13 +44,13 @@ float4 speciesColor(Particle particle, RenderSettings renderSettings, uint frame
     const uint c_colorOffset = renderSettings.colorOffset;
     const uint c_paletteIndex = renderSettings.paletteIndex;
     const uint c_colorEffect = renderSettings.colorEffect;
-
+    
     int adjustedSpecies = ((particle.species % speciesCount) + c_colorOffset) % TOTAL_SPECIES;
     int palette = fast::clamp(c_paletteIndex, 0, int(sizeof(colorPalettes) / sizeof(colorPalettes[0])) - 1);
     
     // Get primary color
     float3 baseColor = colorPalettes[palette][adjustedSpecies];
-
+    
     if (c_colorEffect == 1) {
         // --- TEXTURE EFFECT ---
         int neighborOffset = (rand(particle.species, c_colorOffset, id) > 0.5 ? 1 : -1);
@@ -70,7 +70,7 @@ float4 speciesColor(Particle particle, RenderSettings renderSettings, uint frame
     else if (c_colorEffect >= 2) {
         float speed = length(particle.velocity); // Compute speed magnitude
         float speedFactor = fast::clamp(speed * 2.0, 0.0, 1.0); // Normalize speed to [0,1]
-
+        
         if (c_colorEffect == 2) {
             // --- VELOCITY-BASED COLOR ---
             // Brightness scaling of base color (white at high speed)
@@ -82,7 +82,7 @@ float4 speciesColor(Particle particle, RenderSettings renderSettings, uint frame
             baseColor = float3(mix(0.2, 1.0, speedFactor));
         }
     }
-        
+    
     // --- FADE-IN EFFECT ---
     const float fadeFactor = saturate(frameCount / FADE_IN_FRAMES);
     const float adjustedFactor = max(fadeFactor, 0.1);
@@ -95,32 +95,32 @@ vertex VertexOut vertex_main(const device Particle* particles [[buffer(0)]],
                              constant uint &speciesCount [[buffer(2)]],
                              constant RenderSettings &renderSettings [[buffer(3)]],
                              uint id [[vertex_id]]
-) {
-
+                             ) {
+    
     VertexOut out;
-
+    
     // Load values once (avoid redundant memory access)
     const float2 c_cameraPosition = renderSettings.cameraPosition;
     const float c_zoom = renderSettings.zoomLevel;
     const float2 c_windowSize = renderSettings.windowSize;
     const float c_pointSize = renderSettings.pointSize;
-
+    
     // Compute world position in normalized space
     float2 worldPosition = particles[id].position - c_cameraPosition;
     worldPosition *= c_zoom;
     worldPosition.x /= ASPECT_RATIO;
-
+    
     // Scale point size dynamically with window size (and keep zoom & user size adjustments)
     const float scaleFactor = c_windowSize.y / 3000.0;
     float scaledPointSize = c_pointSize * c_zoom * scaleFactor;
     scaledPointSize = fast::clamp(scaledPointSize, 2.0, 200.0);
-
+    
     // Assign outputs
     out.position = float4(worldPosition, 0.0, 1.0);
     out.pointSize = scaledPointSize;
-
+    
     // Compute color using species mapping
-     out.color = speciesColor(particles[id], renderSettings, frameCount, id, speciesCount);
+    out.color = speciesColor(particles[id], renderSettings, frameCount, id, speciesCount);
     
     return out;
 }
