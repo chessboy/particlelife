@@ -27,16 +27,16 @@ class BufferManager {
     private(set) var speciesCountBuffer: MTLBuffer?
     private(set) var clickBuffer: MTLBuffer?
     private(set) var settingsBuffer: MTLBuffer?
-    private(set) var viewSettingsBuffer: MTLBuffer?
+    private(set) var renderSettingsBuffer: MTLBuffer?
 
     // Settings Model
-    private var lastSettings: ParticleSettings? // Prevent unecessary buffer copy if nothing's changed
-    private var viewSettings: ViewSettings = ViewSettings()
+    private var lastSettings: PhysicsSettings? // Prevent unecessary buffer copy if nothing's changed
+    private var renderSettings: RenderSettings = RenderSettings()
 
     var areBuffersInitialized: Bool {
         let requiredBuffers: [MTLBuffer?] = [
             frameCountBuffer, particleBuffer, matrixBuffer, speciesCountBuffer, deltaTimeBuffer,
-            settingsBuffer, viewSettingsBuffer, clickBuffer
+            settingsBuffer, renderSettingsBuffer, clickBuffer
         ]
         return requiredBuffers.allSatisfy { $0 != nil }
     }
@@ -64,8 +64,8 @@ extension BufferManager {
         speciesCountBuffer = createBuffer(type: UInt32.self)
         frameCountBuffer = createBuffer(type: UInt32.self)
         deltaTimeBuffer = createBuffer(type: Float.self)
-        viewSettingsBuffer = createBuffer(type: ViewSettings.self)
-        settingsBuffer = createBuffer(type: ParticleSettings.self)
+        renderSettingsBuffer = createBuffer(type: RenderSettings.self)
+        settingsBuffer = createBuffer(type: PhysicsSettings.self)
         
         clickBuffer = createBuffer(type: ClickData.self)
         clearClickBuffer()
@@ -96,43 +96,43 @@ extension BufferManager {
     }
     
     func updateCameraBuffer(cameraPosition: SIMD2<Float>) {
-        viewSettings.cameraPosition = cameraPosition
-        updateBuffer(viewSettingsBuffer, with: viewSettings)
+        renderSettings.cameraPosition = cameraPosition
+        updateBuffer(renderSettingsBuffer, with: renderSettings)
     }
     
     func updateZoomBuffer(zoomLevel: Float) {
-        viewSettings.zoomLevel = zoomLevel
-        updateBuffer(viewSettingsBuffer, with: viewSettings)
+        renderSettings.zoomLevel = zoomLevel
+        updateBuffer(renderSettingsBuffer, with: renderSettings)
     }
     
     func updateWindowSizeBuffer(width: Float, height: Float) {
-        viewSettings.windowSize = SIMD2<Float>(width, height)
-        updateBuffer(viewSettingsBuffer, with: viewSettings)
+        renderSettings.windowSize = SIMD2<Float>(width, height)
+        updateBuffer(renderSettingsBuffer, with: renderSettings)
     }
     
     func updatePointSize(pointSize: Float) {
-        viewSettings.pointSize = pointSize
-        updateBuffer(viewSettingsBuffer, with: viewSettings)
+        renderSettings.pointSize = pointSize
+        updateBuffer(renderSettingsBuffer, with: renderSettings)
     }
 
     func updateSpeciesColorOffset(speciesColorOffset: Int) {
-        viewSettings.speciesColorOffset = UInt32(speciesColorOffset)
-        updateBuffer(viewSettingsBuffer, with: viewSettings)
+        renderSettings.speciesColorOffset = UInt32(speciesColorOffset)
+        updateBuffer(renderSettingsBuffer, with: renderSettings)
     }
     
     func updatePaletteIndex(paletteIndex: Int) {
-        viewSettings.paletteIndex = UInt32(paletteIndex)
-        updateBuffer(viewSettingsBuffer, with: viewSettings)
+        renderSettings.paletteIndex = UInt32(paletteIndex)
+        updateBuffer(renderSettingsBuffer, with: renderSettings)
     }
 
     func updateColorEffect(colorEffect: ColorEffect) {
-        viewSettings.colorEffect = colorEffect.rawValue
-        updateBuffer(viewSettingsBuffer, with: viewSettings)
+        renderSettings.colorEffect = colorEffect.rawValue
+        updateBuffer(renderSettingsBuffer, with: renderSettings)
     }
     
     func updatePhysicsBuffers() {
         let settings = SimulationSettings.shared
-        let currentSettings = ParticleSettings(
+        let currentSettings = PhysicsSettings(
             maxDistance: settings.maxDistance.value,
             minDistance: settings.minDistance.value,
             beta: settings.beta.value,

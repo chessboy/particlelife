@@ -21,7 +21,7 @@ struct ClickData {
     int _padding;        // 4 bytes to make it aligned to 16
 };
 
-struct ParticleSettings {
+struct PhysicsSettings {
     float maxDistance;           // 4 bytes
     float minDistance;           // 4 bytes
     float beta;                  // 4 bytes
@@ -32,7 +32,7 @@ struct ParticleSettings {
     float2 _padding1;            // 8 bytes → total = 32 bytes
 };
 
-struct ViewSettings {
+struct RenderSettings {
     float2 cameraPosition;       // 8 bytes
     float  zoomLevel;            // 4 bytes
     float  _padding1;            // 4 bytes → align next field

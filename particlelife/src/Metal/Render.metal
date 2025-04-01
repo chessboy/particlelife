@@ -22,7 +22,7 @@ struct VertexOut {
 // draw a particle
 fragment float4 fragment_main(VertexOut in
                               [[stage_in]], float2 pointCoord [[point_coord]],
-                              constant ViewSettings &viewSettings [[buffer(0)]]) {
+                              constant RenderSettings &renderSettings [[buffer(0)]]) {
     
     float2 coord = pointCoord - 0.5;
     float distSquared = dot(coord, coord);
@@ -30,7 +30,7 @@ fragment float4 fragment_main(VertexOut in
     // Use colorEffectIndex to modify behavior
     float alpha = 1.0 - smoothstep(0.2, 0.25, distSquared);  // Default smooth transition
 
-    if (viewSettings.colorEffect >= 1) {
+    if (renderSettings.colorEffect >= 1) {
         alpha *= 0.75;
         return float4(in.color.rgb * alpha * 1.25, alpha);
    }
@@ -39,11 +39,11 @@ fragment float4 fragment_main(VertexOut in
 }
 
 // Species colors are tweaked by blending its color with neighboring colors
-float4 speciesColor(Particle particle, ViewSettings viewSettings, uint frameCount, uint id, int speciesCount) {
+float4 speciesColor(Particle particle, RenderSettings renderSettings, uint frameCount, uint id, int speciesCount) {
     
-    const uint c_speciesColorOffset = viewSettings.speciesColorOffset;
-    const uint c_paletteIndex = viewSettings.paletteIndex;
-    const uint c_colorEffect = viewSettings.colorEffect;
+    const uint c_speciesColorOffset = renderSettings.speciesColorOffset;
+    const uint c_paletteIndex = renderSettings.paletteIndex;
+    const uint c_colorEffect = renderSettings.colorEffect;
 
     int adjustedSpecies = ((particle.species % speciesCount) + c_speciesColorOffset) % TOTAL_SPECIES;
     int palette = fast::clamp(c_paletteIndex, 0, int(sizeof(colorPalettes) / sizeof(colorPalettes[0])) - 1);
@@ -93,17 +93,17 @@ float4 speciesColor(Particle particle, ViewSettings viewSettings, uint frameCoun
 vertex VertexOut vertex_main(const device Particle* particles [[buffer(0)]],
                              constant uint &frameCount [[buffer(1)]],
                              constant uint &speciesCount [[buffer(2)]],
-                             constant ViewSettings &viewSettings [[buffer(3)]],
+                             constant RenderSettings &renderSettings [[buffer(3)]],
                              uint id [[vertex_id]]
 ) {
 
     VertexOut out;
 
     // Load values once (avoid redundant memory access)
-    const float2 c_cameraPosition = viewSettings.cameraPosition;
-    const float c_zoom = viewSettings.zoomLevel;
-    const float2 c_windowSize = viewSettings.windowSize;
-    const float c_pointSize = viewSettings.pointSize;
+    const float2 c_cameraPosition = renderSettings.cameraPosition;
+    const float c_zoom = renderSettings.zoomLevel;
+    const float2 c_windowSize = renderSettings.windowSize;
+    const float c_pointSize = renderSettings.pointSize;
 
     // Compute world position in normalized space
     float2 worldPosition = particles[id].position - c_cameraPosition;
@@ -120,7 +120,7 @@ vertex VertexOut vertex_main(const device Particle* particles [[buffer(0)]],
     out.pointSize = scaledPointSize;
 
     // Compute color using species mapping
-     out.color = speciesColor(particles[id], viewSettings, frameCount, id, speciesCount);
+     out.color = speciesColor(particles[id], renderSettings, frameCount, id, speciesCount);
     
     return out;
 }

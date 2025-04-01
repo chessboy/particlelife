@@ -1,5 +1,5 @@
 //
-//  ViewSettings.swift
+//  RenderSettings.swift
 //  particlelife
 //
 //  Created by Rob Silverman on 3/31/25.
@@ -8,7 +8,7 @@
 import Foundation
 import simd
 
-struct ViewSettings {
+struct RenderSettings {
     var cameraPosition: SIMD2<Float> = .zero        // 8 bytes
     var zoomLevel: Float = 1.0                      // 4 bytes
     var _padding1: Float = .zero                    // 4 bytes → aligns next vec2
@@ -21,8 +21,8 @@ struct ViewSettings {
     var _padding2: SIMD2<Float> = .zero             // 8 bytes → total = 48 bytes
 }
 
-extension ViewSettings: Equatable {
-    static func == (lhs: ViewSettings, rhs: ViewSettings) -> Bool {
+extension RenderSettings: Equatable {
+    static func == (lhs: RenderSettings, rhs: RenderSettings) -> Bool {
         return lhs.cameraPosition == rhs.cameraPosition &&
                lhs.zoomLevel == rhs.zoomLevel &&
                lhs.windowSize == rhs.windowSize &&

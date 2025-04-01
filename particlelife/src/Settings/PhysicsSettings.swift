@@ -8,7 +8,7 @@
 import Foundation
 import simd
 
-struct ParticleSettings {
+struct PhysicsSettings {
     var maxDistance: Float           // 4 bytes
     var minDistance: Float           // 4 bytes
     var beta: Float                  // 4 bytes
@@ -18,8 +18,8 @@ struct ParticleSettings {
     var _padding1: SIMD2<Float> = .zero // 8 bytes → total = 32 bytes
 }
 
-extension ParticleSettings: Equatable {
-    static func == (lhs: ParticleSettings, rhs: ParticleSettings) -> Bool {
+extension PhysicsSettings: Equatable {
+    static func == (lhs: PhysicsSettings, rhs: PhysicsSettings) -> Bool {
         return lhs.maxDistance == rhs.maxDistance &&
                lhs.minDistance == rhs.minDistance &&
                lhs.beta == rhs.beta &&

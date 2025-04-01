@@ -41,7 +41,7 @@ kernel void compute_particle_movement(
     constant float* dt [[buffer(3)]],
     constant ClickData* clickData [[buffer(4)]],
     constant uint &frameCount [[buffer(5)]],
-    constant ParticleSettings &settings [[buffer(6)]],
+    constant PhysicsSettings &settings [[buffer(6)]],
     uint id [[thread_position_in_grid]],
     uint totalParticles [[threads_per_grid]]) {
 
