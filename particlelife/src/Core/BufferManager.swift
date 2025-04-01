@@ -110,6 +110,26 @@ extension BufferManager {
         updateBuffer(viewSettingsBuffer, with: viewSettings)
     }
     
+    func updatePointSize(pointSize: Float) {
+        viewSettings.pointSize = pointSize
+        updateBuffer(viewSettingsBuffer, with: viewSettings)
+    }
+
+    func updateSpeciesColorOffset(speciesColorOffset: Int) {
+        viewSettings.speciesColorOffset = UInt32(speciesColorOffset)
+        updateBuffer(viewSettingsBuffer, with: viewSettings)
+    }
+    
+    func updatePaletteIndex(paletteIndex: Int) {
+        viewSettings.paletteIndex = UInt32(paletteIndex)
+        updateBuffer(viewSettingsBuffer, with: viewSettings)
+    }
+
+    func updateColorEffect(colorEffect: ColorEffect) {
+        viewSettings.colorEffect = colorEffect.rawValue
+        updateBuffer(viewSettingsBuffer, with: viewSettings)
+    }
+    
     func updatePhysicsBuffers() {
         let settings = SimulationSettings.shared
         let currentSettings = ParticleSettings(
@@ -118,11 +138,7 @@ extension BufferManager {
             beta: settings.beta.value,
             friction: settings.friction.value,
             repulsion: settings.repulsion.value,
-            pointSize: settings.pointSize.value,
-            worldSize: settings.worldSize.value,
-            speciesColorOffset: UInt32(settings.speciesColorOffset),
-            paletteIndex: UInt32(settings.paletteIndex),
-            colorEffect: UInt32(settings.colorEffect.rawValue)
+            worldSize: settings.worldSize.value
         )
         
         if let last = lastSettings, last == currentSettings {
@@ -130,9 +146,7 @@ extension BufferManager {
         }
         
         lastSettings = currentSettings
-        
         //Logger.log("Updated settings", level: .debug, showCaller: true)
-        
         updateBuffer(settingsBuffer, with: currentSettings)
     }
     

@@ -81,19 +81,19 @@ class SimulationSettings: ObservableObject {
     
     @Published var speciesColorOffset: Int = 0 {
         didSet {
-            SimulationSettings.shared.scheduleBufferUpdate()
+            BufferManager.shared.updateSpeciesColorOffset(speciesColorOffset: speciesColorOffset)
         }
     }
     
     @Published var paletteIndex: Int = 0 {
         didSet {
-            SimulationSettings.shared.scheduleBufferUpdate()
+            BufferManager.shared.updatePaletteIndex(paletteIndex: paletteIndex)
         }
     }
         
     @Published var colorEffect: ColorEffect = .none {
         didSet {
-            SimulationSettings.shared.scheduleBufferUpdate()
+            BufferManager.shared.updateColorEffect(colorEffect: colorEffect)
         }
     }
     
@@ -127,7 +127,7 @@ extension SimulationSettings {
     private static func handlePointSizeChange(_ newValue: Float) {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { // 50ms debounce
             if shared.pointSize.value == newValue { // Ensure consistency
-                SimulationSettings.shared.scheduleBufferUpdate()
+                BufferManager.shared.updatePointSize(pointSize: newValue)
             }
         }
     }

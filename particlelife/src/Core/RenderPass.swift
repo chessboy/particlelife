@@ -48,10 +48,9 @@ class RenderPass {
         renderEncoder.setVertexBuffer(bufferManager.particleBuffer, offset: 0, index: 0)
         renderEncoder.setVertexBuffer(bufferManager.frameCountBuffer, offset: 0, index: 1)
         renderEncoder.setVertexBuffer(bufferManager.speciesCountBuffer, offset: 0, index: 2)
-        renderEncoder.setVertexBuffer(bufferManager.settingsBuffer, offset: 0, index: 3)
-        renderEncoder.setVertexBuffer(bufferManager.viewSettingsBuffer, offset: 0, index: 4)
+        renderEncoder.setVertexBuffer(bufferManager.viewSettingsBuffer, offset: 0, index: 3)
 
-        renderEncoder.setFragmentBuffer(bufferManager.settingsBuffer, offset: 0, index: 0)
+        renderEncoder.setFragmentBuffer(bufferManager.viewSettingsBuffer, offset: 0, index: 0)
         
         let particleCount = SimulationSettings.shared.selectedPreset.particleCount.rawValue
         renderEncoder.drawPrimitives(type: .point, vertexStart: 0, vertexCount: particleCount)

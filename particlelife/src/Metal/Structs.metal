@@ -28,22 +28,19 @@ struct ParticleSettings {
     float friction;              // 4 bytes
 
     float repulsion;             // 4 bytes
-    float pointSize;             // 4 bytes
     float worldSize;             // 4 bytes
-    float _padding1;             // 4 bytes → align next field
-
-    uint speciesColorOffset;     // 4 bytes
-    uint paletteIndex;           // 4 bytes
-    uint colorEffect;            // 4 bytes
-    uint _padding2;              // 4 bytes → align next field
+    float2 _padding1;            // 8 bytes → total = 32 bytes
 };
 
-// New unified struct for camera + zoom + windowSize
 struct ViewSettings {
-    float2 cameraPosition;   // 8 bytes
-    float  zoomLevel;        // 4 bytes
-    float  _padding1;        // 4 bytes → align next field
+    float2 cameraPosition;       // 8 bytes
+    float  zoomLevel;            // 4 bytes
+    float  _padding1;            // 4 bytes → align next field
 
-    float2 windowSize;       // 8 bytes
-    float2 _padding2;        // 8 bytes → total = 32 bytes
+    float2 windowSize;           // 8 bytes
+    float  pointSize;            // 4 bytes
+    uint   speciesColorOffset;   // 4 bytes
+    uint   paletteIndex;         // 4 bytes
+    uint   colorEffect;          // 4 bytes
+    float2 _padding2;            // 8 bytes → total = 48 bytes
 };
