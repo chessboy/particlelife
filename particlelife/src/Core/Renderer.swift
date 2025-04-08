@@ -70,8 +70,6 @@ class Renderer: NSObject, MTKViewDelegate, ObservableObject {
         
         if let renderPassDescriptor = view.currentRenderPassDescriptor,
            let drawable = view.currentDrawable {
-            renderPassDescriptor.colorAttachments[0].loadAction = .clear
-            renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColor(red: 0.05, green: 0.05, blue: 0.05, alpha: 1.0)
             renderPass?.encode(commandBuffer: commandBuffer,
                                renderPassDescriptor: renderPassDescriptor,
                                drawable: drawable,

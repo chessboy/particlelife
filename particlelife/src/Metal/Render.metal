@@ -22,7 +22,8 @@ struct VertexOut {
 // draw a particle
 fragment float4 fragment_main(VertexOut in
                               [[stage_in]], float2 pointCoord [[point_coord]],
-                              constant RenderSettings &renderSettings [[buffer(0)]]) {
+                              constant RenderSettings &renderSettings [[buffer(0)]]
+                              ) {
     
     float2 coord = pointCoord - 0.5;
     float distSquared = dot(coord, coord);

@@ -504,8 +504,21 @@ struct SimulationSlidersView: View {
     }
     
     private func settingSlider(title: String, setting: Binding<ConfigurableSetting>) -> some View {
-        HStack {
-            Text("\(title):").frame(width: 70, alignment: .trailing)
+        // Create the snapped binding
+        let snappedBinding = Binding<Float>(
+            get: { setting.wrappedValue.value },
+            set: { newValue in
+                var copy = setting.wrappedValue
+                let snapped = (round(newValue / copy.step) * copy.step)
+                    .clamped(to: copy.minValue...copy.maxValue)
+                copy.value = snapped
+                setting.wrappedValue = copy
+            }
+        )
+        
+        return HStack {
+            Text("\(title):")
+                .frame(width: 70, alignment: .trailing)
                 .foregroundColor(labelColor)
             Text("\(setting.wrappedValue.value, specifier: setting.wrappedValue.format)")
                 .font(.system(size: 14, weight: .bold, design: .monospaced))
@@ -514,10 +527,10 @@ struct SimulationSlidersView: View {
                 .onTapGesture {
                     setting.wrappedValue.returnToDefault()
                 }
-            Slider(value: setting.value, in: setting.wrappedValue.min...setting.wrappedValue.max, step: setting.wrappedValue.step)
+            
+            Slider(value: snappedBinding, in: setting.wrappedValue.minValue...setting.wrappedValue.maxValue)
                 .frame(width: 166)
         }
-        
         .padding(.horizontal, 16)
         .disabled(simulationManager.isPaused)
     }

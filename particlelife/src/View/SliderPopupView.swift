@@ -53,6 +53,7 @@ struct SliderPopupView: View {
         return (stepSize == 0.01) ? SFSymbols.Name.stepSize01 : SFSymbols.Name.stepSize05
     }
     
+    
     var body: some View {
         VStack(spacing: 16) {
             // Header
@@ -74,10 +75,19 @@ struct SliderPopupView: View {
             }
             .frame(width: 280) // Ensure alignment
 
+            let snappedBinding = Binding<Float>(
+                get: { value },
+                set: { newValue in
+                    let clamped = max(sliderRange.lowerBound, min(sliderRange.upperBound, newValue))
+                    let rounded = round(clamped / stepSize) * stepSize
+                    value = rounded
+                    onValueChange(value)
+                }
+            )
+            
             // Slider
-            Slider(value: $value, in: sliderRange, step: stepSize)
+            Slider(value: snappedBinding, in: sliderRange.lowerBound...sliderRange.upperBound)
                 .frame(width: 280)
-                .accentColor(.white)
                 .onChange(of: value) { oldValue, newValue in
                     onValueChange(value)
                 }

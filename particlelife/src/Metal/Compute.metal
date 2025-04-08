@@ -97,8 +97,7 @@ kernel void compute_particle_movement(
             
             // Normalize force and apply safely to avoid extreme values
             force += fast::normalize(direction) * forceValue;
-            const float maxForce = 30.0;
-            force = fast::clamp(force, -maxForce, maxForce);
+            force = fast::clamp(force, -MAX_FORCE, MAX_FORCE);
         }
         
         // Apply universal repulsion between any two particles at very close range.
@@ -121,7 +120,7 @@ kernel void compute_particle_movement(
             
             if (distance < effectRadius) {
                 // Generate a uniform random angle in [0, 2π]
-                const float angle = rand(id, 1, 123) * 6.2831853;
+                const float angle = rand(id, 1, 123) * πTimes2;
                 float2 randomDirection = float2(cos(angle), sin(angle));
                 
                 // Compute aspect ratio correction properly

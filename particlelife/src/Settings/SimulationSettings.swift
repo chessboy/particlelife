@@ -8,25 +8,6 @@
 import SwiftUI
 import Combine
 
-struct ConfigurableSetting {
-    var value: Float {
-        didSet {
-            onChange?(value)
-        }
-    }
-    
-    let defaultValue: Float
-    let min: Float
-    let max: Float
-    let step: Float
-    let format: String
-    var onChange: ((Float) -> Void)?
-    
-    mutating func returnToDefault() {
-        value = defaultValue
-    }
-}
-
 class SimulationSettings: ObservableObject {
     static let shared = SimulationSettings()
 
@@ -45,37 +26,37 @@ class SimulationSettings: ObservableObject {
     }
 
     @Published var maxDistance = ConfigurableSetting(
-        value: 0.65, defaultValue: 0.65, min: 0.25, max: 1.5, step: 0.05, format: "%.2f",
+        value: 0.65, defaultValue: 0.65, minValue: 0.25, maxValue: 1.5, step: 0.05, format: "%.2f",
         onChange: { _ in SimulationSettings.shared.scheduleBufferUpdate() }
     )
     
     @Published var minDistance = ConfigurableSetting(
-        value: 0.04, defaultValue: 0.04, min: 0.01, max: 0.15, step: 0.01, format: "%.2f",
+        value: 0.04, defaultValue: 0.04, minValue: 0.01, maxValue: 0.15, step: 0.01, format: "%.2f",
         onChange: { _ in SimulationSettings.shared.scheduleBufferUpdate() }
     )
     
     @Published var beta = ConfigurableSetting(
-        value: 0.3, defaultValue: 0.3, min: 0.1, max: 0.5, step: 0.025, format: "%.2f",
+        value: 0.3, defaultValue: 0.3, minValue: 0.1, maxValue: 0.5, step: 0.025, format: "%.2f",
         onChange: { _ in SimulationSettings.shared.scheduleBufferUpdate() }
     )
     
     @Published var friction = ConfigurableSetting(
-        value: 0.1, defaultValue: 0.1, min: 0.01, max: 0.3, step: 0.01, format: "%.2f",
+        value: 0.1, defaultValue: 0.1, minValue: 0.01, maxValue: 0.3, step: 0.01, format: "%.2f",
         onChange: { _ in SimulationSettings.shared.scheduleBufferUpdate() }
     )
     
     @Published var repulsion = ConfigurableSetting(
-        value: 0.03, defaultValue: 0.03, min: 0.01, max: 0.2, step: 0.01, format: "%.2f",
+        value: 0.03, defaultValue: 0.03, minValue: 0.01, maxValue: 0.2, step: 0.01, format: "%.2f",
         onChange: { _ in SimulationSettings.shared.scheduleBufferUpdate() }
     )
     
     @Published var pointSize = ConfigurableSetting(
-        value: 11.0, defaultValue: 11.0, min: 1.0, max: 30.0, step: 1.0, format: "%.0f",
+        value: 11.0, defaultValue: 11.0, minValue: 1.0, maxValue: 30.0, step: 1.0, format: "%.0f",
         onChange:{ newValue in handlePointSizeChange(newValue) }
     )
     
     @Published var worldSize = ConfigurableSetting(
-        value: 1.0, defaultValue: 1.0, min: 0.5, max: 4, step: 0.25, format: "%.2f",
+        value: 1.0, defaultValue: 1.0, minValue: 0.5, maxValue: 4, step: 0.25, format: "%.2f",
         onChange: { newValue in handleWorldSizeChange(newValue) }
     )
     
